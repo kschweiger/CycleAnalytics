@@ -1,0 +1,37 @@
+<h4>Recent Events</h4>
+<div class="container">
+    <div class="row">
+        <div class="col"></div>
+        <div class="col-3">
+            <form method="POST" enctype="multipart/form-data">
+                <select id="form_recent_event_type" name="form_recent_event_type" onchange='this.form.submit()'
+                    class="form-select">
+                    {% for event_type in recent_event_types %}
+                    <option value="{{event_type}}" {% if event_type==recent_event_type_selected%}selected{% endif %}>
+                        {{event_type}}
+                    </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+    <table class="table mt-3">
+        <thead>
+            <tr>
+                <th scope="col">Description</th>
+                <th scope="col">Type</th>
+                <th scope="col">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in recent_events%}
+            <tr>
+                <th>{{event[0]}}</td>
+                <th>{{event[1]}}</td>
+                <th>{{event[2]}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>

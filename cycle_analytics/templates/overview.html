@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+
+<div class="border m-1 p-1 border-primary-subtle rounded-3">
+    <div class="row mt-2 align-items-center">
+        <div class="col">
+            <form method="POST">
+                <label>Select a year:</label>
+                <select id="year" name="year" onchange='this.form.submit()' class="form-select">
+                    {% for year in years %}
+                    <option value="{{year}}" {% if year==year_selected%}selected{% endif %}>{{year}}
+                    </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+        <div class="col"></div>
+        <div class="col text-center">
+            <a class="btn btn-primary" href="{{url_for('overview.heatmap')}}">Show Heatmap</a>
+        </div>
+
+    </div>
+    <div class="mt-4">
+        <table class="table table-striped table-hover" id="overview_table">
+            <thead>
+                <tr>
+                    {% for heading in table_data[0]%}
+                    <th>{{heading}}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for line in table_data[1]%}
+                <tr>
+                    {% for elem in line %}
+                    {% if elem is iterable and elem is not string%}
+                    <td><a href="{{elem[1]}}">{{elem[0]}}</a></td>
+                    {% else %}
+                    <td>{{elem}}</td>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="border m-1 p-1 border-success-subtle rounded-3">
+    {% for plot, alt_text in plots %}
+    <img src="data:image/png;base64, {{ plot }}" class="img-fluid  mx-auto d-block w-100" alt="{{alt_text}}" />
+    {% endfor %}
+</div>
+
+
+{% endblock %}
+
+{% block body_scripts %}
+<script>
+    $(document).ready(function () {
+        $('#overview_table').DataTable(
+            { order: [[0, 'desc']], }
+        );
+    });
+</script>
+
+{% endblock %}

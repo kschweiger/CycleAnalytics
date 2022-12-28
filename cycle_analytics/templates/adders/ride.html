@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="border m-1 p-1 border-primary-subtle rounded-3">
+    <h4> Add a new ride</h4>
+    <form method="POST" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col">
+                {{form.date.label(class_="form-label") }}
+                {{form.date(class_="form-control")}}
+            </div>
+            <div class="col">
+                {{form.distance.label(class_="form-label") }}
+                {{form.distance(class_="form-control")}}
+            </div>
+            <div class="col">
+                {{form.ride_type.label(class_="form-label") }}
+                {{form.ride_type(class_="form-select")}}
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col">
+                {{form.start_time.label(class_="form-label") }}
+                {{form.start_time(class_="form-control", step_="1")}}
+            </div>
+            <div class="col">
+                {{form.ride_time.label(class_="form-label") }}
+                {{form.ride_time(class_="form-control", step_="1")}}
+            </div>
+            <div class="col">
+                {{form.total_time.label(class_="form-label") }}
+                {{form.total_time(class_="form-control", step_="1")}}
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col">
+                {{form.bike.label(class_="form-label") }}
+                {{form.bike(class_="form-control")}}
+            </div>
+            <div class="col"></div>
+            <div class="col"></div>
+        </div>
+        <div class="row mt-2">
+            <div class="col">
+                {{form.track.label(class_="form-label") }}
+                {{form.track(class_="form-control")}}
+            </div>
+            <div class="col"></div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

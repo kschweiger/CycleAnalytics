@@ -1,0 +1,34 @@
+<h4>Last Ride <small class="text-muted">- {{last_ride.date}}</small></h4>
+
+<div class="container">
+    <div class="row">
+        <div class="col"></div>
+        <div class="col-3">
+            <form method="POST" enctype="multipart/form-data">
+                <select id="form_last_ride_type" name="form_last_ride_type" onchange='this.form.submit()'
+                    class="form-select">
+                    {% for ride_type in last_ride_types %}
+                    <option value="{{ride_type}}" {% if ride_type==last_ride_type_selected%}selected{% endif %}>
+                        {{ride_type}}
+                    </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col">
+            <table class="table">
+                <tbody>
+                    {% for key, value in last_ride.data.items()%}
+                    <tr>
+                        <th scope="row">{{key}}</th>
+                        <td>{{value}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="col-3 border border-danger-subtle"><img class="img-fluid img-thumbnail" alt="Thumbnail"></div>
+    </div>
+</div>

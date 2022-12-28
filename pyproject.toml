@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "cycle-analytics"
+version = "0.1.0"
+description = "WApp for tracking, analyzing, and visualizing bicycle rides and gps tracks"
+authors = ["Korbinian Schweiger <korbinian.schweiger@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "cycle_analytics"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+Flask = "^2.2.2"
+data-organizer = {git = "https://git@github.com/kschweiger/data_organizer", rev = "1.2.0"}
+gpx-track-analyzer = {git = "ssh://git@github.com/kschweiger/track_analyzer", rev = "0.0.1"}
+Flask-Caching = "^2.0.1"
+gunicorn = "^20.1.0"
+dynaconf = "^3.1.11"
+flask-wtf = "^1.0.1"
+
+[tool.poetry.group.dev.dependencies]
+black = "^22.12.0"
+flake8 = "^6.0.0"
+mypy = "^0.991"
+pre-commit = "^2.21.0"
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.2.0"
+pytest-mock = "^3.10.0"
+pytest-cov = "^4.0.0"
+pytest-sugar = "^0.9.6"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row border border-primary-subtle rounded-3">
+        <div class="col-xl-7">
+            <div class="row m-1 p-1 border border-success-subtle rounded-3">{% include "tiles/last_ride.html" %}</div>
+            <div class="row m-1 p-1 border border-success-subtle rounded-3">{% include "tiles/recent_events.html" %}
+            </div>
+        </div>
+        <div class="col-xl">
+            <div class="row m-1 p-1 border border-success-subtle rounded-3">
+                {% include "tiles/summary.html" %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

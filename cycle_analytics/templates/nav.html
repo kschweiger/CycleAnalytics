@@ -1,0 +1,39 @@
+<nav class="navbar navbar-expand-lg bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand">
+            <img src="#" alt="Logo" width="30" height="24">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+            aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link {% if active_page == 'home'%}active{% endif %}"
+                        href="{{url_for('landing_page')}}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled {% if active_page == 'segments'%}active{% endif %}"
+                        href="{{url_for('segments.main')}}">Segments</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_page == 'overview'%}active{% endif %}"
+                        href="{{url_for('overview.main')}}">Overview</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% if active_page.startswith('add_') %}active{% endif %}"
+                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Add
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item {% if active_page == 'add_ride'%}active{% endif %}" href="
+                                {{url_for('adders.add_ride')}}">Ride</a></li>
+                        <li><a class="dropdown-item disabled {% if active_page == 'add_event'%}active{% endif %}"
+                                href="{{url_for('adders.add_event')}}">Event</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
