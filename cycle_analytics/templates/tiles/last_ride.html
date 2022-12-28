@@ -29,6 +29,10 @@
                 </tbody>
             </table>
         </div>
-        <div class="col-3 border border-danger-subtle"><img class="img-fluid img-thumbnail" alt="Thumbnail"></div>
+        <div class="col-3 border border-danger-subtle">
+            {% for thumbnail in last_ride.thumbnails %}
+            <img src="data:image/png;base64, {{ thumbnail }}" class="img-fluid img-thumbnail" alt="Thumbnail">
+            {% endfor %}
+        </div>
     </div>
 </div>

@@ -7,3 +7,4 @@ from typing import Dict
 class LastRide:
     date: date
     data: Dict[str, str]
+    thumbnails: list[str]
