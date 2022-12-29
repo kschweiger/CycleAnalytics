@@ -1,6 +1,7 @@
 import logging
 from datetime import date, timedelta
 
+from data_organizer.db.exceptions import QueryReturnedNoData
 from gpx_track_analyzer.track import ByteTrack
 from pandas import Timedelta
 from pypika import JoinType, Order, Table
@@ -21,15 +22,7 @@ def get_last_ride(ride_type: str) -> LastRide:
 
     :param ride_type: _description_
     """
-    db = get_db()
-    query = (
-        db.pypika_query.from_(Table("main"))
-        .select("id_ride")
-        .orderby("date", order=Order.desc)
-        .limit(1)
-    )
-
-    last_id = db.query(query)[0][0]
+    last_id = get_last_id("main", "date", True)
 
     data = get_full_ride_data(last_id)
     last_ride_data = {
@@ -44,10 +37,25 @@ def get_last_ride(ride_type: str) -> LastRide:
                 "Elevation Downhill [m]": round(data["downhill_elevation"], 2),
             }
         )
-
-    thumbnails = get_thumbnails_for_id(last_id)
+    try:
+        thumbnails = get_thumbnails_for_id(last_id)
+    except QueryReturnedNoData:
+        thumbnails = []
 
     return LastRide(date=data["date"], data=last_ride_data, thumbnails=thumbnails)
+
+
+def get_last_id(table: str, order_by: str, descending: bool):
+    db = get_db()
+
+    query = (
+        db.pypika_query.from_(Table(table))
+        .select("id_ride")
+        .orderby(order_by, order=Order.desc if descending else Order.asc)
+        .limit(1)
+    )
+
+    return db.query(query)[0][0]
 
 
 @cache.memoize(timeout=86400)

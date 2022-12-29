@@ -1,3 +1,11 @@
+tables=["main", "tracks", "events"]
+
+[defaults]
+bike="Nerve"
+ride_type="MTB"
+raw_track_table="tracks"
+track_table="tracks_enhanced_v1"
+
 [db]
 name="CycleAnalytics"
 user="dev"
@@ -19,3 +27,60 @@ auto_fill_ctypes = ["SERIAL"]
 
 [style]
 color_sequence=["#0d6efd", "#dc3545", "#198754", "#6610f2", "#fd7e14", "#20c997"]
+
+[adders]
+    [adders.ride]
+        type_choices=["MTB","Road","Gravel"]
+
+[main]
+    name="main"
+    rel_table="tracks"
+    rel_table_common_column="id_ride"
+    [main.id_ride]
+        ctype="SERIAL"
+        is_primary=true
+    [main.date]
+        ctype="DATE"
+    [main.start_time]
+        ctype="TIME"
+        is_nullable=true
+        default="NULL"
+    [main.ride_time]
+        ctype="INTERVAL"
+        is_nullable=true
+        default="NULL"
+    [main.total_time]
+        ctype="INTERVAL"
+    [main.distance]
+        ctype="FLOAT"
+    [main.bike]
+        ctype="VARCHAR(20)"
+        default="Nerve"
+    [main.ride_type]
+        ctype="VARCHAR(20)"
+        is_nullable=true
+        default="MTB"
+
+
+[tracks]
+    name="tracks"
+    [tracks.id_track]
+        ctype="SERIAL"
+        is_primary=true
+    [tracks.id_ride]
+        ctype="INT"
+    [tracks.gpx]
+        ctype="BYTEA"
+
+[events]
+    name="events"
+    [events.date]
+        ctype="DATE"
+        is_primary=true
+    [events.event_type]
+        ctype="VARCHAR(20)"
+    [events.short_description]
+        ctype="VARCHAR(20)"
+    [events.description]
+        ctype="VARCHAR(20)"
+        is_nullable=true

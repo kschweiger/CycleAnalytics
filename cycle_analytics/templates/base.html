@@ -17,6 +17,10 @@
         <header class="mt-3">
             {% block header %}{% endblock %}
         </header>
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+        {% if category == "message" %}{% set category = "alert-primary" %}{% endif %}
+        <div class="alert {{category}}">{{ message | safe }}</div>
+        {% endfor %}
         <main>
             {% block content %}{% endblock %}
         </main>

@@ -1,8 +1,10 @@
 import logging
+
+from data_organizer.config import OrganizerConfig
 from dynaconf import FlaskDynaconf
 from flask import Flask
 from flask.logging import default_handler
-from data_organizer.config import OrganizerConfig
+from flask_wtf.csrf import CSRFProtect
 
 from cycle_analytics.landing_page import render_landing_page
 
@@ -50,6 +52,9 @@ def create_app(test_config=None):
 
     logger.debug("Initializing DB")
     db.init_app(app)
+
+    logger.debug("Initializing CSRF protection form FLASK-WTF")
+    CSRFProtect(app)
 
     @app.route("/", methods=["GET", "POST"])
     def landing_page():
