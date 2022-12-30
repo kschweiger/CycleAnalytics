@@ -8,3 +8,14 @@ class LastRide:
     date: date
     data: Dict[str, str]
     thumbnails: Optional[list[str]]
+
+
+@dataclass
+class MapPathData:
+    latitudes: str
+    longitudes: str
+
+
+@dataclass
+class MapData:
+    path: MapPathData

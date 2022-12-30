@@ -51,9 +51,18 @@
 </div>
 
 <div class="border m-1 p-1 border-success-subtle rounded-3">
-    {% for plot, alt_text in plots %}
-    <img src="data:image/png;base64, {{ plot }}" class="img-fluid  mx-auto d-block w-100" alt="{{alt_text}}" />
-    {% endfor %}
+    <div class="container">
+        {% for plot_row in plots %}
+        <div class="row">
+            {% for plot, alt_text in plot_row %}
+            <div class="col-xl">
+                <img src="data:image/png;base64, {{ plot }}" class="img-fluid  mx-auto d-block w-100"
+                    alt="{{alt_text}}" />
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
 </div>
 
 

@@ -1,7 +1,7 @@
 from datetime import date
 
 import pandas as pd
-from flask import Blueprint, current_app, render_template, request
+from flask import Blueprint, current_app, render_template, request, url_for
 
 from cycle_analytics.plotting import per_month_overview_plots
 from cycle_analytics.queries import get_rides_in_timeframe, get_years_in_database
@@ -34,7 +34,10 @@ def main():
         # thumbnails = get_thumbnails_for_id(rcrd["id_ride"])
         table_data.append(
             (
-                (rcrd["date"].isoformat(), "#"),
+                (
+                    rcrd["date"].isoformat(),
+                    url_for("ride.display", id_ride=rcrd["id_ride"]),
+                ),
                 ""
                 if pd.isnull(rcrd["ride_time"])
                 else get_nice_timedelta_isoformat(rcrd["ride_time"].isoformat()),
@@ -52,7 +55,7 @@ def main():
             )
         )
 
-    plots = per_month_overview_plots(
+    plots_ = per_month_overview_plots(
         rides,
         [
             ("id_ride", "count", "Number of rides per Month", "Count", False),
@@ -75,6 +78,10 @@ def main():
         width=1200,
         color_sequence=current_app.config.style.color_sequence,
     )
+
+    plots = []
+    for i in range(0, len(plots_), 2):
+        plots.append(plots_[i : i + 2])
 
     return render_template(
         "overview.html",

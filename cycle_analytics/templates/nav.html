@@ -33,6 +33,10 @@
                                 href="{{url_for('adders.add_event')}}">Event</a></li>
                     </ul>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_page == 'settings'%}active{% endif %}"
+                        href="{{url_for('settings.main')}}">Settings</a>
+                </li>
             </ul>
         </div>
     </div>

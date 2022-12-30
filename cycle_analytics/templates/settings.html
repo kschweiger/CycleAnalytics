@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+{# <h3>Settings</h3>
+<div class="border p-1 border-primary-subtle rounded-3">
+
+
+</div> #}
+
+<h3>Utilities</h3>
+<div class="border p-1 border-primary-subtle rounded-3">
+    <table class="table table-hover">
+        <tbody>
+            <tr>
+                <th>
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <input type="hidden" name="reset_cache" id="reset_cache" value="reset" />
+                        <div class="text-center"><input type="submit" value="Reset" class="btn btn-primary"></div>
+                    </form>
+                </th>
+                <td>
+                    <p>Reset the cache of the application.</p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block head_scripts %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+{% endblock %}
+
+{% block content %}
+<h3> {{ride_date}} <small class="text-muted">{{ride_from}} - {{ride_to}}</small></h3>
+
+
+<div class="accordion m-1 p-1 " id="ride_info_accordion">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="ride_data_heading">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapse_ride_data" aria-expanded="true" aria-controls="collapse_ride_data">
+                Ride data
+            </button>
+        </h2>
+        <div id="collapse_ride_data" class="accordion-collapse collapse show" aria-labelledby="ride_data_heading">
+            <div class="accordion-body">
+                <table class="table mt-3">
+                    <tbody>
+                        {% for data in ride_data%}
+                        <tr>
+                            <th scope="row">{{data[0]}}</th>
+                            <td>{{data[1]}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% if track_data is not none %}
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="track_data_heading">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapse_track_data" aria-expanded="false" aria-controls="collapse_track_data">
+                Track data
+            </button>
+        </h2>
+        <div id="collapse_track_data" class="accordion-collapse collapse" aria-labelledby="track_data_heading">
+            <div class="accordion-body">
+                <table class="table mt-3">
+                    <tbody>
+                        {% for data in track_data%}
+                        <tr>
+                            <th scope="row">{{data[0]}}</th>
+                            <td>{{data[1]}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if map_data is not none%}
+<div class="border m-1 p-2 border-primary-subtle rounded-3">
+    <div id="map" style="height:600px"></div>
+</div>
+{% endif %}
+
+{% if plot_elevation_and_velocity is not none%}
+<div class="border m-1 p-2 border-primary-subtle rounded-3">
+    <div id="chart" class="my-3"></div>
+</div>
+{% endif %}
+
+<div id="demo"></div>
+
+{% endblock %}
+
+{% block body_scripts %}
+{% if plot_elevation_and_velocity is not none%}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    var chart = {{ plot_elevation_and_velocity | safe}};
+    var data = chart["data"];
+    var layout = chart["layout"];
+    var config = { displayModeBar: false, responsive: true, width: 10 };
+    Plotly.newPlot("chart", data, layout, config);
+</script>
+{% endif %}
+<script src="{{ url_for('static', filename='map_utils.js') }}"></script>
+
+<script>
+    var map = L.map('map');
+    var layer = get_map_layer();
+    map.addLayer(layer);
+    set_path_on_map("{{ map_data.path.latitudes }}", "{{ map_data.path.longitudes }}");
+</script>
+{% endblock %}
