@@ -1,10 +1,18 @@
+import json
 from datetime import date
 
 import pandas as pd
+import plotly
+import plotly.express as px
 from flask import Blueprint, current_app, render_template, request, url_for
+from gpx_track_analyzer.utils import center_geolocation
 
 from cycle_analytics.plotting import per_month_overview_plots
-from cycle_analytics.queries import get_rides_in_timeframe, get_years_in_database
+from cycle_analytics.queries import (
+    get_rides_in_timeframe,
+    get_track_for_id,
+    get_years_in_database,
+)
 from cycle_analytics.utils import get_nice_timedelta_isoformat
 
 bp = Blueprint("overview", __name__, url_prefix="/overview")
@@ -95,4 +103,47 @@ def main():
 
 @bp.route("/heatmap", methods=("GET", "POST"))
 def heatmap():
-    return render_template("visualizations/heatmap.html", active_page="overview")
+    heatmap_plot = None
+    year_selected = request.args.get("year_selected")
+
+    rides = get_rides_in_timeframe(year_selected)
+
+    rides_w_track = rides[rides.id_track.notna()].id_ride.to_list()
+    # TODO: Do this multithreaded?
+    datas = []
+    for ride_id in rides_w_track:
+        data = get_track_for_id(ride_id).get_segment_data()
+        datas.append(data[data.moving])
+
+    data = pd.concat(datas)
+
+    center_lat, center_lon = center_geolocation(
+        [(r["latitude"], r["longitude"]) for r in data.to_dict("records")]
+    )
+
+    fig = px.density_mapbox(
+        data,
+        lat="latitude",
+        lon="longitude",
+        radius=5,
+        center=dict(lat=center_lat, lon=center_lon),
+        zoom=11,
+        mapbox_style="carto-positron",
+        color_continuous_scale=px.colors.sequential.Viridis,
+        range_color=[0, len(datas) / 2],
+        height=800,
+    )
+    fig.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+    )
+    fig.update_layout(font_color="white")
+
+    heatmap_plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+    return render_template(
+        "visualizations/heatmap.html",
+        active_page="overview",
+        year_selected=year_selected,
+        heatmap_plot=heatmap_plot,
+    )

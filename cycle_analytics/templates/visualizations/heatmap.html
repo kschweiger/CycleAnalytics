@@ -2,4 +2,20 @@
 
 {% block content %}
 
+<h3>Path heatmap for {{year_selected}}</h3>
+
+<div id="chart"></div>
+
+
+{% endblock %}
+
+{% block body_scripts %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script type="text/javascript">
+    var chart = {{ heatmap_plot | safe}};
+    var data = chart["data"];
+    var layout = chart["layout"];
+    var config = { displayModeBar: false, responsive: true };
+    Plotly.newPlot("chart", data, layout, config);
+</script>
 {% endblock %}
