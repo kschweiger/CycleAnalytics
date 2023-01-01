@@ -3,7 +3,8 @@
     <div class="row">
         <div class="col"></div>
         <div class="col-3">
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <select id="form_recent_event_type" name="form_recent_event_type" onchange='this.form.submit()'
                     class="form-select">
                     {% for event_type in recent_event_types %}

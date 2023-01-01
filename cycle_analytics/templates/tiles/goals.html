@@ -1,0 +1,64 @@
+<h4>Goals</h4>
+
+<div class="container">
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="row">
+            <div class="col"></div>
+            <div class="col"></div>
+            <div class="col text-end">
+                <select id="form_goals_month" name="form_goals_month" class="form-select">
+                    {% for month in goal_months %}
+                    <option value="{{month}}" {% if month==goal_month_selected%}selected{% endif %}>
+                        {{month}}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col text-end">
+                <select id="form_goals_year" name="form_goals_year" class="form-select">
+                    {% for year in goal_years %}
+                    <option value="{{year}}" {% if year==goal_year_selected%}selected{% endif %}>
+                        {{year}}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-2">
+                <input type="submit" value="Apply" class="btn btn-primary w-100">
+            </div>
+        </div>
+    </form>
+    <div class="mt-3">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Goal</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for goal in goals%}
+                <tr>
+                    <th>{{goal[0]}}</td>
+                    <th>{{goal[1]}}</td>
+                    <th>{{goal[2]}}</td>
+                    <td>
+                        {% if goal[3] == 1 %}
+                        <div class="border border-success rounded-1 bg-success-subtle text-center">
+                            &#10003;
+                        </div>
+                        {% else %}
+                        <div class="border border-danger rounded-1 bg-danger-subtle text-center">
+                            &#10006;
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

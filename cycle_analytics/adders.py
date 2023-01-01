@@ -1,11 +1,23 @@
+from datetime import date
+
 from flask import Blueprint, current_app, flash, redirect, render_template, request
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
-from wtforms import DateField, DecimalField, SelectField, StringField, TimeField
-from wtforms.validators import DataRequired
+from wtforms import (
+    DateField,
+    DecimalField,
+    IntegerField,
+    SelectField,
+    StringField,
+    TextAreaField,
+    TimeField,
+)
+from wtforms.validators import DataRequired, NumberRange
 
 from cycle_analytics.db import get_db
+from cycle_analytics.goals import GoalType
 from cycle_analytics.queries import get_last_id
+from cycle_analytics.utils import get_month_mapping
 
 bp = Blueprint("adders", __name__, url_prefix="/add")
 
@@ -19,6 +31,37 @@ class RideForm(FlaskForm):
     bike = StringField("Bike", validators=[DataRequired()])
     ride_type = SelectField("Ride Type")
     track = FileField("GPX Track")
+
+
+class GoalForm(FlaskForm):
+    year = IntegerField(
+        "Year",
+        validators=[DataRequired(), NumberRange(2022, 2099)],
+        default=date.today().year,
+    )
+    month = SelectField(
+        "Month",
+        validators=[DataRequired()],
+        choices=[(-1, "-"), (0, "All")]
+        + [(i, get_month_mapping()[i]) for i in range(1, 13)],
+    )
+    name = StringField(
+        "Name", validators=[DataRequired()], description="Short name for the goal"
+    )
+    goal_type = SelectField(
+        "Type",
+        validators=[DataRequired()],
+        choices=[(g.value, g.description) for g in GoalType],
+    )
+    threshold = DecimalField("Threshold", validators=[DataRequired()])
+    boundary = SelectField(
+        "Boundary", validators=[DataRequired()], choices=[(1, "Upper"), (0, "Lower")]
+    )
+    description = TextAreaField(
+        "Description",
+        default=None,
+        description="Optional longer description of the goal",
+    )
 
 
 @bp.route("/ride", methods=("GET", "POST"))
@@ -96,3 +139,35 @@ def add_ride():
 @bp.route("/event", methods=("GET", "POST"))
 def add_event():
     return render_template("adders/event.html", active_page="add_event")
+
+
+@bp.route("/goal", methods=("GET", "POST"))
+def add_goal():
+    form = GoalForm()
+    print(request.form)
+    if form.validate_on_submit():
+
+        db = get_db()
+        data_to_insert = [
+            [
+                form.year.data,
+                None if int(form.month.data) == -1 else int(form.month.data),
+                form.name.data,
+                form.goal_type.data,
+                form.threshold.data,
+                bool(int(form.boundary.data)),
+                None if form.description.data == "" else form.description.data,
+                False,
+            ]
+        ]
+        print(data_to_insert)
+        insert_succ, err = db.insert(
+            current_app.config.tables_as_settings["goals"],
+            data_to_insert,
+        )
+        if insert_succ:
+            flash("Goal Added", "alert-success")
+        else:
+            flash(f"Track could not be added: {err}", "alert-danger")
+
+    return render_template("adders/goal.html", active_page="add_goal", form=form)

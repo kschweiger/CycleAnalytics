@@ -25,6 +25,7 @@ flake8 = "^6.0.0"
 mypy = "^0.991"
 pre-commit = "^2.21.0"
 flake8-pyproject = "^1.2.2"
+ipython = "^8.7.0"
 
 
 [tool.poetry.group.test.dependencies]
@@ -54,3 +55,8 @@ pytest-parametrize-values-type = "list"
 pytest-parametrize-values-row-type = "tuple"
 # PT023:
 pytest-mark-no-parentheses = true
+
+[tool.mypy]
+python_version = "3.10"
+check_untyped_defs = true
+exclude = ["tests/*"]

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="border p-1 border-primary-subtle rounded-3">
+    <h4> Add a new goal</h4>
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        <div class="row">
+            <div class="col">
+                {{form.name.label(class_="form-label") }}
+                {{form.name(class_="form-control", placeholder_=form.name.description)}}
+            </div>
+            <div class="col">
+                {{form.year.label(class_="form-label") }}
+                {{form.year(class_="form-control")}}
+            </div>
+            <div class="col">
+                {{form.month.label(class_="form-label") }}
+                {{form.month(class_="form-select")}}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                {{form.goal_type.label(class_="form-label") }}
+                {{form.goal_type(class_="form-select")}}
+            </div>
+            <div class="col">
+                {{form.threshold.label(class_="form-label") }}
+                {{form.threshold(class_="form-control")}}
+            </div>
+            <div class="col">
+                {{form.boundary.label(class_="form-label") }}
+                {{form.boundary(class_="form-select")}}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                {{form.description.label(class_="form-label") }}
+                {{form.description(class_="form-control", placeholder_=form.description.description)}}
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col text-end"><input type="submit" value="Submit" class="btn btn-primary"></div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

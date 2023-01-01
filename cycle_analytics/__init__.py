@@ -48,12 +48,12 @@ def create_app(test_config=None):
     logger.debug("Initializing Cache")
     cache.init_app(app=app)
 
-    from . import db
+    from cycle_analytics import db
 
     logger.debug("Initializing DB")
     db.init_app(app)
 
-    logger.debug("Initializing CSRF protection form FLASK-WTF")
+    logger.debug("Initializing CSRF protection from FLASK-WTF")
     CSRFProtect(app)
 
     @app.route("/", methods=["GET", "POST"])
@@ -67,6 +67,10 @@ def create_app(test_config=None):
     from cycle_analytics.overview import bp as overview
 
     app.register_blueprint(overview)
+
+    from cycle_analytics.goals import bp as goals
+
+    app.register_blueprint(goals)
 
     from cycle_analytics.ride import bp as ride
 

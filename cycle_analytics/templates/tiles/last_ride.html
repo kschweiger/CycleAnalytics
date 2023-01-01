@@ -4,7 +4,8 @@
     <div class="row">
         <div class="col"></div>
         <div class="col-3">
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <select id="form_last_ride_type" name="form_last_ride_type" onchange='this.form.submit()'
                     class="form-select">
                     {% for ride_type in last_ride_types %}

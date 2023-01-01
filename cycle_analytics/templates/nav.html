@@ -14,12 +14,16 @@
                         href="{{url_for('landing_page')}}">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link disabled {% if active_page == 'segments'%}active{% endif %}"
-                        href="{{url_for('segments.main')}}">Segments</a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link {% if active_page == 'overview'%}active{% endif %}"
                         href="{{url_for('overview.main')}}">Overview</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_page == 'goals'%}active{% endif %}"
+                        href="{{url_for('goals.overview')}}">Goals</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled {% if active_page == 'segments'%}active{% endif %}"
+                        href="{{url_for('segments.main')}}">Segments</a>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle {% if active_page.startswith('add_') %}active{% endif %}"
@@ -27,10 +31,12 @@
                         Add
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item {% if active_page == 'add_ride'%}active{% endif %}" href="
-                                {{url_for('adders.add_ride')}}">Ride</a></li>
+                        <li><a class="dropdown-item {% if active_page == 'add_ride'%}active{% endif %}"
+                                href="{{url_for('adders.add_ride')}}">Ride</a></li>
                         <li><a class="dropdown-item disabled {% if active_page == 'add_event'%}active{% endif %}"
                                 href="{{url_for('adders.add_event')}}">Event</a></li>
+                        <li><a class="dropdown-item {% if active_page == 'add_goal'%}active{% endif %}"
+                                href="{{url_for('adders.add_goal')}}">Goal</a></li>
                     </ul>
                 </li>
                 <li class="nav-item">

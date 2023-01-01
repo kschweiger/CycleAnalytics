@@ -1,10 +1,10 @@
 <h4>Summary</h4>
 <div class="container">
-    <form method="POST" enctype="multipart/form-data">
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="row">
             <div class="col">
-                <select id="form_summary_ride_type" name="form_summary_ride_type" onchange='this.form.submit()'
-                    class="form-select">
+                <select id="form_summary_ride_type" name="form_summary_ride_type" class="form-select">
                     {% for ride_type in last_ride_types %}
                     <option value="{{ride_type}}" {% if ride_type==summary_ride_type_selected%}selected{% endif %}>
                         {{ride_type}}
@@ -13,14 +13,16 @@
                 </select>
             </div>
             <div class="col">
-                <select id="form_summary_year" name="form_summary_year" onchange='this.form.submit()'
-                    class="form-select">
+                <select id="form_summary_year" name="form_summary_year" class="form-select">
                     {% for year in summary_years %}
                     <option value="{{year}}" {% if year==summary_year_selected%}selected{% endif %}>
                         {{year}}
                     </option>
                     {% endfor %}
                 </select>
+            </div>
+            <div class="col">
+                <input type="submit" value="Apply" class="btn btn-primary w-100">
             </div>
         </div>
     </form>

@@ -4,6 +4,7 @@ from datetime import date
 import pandas as pd
 import plotly
 import plotly.express as px
+from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import Blueprint, current_app, render_template, request, url_for
 from gpx_track_analyzer.utils import center_geolocation
 
@@ -36,8 +37,11 @@ def main():
         "Downhill [m]",
     ]
     table_data = []
+    try:
+        rides = get_rides_in_timeframe(selected_year)
+    except QueryReturnedNoData:
+        rides = pd.DataFrame()
 
-    rides = get_rides_in_timeframe(selected_year)
     for rcrd in rides.to_dict("records"):
         # thumbnails = get_thumbnails_for_id(rcrd["id_ride"])
         table_data.append(
@@ -63,29 +67,31 @@ def main():
             )
         )
 
-    plots_ = per_month_overview_plots(
-        rides,
-        [
-            ("id_ride", "count", "Number of rides per Month", "Count", False),
-            ("distance", "sum", "Distance per Month", "Distance [km]", False),
-            (
-                "distance",
-                "avg",
-                "Average ride distance per Month",
-                "Distance [km]",
-                False,
-            ),
-            (
-                "distance",
-                "sum",
-                "Cumulative distance per Month",
-                "Distance [km]",
-                True,
-            ),
-        ],
-        width=1200,
-        color_sequence=current_app.config.style.color_sequence,
-    )
+    plots_ = []
+    if not rides.empty:
+        plots_ = per_month_overview_plots(
+            rides,
+            [
+                ("id_ride", "count", "Number of rides per Month", "Count", False),
+                ("distance", "sum", "Distance per Month", "Distance [km]", False),
+                (
+                    "distance",
+                    "avg",
+                    "Average ride distance per Month",
+                    "Distance [km]",
+                    False,
+                ),
+                (
+                    "distance",
+                    "sum",
+                    "Cumulative distance per Month",
+                    "Distance [km]",
+                    True,
+                ),
+            ],
+            width=1200,
+            color_sequence=current_app.config.style.color_sequence,
+        )
 
     plots = []
     for i in range(0, len(plots_), 2):

@@ -1,4 +1,4 @@
-tables=["main", "tracks", "events"]
+tables=["main", "tracks", "events", "goals"]
 
 [defaults]
 bike="Nerve"
@@ -84,3 +84,38 @@ color_sequence=["#0d6efd", "#dc3545", "#198754", "#6610f2", "#fd7e14", "#20c997"
     [events.description]
         ctype="VARCHAR(20)"
         is_nullable=true
+    [events.latitude]
+        ctype="FLOAT"
+        is_nullable=true
+        default="Null"
+    [events.longitude]
+        ctype="FLOAT"
+        is_nullable=true
+        default="Null"
+
+
+[goals]
+    name="goals"
+    [goals.id_goal]
+        ctype="SERIAL"
+        is_primary=true
+    [goals.year]
+        ctype="INT"
+    [goals.month]
+        ctype="INT"
+        is_nullable=true
+    [goals.goal_name]
+        ctype="VARCHAR(20)"
+    [goals.type]
+        ctype="VARCHAR(20)"
+    [goals.threshold]
+        ctype="FLOAT"
+    [goals.is_upper_bound]
+        ctype="BOOLEAN"
+        default=true
+    [goals.description]
+        ctype="TEXT"
+        is_nullable=true
+    [goals.has_been_reached]
+        ctype="BOOLEAN"
+        default=false
