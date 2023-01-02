@@ -2,18 +2,20 @@ from abc import ABC, abstractmethod
 from copy import copy
 from datetime import date
 from enum import Enum
-from typing import Optional
+from typing import Dict
 
+import numpy as np
 import pandas as pd
 from flask import Blueprint, render_template
 
-from cycle_analytics.db import get_db
+from cycle_analytics.model import GoalDisplayData, GoalInfoData
 
 
 class GoalType(str, Enum):
     COUNT = "count"
     TOTAL_DISTANCE = "total_distance"
     AVG_DISTANCE = "avg_distance"
+    MAX_DISTANCE = "max_distance"
 
     @property
     def description(self) -> str:
@@ -23,6 +25,8 @@ class GoalType(str, Enum):
             return "Total distance in time span"
         elif self == GoalType.AVG_DISTANCE:
             return "Average monthly distance"
+        elif self == GoalType.MAX_DISTANCE:
+            return "Maximum ride distance"
         else:
             raise NotImplementedError
 
@@ -34,6 +38,8 @@ class GoalType(str, Enum):
                 return f"{threshold/1000} km"
             else:
                 return f"{threshold} m"
+        elif self == GoalType.MAX_DISTANCE:
+            return f"{threshold} km"
         else:
             raise NotImplementedError
 
@@ -42,13 +48,15 @@ class Goal(ABC):
     def __init__(self, **kwargs):
         self.name: str = kwargs["goal_name"]
         self.id: int = kwargs["id_goal"]
-        self.description: str = kwargs["description"]
+        self.description: None | str = kwargs["description"]
         self.type = GoalType(kwargs["type"])
         self.threshold: float = kwargs["threshold"]
         self.is_upper_bound: bool = kwargs["is_upper_bound"]
         self.year: int = kwargs["year"]
-        self.month: Optional[int] = None
+        self.month: None | int = None
         self.reached: bool = kwargs["has_been_reached"]
+        self.constraints: None | Dict[str, list[str]] = kwargs["constraints"]
+        self.active: bool = kwargs["active"]
 
     def _check(self, value: int | float) -> bool:
         if self.is_upper_bound:
@@ -67,6 +75,8 @@ class Goal(ABC):
             return data.distance.sum()
         elif self.type == GoalType.AVG_DISTANCE:
             return data.distance.mean()
+        elif self.type == GoalType.MAX_DISTANCE:
+            return data.distance.max()
         else:
             raise NotImplementedError("Type %s not yet implemented" % self.type)
 
@@ -83,10 +93,49 @@ class Goal(ABC):
 
         return self._check(self._compute_value(relevant_data))
 
+    def evaluate(self, data: pd.DataFrame) -> tuple[bool, float, float]:
+        """Evaluate the goal gainst the passed data. Returns boolen flag and
+        a numerical progress. The numberical progress is a number between 0 and 1
+        (%) if the goal threshold is an upper_bound and the difference to the threshold
+        if the threshold is a lower bound.
+
+        :param data: Data to be evaluated
+        :return: Tuple containing boolean flag specifiying if the gial has been
+                 reached and a float specifying the progress.
+        """
+        relevant_data = self._get_relevant_data(self._apply_constraints(data))
+        if relevant_data.empty:
+            return False, 0, 0 if self.is_upper_bound else np.nan
+
+        curr_value = self._compute_value(relevant_data)
+
+        if self.is_upper_bound:
+            if curr_value == 0:
+                progress = 0.0
+            else:
+                progress = curr_value / self.threshold
+        else:
+            progress = self.threshold - curr_value
+
+        return self._check(curr_value), curr_value, progress
+
     @property
     @abstractmethod
     def goal_type_repr(self) -> str:
         ...
+
+    def _apply_constraints(self, data: pd.DataFrame) -> pd.DataFrame:
+        if self.constraints is None:
+            return data
+
+        mask = pd.Series(len(data) * [True])
+        if "ride_type" in self.constraints.keys():
+            mask = mask & data.ride_type.isin(self.constraints["ride_type"])
+
+        if "bike" in self.constraints.keys():
+            mask = mask & data.bike.isin(self.constraints["bike"])
+
+        return data[mask]
 
 
 class YearlyGoal(Goal):
@@ -114,7 +163,10 @@ class MonthlyGoal(Goal):
 
     def _get_relevant_data(self, data: pd.DataFrame) -> pd.DataFrame:
         month_start = date(self.year, self.month, 1)
-        next_month_start = date(self.year, self.month + 1, 1)
+        if self.month == 12:
+            next_month_start = date(self.year + 1, 1, 1)
+        else:
+            next_month_start = date(self.year, self.month + 1, 1)
 
         return data[(data.date >= month_start) & (data.date < next_month_start)]
 
@@ -170,9 +222,54 @@ bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 @bp.route("/", methods=("GET", "POST"))
 def overview():
-    from cycle_analytics.queries import load_goals
+    from cycle_analytics.queries import get_rides_in_timeframe, load_goals
 
-    db = get_db()
-    goals = load_goals(2022)
+    # month_mapping = get_month_mapping()
+    # inv_month_mapping = {value: key for key, value in month_mapping.items()}
 
-    return render_template("goals.html", active_page="goals")
+    today = date.today()
+    today = date(2022, 12, 31)  # TEMP
+
+    load_year = today.year
+    load_month = today.month
+
+    goals = load_goals(load_year)
+
+    year_goals = [g for g in goals if g.month is None]
+    month_goals = [g for g in goals if g.month == load_month]
+
+    data = get_rides_in_timeframe(load_year)
+
+    year_goal_displays = []
+    month_goal_displays = []
+    # TODO: Add update of has_been_reached column
+    for goal in year_goals + month_goals:
+        status, current_value, progress = goal.evaluate(data)
+        goal_data = GoalDisplayData(
+            goal_id=str(goal.id),
+            info=GoalInfoData(
+                name=goal.name,
+                goal=goal.type.get_formatted_condition(goal.threshold),
+                threshold=goal.threshold,
+                value=round(current_value, 2)
+                if isinstance(current_value, float)
+                else current_value,
+                progress=round(progress * 100) if goal.is_upper_bound else progress,
+                reached=int(status),
+                description=goal.description,
+            ),
+            progress_bar=goal.is_upper_bound,
+        )
+        if goal in year_goals:
+            year_goal_displays.append(goal_data)
+        else:
+            month_goal_displays.append(goal_data)
+
+    return render_template(
+        "goals.html",
+        active_page="goals",
+        year=load_year,
+        month=load_month,
+        year_goal_displays=year_goal_displays,
+        month_goal_displays=month_goal_displays,
+    )

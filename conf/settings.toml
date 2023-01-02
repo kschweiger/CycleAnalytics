@@ -113,9 +113,15 @@ color_sequence=["#0d6efd", "#dc3545", "#198754", "#6610f2", "#fd7e14", "#20c997"
     [goals.is_upper_bound]
         ctype="BOOLEAN"
         default=true
+    [goals.constraints]
+        ctype="JSON"
+        is_nullable=true
     [goals.description]
         ctype="TEXT"
         is_nullable=true
     [goals.has_been_reached]
         ctype="BOOLEAN"
         default=false
+    [goals.active]
+        ctype="BOOLEAN"
+        default=true

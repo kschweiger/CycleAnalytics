@@ -6,7 +6,7 @@
     <h4> Add a new goal</h4>
     <form method="POST" enctype="multipart/form-data">
         {{ form.csrf_token }}
-        <div class="row">
+        <div class="row  mt-2">
             <div class="col">
                 {{form.name.label(class_="form-label") }}
                 {{form.name(class_="form-control", placeholder_=form.name.description)}}
@@ -20,7 +20,7 @@
                 {{form.month(class_="form-select")}}
             </div>
         </div>
-        <div class="row">
+        <div class="row  mt-2">
             <div class="col">
                 {{form.goal_type.label(class_="form-label") }}
                 {{form.goal_type(class_="form-select")}}
@@ -34,7 +34,31 @@
                 {{form.boundary(class_="form-select")}}
             </div>
         </div>
+        <div class="row  mt-2">
+            <div class="col">
+                {{form.bike.label(class_="form-label") }}</div>
+            <div class="col">
+                {{form.ride_types.label(class_="form-label") }}
+            </div>
+        </div>
         <div class="row">
+            <div class="col form-label fw-lighter">
+                Optional constrain on the bike. Separate multiple bikes via commas.
+            </div>
+            <div class="col form-label fw-lighter">
+                {{form.ride_types.description}}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                {{form.bike(class_="form-control", placeholder_=form.bike.description)}}
+            </div>
+            <div class="col">
+                {{form.ride_types(class_="form-select", size_="3")}}
+            </div>
+        </div>
+        <div class="col"></div>
+        <div class="row mt-2">
             <div class="col">
                 {{form.description.label(class_="form-label") }}
                 {{form.description(class_="form-control", placeholder_=form.description.description)}}

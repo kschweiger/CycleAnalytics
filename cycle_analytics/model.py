@@ -19,3 +19,21 @@ class MapPathData:
 @dataclass
 class MapData:
     path: MapPathData
+
+
+@dataclass
+class GoalInfoData:
+    name: str
+    goal: str
+    threshold: str
+    value: int | float
+    progress: float
+    reached: int
+    description: None | str
+
+
+@dataclass
+class GoalDisplayData:
+    goal_id: str
+    info: GoalInfoData
+    progress_bar: bool

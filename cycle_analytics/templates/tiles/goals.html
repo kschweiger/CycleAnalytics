@@ -42,19 +42,11 @@
             <tbody>
                 {% for goal in goals%}
                 <tr>
-                    <th>{{goal[0]}}</td>
-                    <th>{{goal[1]}}</td>
-                    <th>{{goal[2]}}</td>
+                    <td>{{goal[0]}}</td>
+                    <td>{{goal[1]}}</td>
+                    <td>{{goal[2]}}</td>
                     <td>
-                        {% if goal[3] == 1 %}
-                        <div class="border border-success rounded-1 bg-success-subtle text-center">
-                            &#10003;
-                        </div>
-                        {% else %}
-                        <div class="border border-danger rounded-1 bg-danger-subtle text-center">
-                            &#10006;
-                        </div>
-                        {% endif %}
+                        <div id="goal_check_{{loop.index}}"></div>
                     </td>
                 </tr>
                 {% endfor %}

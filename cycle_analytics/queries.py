@@ -158,7 +158,6 @@ def get_rides_in_timeframe(timeframe: int | str | list[int]) -> pd.DataFrame:
     data["year"] = data.apply(lambda r: r.date.year, axis=1)
     data["month"] = data.apply(lambda r: month_labels[r.date.month], axis=1)
 
-    print(data.columns)
     return data
 
 

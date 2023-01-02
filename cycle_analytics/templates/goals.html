@@ -1,5 +1,148 @@
 {% extends 'base.html' %}
 
+{% block head_scripts %}
+<script src="{{ url_for('static', filename='utilities.js') }}"></script>
+{% endblock %}
+
 {% block content %}
+
+{% if year_goal_displays|length > 0 %}
+<div class="border m-1 p-2 border-primary-subtle rounded-3">
+    <h4>Goals for year {{year}}</h4>
+    <div class="accordion" id="accordion_year_goals">
+        {% for goal in year_goal_displays %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading_{{goal.goal_id}}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse_{{goal.goal_id}}" aria-expanded="false"
+                    aria-controls="collapse_{{goal.goal_id}}">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-1">
+                                <div id="check_{{goal.goal_id}}"></div>
+                            </div>
+                            <div class="col">{{goal.info.name}}</div>
+                            <div class="col">{{goal.info.goal}}</div>
+                            <div class="col">
+                                {% if goal.progress_bar %}
+                                <div class="progress" role="progressbar"
+                                    aria-label="Progress bar for {{goal.info.name}}"
+                                    aria-valuenow="{{goal.info.progress}}" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar progress-bar-striped bg-success"
+                                        style="width: {{goal.info.progress}}%"></div>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                </button>
+            </h2>
+            <div id="collapse_{{goal.goal_id}}" class="accordion-collapse collapse"
+                aria-labelledby="heading_{{goal.goal_id}}" data-bs-parent="#accordion_year_goals">
+                <div class="accordion-body">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th scope="row">Name</th>
+                                <td>{{goal.info.name}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Value</th>
+                                <td>{{goal.info.value}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Threshold</th>
+                                <td>{{goal.info.threshold}}</td>
+                            </tr>
+                            <tr>
+                                {% if goal.progress_bar %}
+                                <th scope="row">Progress</th>
+                                <td>{{goal.info.progress}} %</td>
+                                {% else %}
+                                <th scope="row">Difference to goal</th>
+                                <td>{{goal.info.progress}}</td>
+                                {% endif %}
+                            </tr>
+                    </table>
+                    {% if goal.info.description is not none%}
+                    <div class="p-1">{{goal.info.description|safe}}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <script>style_goal_indicator("check_{{goal.goal_id}}", {{ goal.info.reached }})</script>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if month_goal_displays|length > 0 %}
+<div class="border m-1 p-2 border-primary-subtle rounded-3">
+    <h4>Goals for month {{month}}</h4>
+    <div class="accordion" id="accordion_month_goals">
+        {% for goal in month_goal_displays %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading_{{goal.goal_id}}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse_{{goal.goal_id}}" aria-expanded="false"
+                    aria-controls="collapse_{{goal.goal_id}}">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-1">
+                                <div id="check_{{goal.goal_id}}"></div>
+                            </div>
+                            <div class="col">{{goal.info.name}}</div>
+                            <div class="col">{{goal.info.goal}}</div>
+                            <div class="col">
+                                {% if goal.progress_bar %}
+                                <div class="progress" role="progressbar"
+                                    aria-label="Progress bar for {{goal.info.name}}"
+                                    aria-valuenow="{{goal.info.progress}}" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar progress-bar-striped bg-success"
+                                        style="width: {{goal.info.progress}}%"></div>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                </button>
+            </h2>
+            <div id="collapse_{{goal.goal_id}}" class="accordion-collapse collapse"
+                aria-labelledby="heading_{{goal.goal_id}}" data-bs-parent="#accordion_month_goals">
+                <div class="accordion-body">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th scope="row">Name</th>
+                                <td>{{goal.info.name}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Value</th>
+                                <td>{{goal.info.value}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Threshold</th>
+                                <td>{{goal.info.threshold}}</td>
+                            </tr>
+                            <tr>
+                                {% if goal.progress_bar %}
+                                <th scope="row">Progress</th>
+                                <td>{{goal.info.progress}} %</td>
+                                {% else %}
+                                <th scope="row">Difference to goal</th>
+                                <td>{{goal.info.progress}}</td>
+                                {% endif %}
+                            </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <script>style_goal_indicator("check_{{goal.goal_id}}", {{ goal.info.reached }})</script>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
 {% endblock %}

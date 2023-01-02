@@ -1,3 +1,4 @@
+import json
 from datetime import date
 
 from flask import Blueprint, current_app, flash, redirect, render_template, request
@@ -8,6 +9,7 @@ from wtforms import (
     DecimalField,
     IntegerField,
     SelectField,
+    SelectMultipleField,
     StringField,
     TextAreaField,
     TimeField,
@@ -62,6 +64,13 @@ class GoalForm(FlaskForm):
         default=None,
         description="Optional longer description of the goal",
     )
+    ride_types = SelectMultipleField(
+        "Ride Types",
+        default=None,
+        description="Select zero, one, or more ride types for the goal "
+        "(hold ctrl or cmd to select)",
+    )
+    bike = StringField("Bike Name", default=None, description="Bike name")
 
 
 @bp.route("/ride", methods=("GET", "POST"))
@@ -144,9 +153,21 @@ def add_event():
 @bp.route("/goal", methods=("GET", "POST"))
 def add_goal():
     form = GoalForm()
-    print(request.form)
+    config = current_app.config
+
+    form.ride_types.choices = config.adders.ride.type_choices
+
     if form.validate_on_submit():
 
+        constraints_ = {}
+        if form.bike.data != "":
+            constraints_["bike"] = form.bike.data.split(",")
+        if form.ride_types.data:
+            constraints_["ride_type"] = form.ride_types.data
+
+        constraints: None | str = None
+        if constraints_:
+            constraints = json.dumps(constraints_)
         db = get_db()
         data_to_insert = [
             [
@@ -156,8 +177,10 @@ def add_goal():
                 form.goal_type.data,
                 form.threshold.data,
                 bool(int(form.boundary.data)),
+                constraints,  # Constraints
                 None if form.description.data == "" else form.description.data,
-                False,
+                False,  # has_been_reached
+                True,  # Active
             ]
         ]
         print(data_to_insert)
