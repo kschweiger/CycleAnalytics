@@ -3,6 +3,7 @@ tables=["main", "tracks", "events", "goals"]
 [defaults]
 bike="Nerve"
 ride_type="MTB"
+event_type="Mechanical"
 raw_track_table="tracks"
 track_table="tracks_enhanced_v1"
 
@@ -31,7 +32,11 @@ color_sequence=["#0d6efd", "#dc3545", "#198754", "#6610f2", "#fd7e14", "#20c997"
 [adders]
     [adders.ride]
         type_choices=["MTB","Road","Gravel"]
-
+    [adders.event]
+        type_choices=["Mechanical", "Crash", "Other"]
+        init_map_view_lat=48.02
+        init_map_view_long=10.2
+        init_map_zoom=8
 [main]
     name="main"
     rel_table="tracks"
@@ -92,6 +97,10 @@ color_sequence=["#0d6efd", "#dc3545", "#198754", "#6610f2", "#fd7e14", "#20c997"
         ctype="FLOAT"
         is_nullable=true
         default="Null"
+    [events.id_ride]
+        ctype="INT"
+        is_nullable=true
+        default="NULL"
 
 
 [goals]

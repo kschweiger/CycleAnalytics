@@ -8,6 +8,7 @@
     <div class="row mt-2 align-items-center">
         <div class="col">
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <label>Select a year:</label>
                 <select id="year" name="year" onchange='this.form.submit()' class="form-select">
                     {% for year in years %}

@@ -33,7 +33,7 @@
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item {% if active_page == 'add_ride'%}active{% endif %}"
                                 href="{{url_for('adders.add_ride')}}">Ride</a></li>
-                        <li><a class="dropdown-item disabled {% if active_page == 'add_event'%}active{% endif %}"
+                        <li><a class="dropdown-item {% if active_page == 'add_event'%}active{% endif %}"
                                 href="{{url_for('adders.add_event')}}">Event</a></li>
                         <li><a class="dropdown-item {% if active_page == 'add_goal'%}active{% endif %}"
                                 href="{{url_for('adders.add_goal')}}">Goal</a></li>

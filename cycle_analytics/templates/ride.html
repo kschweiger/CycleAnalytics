@@ -8,8 +8,16 @@
 {% endblock %}
 
 {% block content %}
-<h3> {{ride_date}} <small class="text-muted">{{ride_from}} - {{ride_to}}</small></h3>
-
+<div class="m-1 row">
+    <div class="col">
+        <h3> {{ride_date}} <small class="text-muted">{{ride_from}} - {{ride_to}}</small></h3>
+    </div>
+    <div class="col text-end">
+        <a href="{{url_for('adders.add_event')}}?date={{ride_date}}&id_ride={{id_ride}}" class="btn btn-primary">
+            Add event
+        </a>
+    </div>
+</div>
 
 <div class="accordion m-1 p-1 " id="ride_info_accordion">
     <div class="accordion-item">
@@ -93,6 +101,6 @@
     var map = L.map('map');
     var layer = get_map_layer();
     map.addLayer(layer);
-    set_path_on_map("{{ map_data.path.latitudes }}", "{{ map_data.path.longitudes }}");
+    set_path_on_map(map, "{{ map_data.path.latitudes }}", "{{ map_data.path.longitudes }}");
 </script>
 {% endblock %}

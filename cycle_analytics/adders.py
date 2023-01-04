@@ -1,12 +1,15 @@
 import json
+import logging
 from datetime import date
 
+from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import Blueprint, current_app, flash, redirect, render_template, request
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
 from wtforms import (
     DateField,
     DecimalField,
+    HiddenField,
     IntegerField,
     SelectField,
     SelectMultipleField,
@@ -14,12 +17,15 @@ from wtforms import (
     TextAreaField,
     TimeField,
 )
-from wtforms.validators import DataRequired, NumberRange
+from wtforms.validators import DataRequired, NumberRange, Optional
 
 from cycle_analytics.db import get_db
 from cycle_analytics.goals import GoalType
-from cycle_analytics.queries import get_last_id
+from cycle_analytics.model import MapData, MapPathData
+from cycle_analytics.queries import get_last_id, get_track_for_id
 from cycle_analytics.utils import get_month_mapping
+
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("adders", __name__, url_prefix="/add")
 
@@ -33,6 +39,30 @@ class RideForm(FlaskForm):
     bike = StringField("Bike", validators=[DataRequired()])
     ride_type = SelectField("Ride Type")
     track = FileField("GPX Track")
+
+
+class EventForm(FlaskForm):
+    date = DateField("Date", validators=[DataRequired()])
+    event_type = SelectField("Type of event")
+    short_description = StringField("Short description", validators=[DataRequired()])
+    description = TextAreaField(
+        "Description",
+        default=None,
+        description="Optional details on the event",
+    )
+    latitude = DecimalField(
+        "Latitude of event",
+        description="Optional position",
+        default=None,
+        validators=[Optional()],
+    )
+    longitude = DecimalField(
+        "Longitude of event",
+        description="Optional position",
+        default=None,
+        validators=[Optional()],
+    )
+    id_ride = HiddenField("id_ride", default=None)
 
 
 class GoalForm(FlaskForm):
@@ -73,6 +103,20 @@ class GoalForm(FlaskForm):
     bike = StringField("Bike Name", default=None, description="Bike name")
 
 
+def flash_form_error(form: FlaskForm):
+    flash(
+        "\n".join(
+            ["<ul>"]
+            + [
+                f"<li>{field} - {','.join(error)} - Got **{form[field].data}**</li>"
+                for field, error in form.errors.items()
+            ]
+            + ["</ul>"]
+        ),
+        "alert-danger",
+    )
+
+
 @bp.route("/ride", methods=("GET", "POST"))
 def add_ride():
     form = RideForm()
@@ -86,7 +130,6 @@ def add_ride():
 
     form.bike.data = config.defaults.bike
 
-    print(request.form)
     if form.validate_on_submit():
         db = get_db()
         data_to_insert = [
@@ -130,24 +173,85 @@ def add_ride():
         return redirect("/overview")
 
     elif request.method == "POST":
-        flash(
-            "\n".join(
-                ["<ul>"]
-                + [
-                    f"<li>{field} - {','.join(error)}</li>"
-                    for field, error in form.errors.items()
-                ]
-                + ["</ul>"]
-            ),
-            "alert-danger",
-        )
+        flash_form_error(form)
 
     return render_template("adders/ride.html", active_page="add_ride", form=form)
 
 
 @bp.route("/event", methods=("GET", "POST"))
 def add_event():
-    return render_template("adders/event.html", active_page="add_event")
+    config = current_app.config
+    arg_date = request.args.get("date")
+    arg_ride_id = request.args.get("id_ride")
+
+    form = EventForm()
+    type_choices = [config.defaults.event_type] + [
+        c for c in config.adders.event.type_choices if c != config.defaults.event_type
+    ]
+
+    form.event_type.choices = [(c, c) for c in type_choices]
+    form.id_ride.data = None
+    if arg_date is not None:
+        try:
+            date.fromisoformat(arg_date)
+        except ValueError as e:
+            logger.error(str(e))
+            flash("Date passed via the url arg is invalid", "alert-danger")
+        else:
+            form.date.data = date.fromisoformat(arg_date)
+
+    map_data = None
+    if arg_ride_id is not None:
+        form.id_ride.data = arg_ride_id
+        try:
+            track = get_track_for_id(arg_ride_id)
+        except QueryReturnedNoData:
+            map_data = None
+        else:
+            track_segment_data = track.get_segment_data(0)
+            lats = track_segment_data[track_segment_data.moving].latitude.to_list()
+            lats = ",".join([str(l) for l in lats])  # noqa: E741
+            longs = track_segment_data[track_segment_data.moving].longitude.to_list()
+            longs = ",".join([str(l) for l in longs])  # noqa: E741
+
+            map_data = MapData(path=MapPathData(latitudes=lats, longitudes=longs))
+
+    if form.validate_on_submit():
+        db = get_db()
+        data_to_insert = [
+            [
+                form.date.data,
+                form.event_type.data,
+                form.short_description.data,
+                None if form.description.data == "" else form.description.data,
+                form.latitude.data,
+                form.longitude.data,
+                form.id_ride.data,
+            ]
+        ]
+        insert_succ, err = db.insert(
+            current_app.config.tables_as_settings["events"],
+            data_to_insert,
+        )
+        if insert_succ:
+            flash("Event Added", "alert-success")
+        else:
+            flash(f"Event could not be added: {err}", "alert-danger")
+
+    elif request.method == "POST":
+        flash_form_error(form)
+
+    return render_template(
+        "adders/event.html",
+        active_page="add_event",
+        form=form,
+        init_map_view=(
+            config.adders.event.init_map_view_lat,
+            config.adders.event.init_map_view_long,
+            config.adders.event.init_map_zoom,
+        ),
+        map_data=map_data,
+    )
 
 
 @bp.route("/goal", methods=("GET", "POST"))
@@ -183,7 +287,6 @@ def add_goal():
                 True,  # Active
             ]
         ]
-        print(data_to_insert)
         insert_succ, err = db.insert(
             current_app.config.tables_as_settings["goals"],
             data_to_insert,
