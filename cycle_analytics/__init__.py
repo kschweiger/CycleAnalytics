@@ -72,6 +72,10 @@ def create_app(test_config=None):
 
     app.register_blueprint(goals)
 
+    from cycle_analytics.events import bp as events
+
+    app.register_blueprint(events)
+
     from cycle_analytics.ride import bp as ride
 
     app.register_blueprint(ride)

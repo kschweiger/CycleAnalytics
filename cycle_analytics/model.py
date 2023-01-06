@@ -22,6 +22,15 @@ class MapData:
 
 
 @dataclass
+class MapMarker:
+    latitude: float
+    longitude: float
+    popup_text: str
+    color: str
+    color_idx: int
+
+
+@dataclass
 class GoalInfoData:
     name: str
     goal: str

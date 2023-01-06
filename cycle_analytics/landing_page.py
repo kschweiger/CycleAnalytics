@@ -2,12 +2,13 @@ import logging
 from datetime import date
 
 from data_organizer.db.exceptions import QueryReturnedNoData
-from flask import render_template, request
+from flask import current_app, render_template, request
 
 from cycle_analytics.goals import YearlyGoal, format_goals_concise
 from cycle_analytics.queries import (
     get_goal_years,
     get_last_ride,
+    get_recent_events,
     get_summary_data,
     get_years_in_database,
     load_goals,
@@ -19,15 +20,48 @@ logger = logging.getLogger(__name__)
 
 def render_landing_page():
     logger.debug("Rendering landing page")
+    config = current_app.config
     print(request.form)
     # config = current_app.config
     date_today = date.today()
     # date_today = date(2022, 12, 31)
-    last_ride_types = ["Any", "MTB"]
-    last_ride_type_selected = "MTB"
-    # TODO: Add POST requests for last ride
-    last_ride = get_last_ride(last_ride_type_selected)
 
+    # --------------------- LAST RIDES ---------------------
+    last_ride_types = ["Any"] + config.adders.ride.type_choices
+    last_ride_type_selected = config.landing_page.last_ride.default_type
+    if request.method == "POST" and request.form.get("form_last_ride_type") is not None:
+        last_ride_type_selected = request.form.get("form_last_ride_type")
+
+    last_ride = get_last_ride(
+        None if last_ride_type_selected == "Any" else last_ride_type_selected
+    )
+
+    # --------------------- RECENT EVENTS ---------------------
+    recent_event_type_selected = "All"
+    recent_event_types = ["All"] + config.adders.event.type_choices
+    if (
+        request.method == "POST"
+        and request.form.get("form_recent_event_type") is not None
+    ):
+        recent_event_type_selected = request.form.get("form_recent_event_type")
+
+    events = get_recent_events(
+        config.landing_page.events.n_max_recent,
+        None if recent_event_type_selected == "All" else recent_event_type_selected,
+    )
+
+    recent_events = []
+
+    for event in events:
+        recent_events.append(
+            (
+                event["short_description"],
+                event["event_type"],
+                event["date"],
+            )
+        )
+
+    # --------------------- GOALS ---------------------
     goal_years = [
         str(g) for g in sorted(get_goal_years() + [date_today.year], reverse=True)
     ]
@@ -57,27 +91,26 @@ def render_landing_page():
     ]
     goals = format_goals_concise(display_goals)
 
+    # --------------------- SUMMARY ---------------------
     summary_years = ["All"] + [str(y) for y in get_years_in_database()]
-    summary_year_selected = date_today.year
+    summary_year_selected = str(date_today.year)
+    summary_ride_types = ["Any"] + config.adders.ride.type_choices
+    summary_ride_type_selected = config.landing_page.summary.default_type
     # TODO: Add POST requests for summary
+    print("----", request.form)
+    if (
+        request.method == "POST"
+        and request.form.get("form_summary_ride_type") is not None
+    ):
+        summary_year_selected = request.form.get("form_summary_year")
+        summary_ride_type_selected = request.form.get("form_summary_ride_type")
+
     summary_data, summary_month = get_summary_data(
-        summary_year_selected, date_today.year, date_today.month
+        summary_year_selected,
+        date_today.year,
+        date_today.month,
+        summary_ride_type_selected,
     )
-
-    # TEMP ---------- START ----------
-
-    recent_events = [
-        ("Broken chain", "Mechanical", date(2022, 11, 12)),
-        ("Slipped on root", "Crash", date(2022, 12, 1)),
-    ]
-
-    recent_event_types = ["Any", "Mechanical", "Crash"]
-
-    recent_event_selected = "Any"
-
-    # goals = [("Goal1", "Yearly", "1250 km", 1), ("Goal2", "Monthly", "8 Rides", 0)]
-    # TEMP ---------- END ----------
-
     return render_template(
         "landing_page.html",
         active_page="home",
@@ -86,7 +119,7 @@ def render_landing_page():
         last_ride_type_selected=last_ride_type_selected,
         recent_events=recent_events,
         recent_event_types=recent_event_types,
-        recent_event_selected=recent_event_selected,
+        recent_event_type_selected=recent_event_type_selected,
         goal_months=goal_months,
         goal_month_selected=goal_month_selected,
         goal_years=goal_years,
@@ -94,6 +127,8 @@ def render_landing_page():
         goals=goals,
         summary_years=summary_years,
         summary_year_selected=summary_year_selected,
+        summary_ride_types=summary_ride_types,
+        summary_ride_type_selected=summary_ride_type_selected,
         summary_data=summary_data,
         summary_month=summary_month,
     )

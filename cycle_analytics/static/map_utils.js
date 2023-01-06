@@ -1,3 +1,12 @@
+class EventMarker {
+    constructor(lat, long, color, color_idx, text) {
+        this.lat = lat;
+        this.long = long;
+        this.icon = get_icon(color, color_idx);
+        this.popup_text = text
+    }
+}
+
 function set_path_on_map(map, lats, longs) {
     const lat_points = lats.split(",");
     const long_points = longs.split(",");
@@ -50,4 +59,104 @@ function show_map_for_form_path(div_id, btn_id, height, lats, longs) {
     map = show_map_for_form(div_id, btn_id, height, 1, 1, 1);
     set_path_on_map(map, lats, longs);
     return map;
+}
+
+function get_base_icon() {
+    return L.Icon.extend({
+        options: {
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [0, -37]
+        }
+    });
+}
+
+function get_blue_icon(i) {
+    var LeafIcon = get_base_icon()
+    var icon = new LeafIcon({ iconUrl: '/static/img/marker_blue_' + i + '.svg' })
+    return icon
+}
+
+function get_red_icon(i) {
+    var LeafIcon = get_base_icon()
+    var icon = new LeafIcon({ iconUrl: '/static/img/marker_red_' + i + '.svg' })
+    return icon
+}
+
+function get_green_icon(i) {
+    var LeafIcon = get_base_icon()
+    var icon = new LeafIcon({ iconUrl: '/static/img/marker_green_' + i + '.svg' })
+    return icon
+}
+
+function get_pink_icon(i) {
+    var LeafIcon = get_base_icon()
+    var icon = new LeafIcon({ iconUrl: '/static/img/marker_pink_' + i + '.svg' })
+    return icon
+}
+
+function get_purple_icon(i) {
+    var LeafIcon = get_base_icon()
+    var icon = new LeafIcon({ iconUrl: '/static/img/marker_purple_' + i + '.svg' })
+    return icon
+}
+
+function get_teal_icon(i) {
+    var LeafIcon = get_base_icon()
+    var icon = new LeafIcon({ iconUrl: '/static/img/marker_teal_' + i + '.svg' })
+    return icon
+}
+
+function get_yellow_icon(i) {
+    var LeafIcon = get_base_icon()
+    var icon = new LeafIcon({ iconUrl: '/static/img/marker_yellow_' + i + '.svg' })
+    return icon
+}
+
+function get_icon(color, color_idx) {
+    switch (color) {
+        case "blue":
+            icon = get_blue_icon(color_idx);
+            break;
+        case "red":
+            icon = get_red_icon(color_idx);
+            break;
+        case "green":
+            icon = get_green_icon(color_idx);
+            break;
+        case "pink":
+            icon = get_pink_icon(color_idx);
+            break;
+        case "purple":
+            icon = get_purple_icon(color_idx);
+            break;
+        case "teal":
+            icon = get_teal_icon(color_idx);
+            break;
+        default:
+            icon = get_yellow_icon(color_idx);
+    }
+    return icon
+}
+
+function add_marker_to_map(map, lat, long, icon, popup_text) {
+    var marker = L.marker([lat, long], { icon: icon }).addTo(map);
+    marker.bindPopup(popup_text);
+    return marker
+}
+
+
+
+function show_map_with_markers(div_id, markers) {
+    let map = L.map(div_id);
+    map.addLayer(get_map_layer());
+
+    let placed_markers = [];
+
+    for (marker of markers) {
+        placed_markers.push(add_marker_to_map(map, marker.lat, marker.long, marker.icon, marker.popup_text))
+    }
+    let group = new L.featureGroup(placed_markers);
+
+    map.fitBounds(group.getBounds());
 }

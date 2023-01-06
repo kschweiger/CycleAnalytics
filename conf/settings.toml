@@ -33,10 +33,29 @@ color_sequence=["#0d6efd", "#dc3545", "#198754", "#6610f2", "#fd7e14", "#20c997"
     [adders.ride]
         type_choices=["MTB","Road","Gravel"]
     [adders.event]
-        type_choices=["Mechanical", "Crash", "Other"]
+        type_choices=["Mechanical", "Crash", "Service", "Replacement", "Purchase", "Other"]
         init_map_view_lat=48.02
         init_map_view_long=10.2
         init_map_zoom=8
+
+[mappings]
+    [mappings.severity]
+        0="Minor"
+        1="Medium"
+        2="Major"
+        3="Critical"
+    [mappings.event_colors]
+        "Mechanical"="green"
+        "Crash"="red"
+
+[landing_page]
+    [landing_page.events]
+        n_max_recent=3
+    [landing_page.last_ride]
+        default_type="MTB"
+    [landing_page.summary]
+        default_type="Any"
+
 [main]
     name="main"
     rel_table="tracks"
@@ -89,6 +108,10 @@ color_sequence=["#0d6efd", "#dc3545", "#198754", "#6610f2", "#fd7e14", "#20c997"
     [events.description]
         ctype="VARCHAR(20)"
         is_nullable=true
+    [events.severity]
+        ctype="INT"
+        is_nullable=true
+        default="NULL"
     [events.latitude]
         ctype="FLOAT"
         is_nullable=true

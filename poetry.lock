@@ -149,7 +149,7 @@ toml = ["tomli"]
 
 [[package]]
 name = "data_organizer"
-version = "1.2.0"
+version = "1.3.0"
 description = ""
 category = "main"
 optional = false
@@ -169,9 +169,9 @@ sqlalchemy = ">=1.4.0,<1.5.0"
 
 [package.source]
 type = "git"
-url = "https://git@github.com/kschweiger/data_organizer"
-reference = "1.2.0"
-resolved_reference = "f845411a2bd37df743aa75fe20f4dd139ee65ba8"
+url = "https://github.com/kschweiger/data_organizer.git"
+reference = "1.3.0"
+resolved_reference = "e210ce3d7fc2a21696dd8a8e8de884fcff48c9aa"
 
 [[package]]
 name = "decorator"
@@ -1116,7 +1116,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "1b3b5096d03eaa8a4947a03ba8615cf9e7a0792ac66e6cef48ca4f0264edcfff"
+content-hash = "cf4379ea05e01a86b2605bc65be11b71843de301c3181d780aa9e8bd44399ee0"
 
 [metadata.files]
 appnope = [

@@ -22,6 +22,10 @@
                         href="{{url_for('goals.overview')}}">Goals</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {% if active_page == 'events'%}active{% endif %}"
+                        href="{{url_for('events.overview')}}">Events</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link disabled {% if active_page == 'segments'%}active{% endif %}"
                         href="{{url_for('segments.main')}}">Segments</a>
                 </li>

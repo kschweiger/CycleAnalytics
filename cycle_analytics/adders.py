@@ -50,6 +50,17 @@ class EventForm(FlaskForm):
         default=None,
         description="Optional details on the event",
     )
+    severity = SelectField(
+        "Severity",
+        validators=[DataRequired()],
+        choices=[
+            (-1, "None"),
+            (0, "Minor"),
+            (1, "Medium"),
+            (2, "Major"),
+            (3, "Critical"),
+        ],
+    )
     latitude = DecimalField(
         "Latitude of event",
         description="Optional position",
@@ -155,7 +166,10 @@ def add_ride():
             gpx_value = form.track.data.stream.read()
 
             last_id = get_last_id(
-                current_app.config.tables_as_settings["main"].name, "id_ride", True
+                current_app.config.tables_as_settings["main"].name,
+                "id_ride",
+                True,
+                None,
             )
 
             insert_succ, err = db.insert(
@@ -224,6 +238,7 @@ def add_event():
                 form.event_type.data,
                 form.short_description.data,
                 None if form.description.data == "" else form.description.data,
+                None if int(form.severity.data) == -1 else form.severity.data,
                 form.latitude.data,
                 form.longitude.data,
                 form.id_ride.data,

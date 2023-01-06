@@ -1,5 +1,6 @@
 import logging
 from datetime import date, timedelta
+from typing import Any, Dict, Optional
 
 import pandas as pd
 from data_organizer.db.exceptions import QueryReturnedNoData
@@ -13,18 +14,25 @@ from cycle_analytics.db import get_db
 from cycle_analytics.goals import Goal, initialize_goals
 from cycle_analytics.model import LastRide
 from cycle_analytics.plotting import convert_fig_to_base64, get_track_thumbnails
-from cycle_analytics.utils import compare_values, get_nice_timedelta_isoformat
+from cycle_analytics.utils import (
+    compare_values,
+    get_date_range_from_year_month,
+    get_nice_timedelta_isoformat,
+)
 
 logger = logging.getLogger(__name__)
 
 
-def get_last_ride(ride_type: str) -> LastRide:
+def get_last_ride(ride_type: None | str) -> None | LastRide:
     """
     Load the data of the latest ride from the database
 
     :param ride_type: _description_
     """
-    last_id = get_last_id("main", "date", True)
+    try:
+        last_id = get_last_id("main", "date", True, ride_type)
+    except QueryReturnedNoData:
+        return None
 
     data = get_full_ride_data(last_id)
     last_ride_data = {
@@ -47,7 +55,9 @@ def get_last_ride(ride_type: str) -> LastRide:
     return LastRide(date=data["date"], data=last_ride_data, thumbnails=thumbnails)
 
 
-def get_last_id(table: str, order_by: str, descending: bool) -> int:
+def get_last_id(
+    table: str, order_by: str, descending: bool, ride_type: None | str
+) -> int:
     db = get_db()
 
     query = (
@@ -56,6 +66,9 @@ def get_last_id(table: str, order_by: str, descending: bool) -> int:
         .orderby(order_by, order=Order.desc if descending else Order.asc)
         .limit(1)
     )
+
+    if ride_type is not None:
+        query = query.where(Table(table).ride_type == ride_type)
 
     return db.query(query)[0][0]
 
@@ -107,7 +120,9 @@ def get_thumbnails_for_id(id_ride: int) -> list[str]:
 
 
 @cache.memoize(timeout=86400)
-def get_rides_in_timeframe(timeframe: int | str | list[int]) -> pd.DataFrame:
+def get_rides_in_timeframe(
+    timeframe: int | str | list[int], ride_type: str = "Any"
+) -> pd.DataFrame:
     db = get_db()
     main = Table("main")
     tracks = Table("tracks_enhanced_v1")
@@ -138,6 +153,11 @@ def get_rides_in_timeframe(timeframe: int | str | list[int]) -> pd.DataFrame:
         query = query.where(main.date <= f"{year}-12-31").where(
             main.date >= f"{year}-01-01"
         )
+
+    if ride_type == "Any" or ride_type == "All":
+        logger.debug("Will not constrain rides to a specific ride_type")
+    else:
+        query = query.where(main.ride_type == ride_type)
 
     data = db.query_to_df(query)
 
@@ -170,10 +190,12 @@ def get_years_in_database() -> list[int]:
     return [r[0] for r in db.query(query)]
 
 
-def get_summary_data(timeframe: int | str, current_year: int, curr_month: int):
+def get_summary_data(
+    timeframe: int | str, current_year: int, curr_month: int, ride_type: str = "Any"
+):
 
     try:
-        rides = get_rides_in_timeframe(timeframe)
+        rides = get_rides_in_timeframe(timeframe, ride_type=ride_type)
     except QueryReturnedNoData:
         summary_data_ = {
             "tot_distance": 0,
@@ -182,7 +204,7 @@ def get_summary_data(timeframe: int | str, current_year: int, curr_month: int):
             "avg_distance": 0,
             "avg_ride_duration": "-",
         }
-        rides = pd.DataFrame()
+        rides = pd.DataFrame({"date": []})
     else:
         summary_data_ = {
             "tot_distance": str(round(rides.distance.sum(), 2)),
@@ -213,7 +235,13 @@ def get_summary_data(timeframe: int | str, current_year: int, curr_month: int):
 
     if curr_month == 1:
         logger.debug("Loading data from previous timeframe")
-        prev_year_rides = get_rides_in_timeframe(current_year - 1)
+        try:
+            prev_year_rides = get_rides_in_timeframe(
+                current_year - 1, ride_type=ride_type
+            )
+        except QueryReturnedNoData:
+            prev_year_rides = pd.DataFrame({"date": []})
+
         last_month_data = prev_year_rides[
             (prev_year_rides.date >= last_month_start)
             & (prev_year_rides.date <= last_month_end)
@@ -302,3 +330,66 @@ def get_goal_years() -> list[int]:
     data = db.query(query)
 
     return [y[0] for y in data]
+
+
+@cache.memoize(timeout=86400)
+def get_event_years() -> list[int]:
+    db = get_db()
+    table_events = Table("events")
+    query = (
+        db.pypika_query.from_(table_events)
+        .select(Extract("year", table_events.date))
+        .distinct()
+    )
+
+    data = db.query(query)
+
+    return [y[0] for y in data]
+
+
+@cache.memoize(timeout=86400)
+def get_events(
+    year: Optional[int], month: Optional[int], event_types: Optional[list[str]]
+) -> list[Dict[str, Any]]:
+    logger.debug("Got Year/Month/event_type - %s/%s/%s", year, month, event_types)
+    db = get_db()
+    table_events = Table("events")
+    query = db.pypika_query.from_(table_events).select("*")
+    if year is None and month is not None:
+        raise RuntimeError("Year can not be None if month is not None")
+
+    if year is not None:
+        query_date_start, query_date_end = get_date_range_from_year_month(year, month)
+
+        query = query.where(table_events.date >= query_date_start).where(
+            table_events.date <= query_date_end
+        )
+
+    if event_types is not None:
+        query = query.where(table_events.event_type.isin(event_types))
+
+    try:
+        datas, keys = db.query_inc_keys(query)
+    except QueryReturnedNoData:
+        return {}  # type: ignore
+
+    return [{key: value for key, value in zip(keys, data)} for data in datas]
+
+
+def get_recent_events(
+    n_max: int, constrain_type: Optional[str]
+) -> list[Dict[str, Any]]:
+    logger.debug("Getting %s event with type %s", n_max, constrain_type)
+    db = get_db()
+    table_events = Table("events")
+    query = db.pypika_query.from_(table_events).select("*")
+    if constrain_type is not None:
+        query = query.where(table_events.event_type == constrain_type)
+
+    query = query.orderby(table_events.date, order=Order.desc).limit(n_max)
+    try:
+        datas, keys = db.query_inc_keys(query)
+    except QueryReturnedNoData:
+        return {}  # type: ignore
+
+    return [{key: value for key, value in zip(keys, data)} for data in datas]

@@ -17,6 +17,7 @@
             </form>
         </div>
     </div>
+    {% if last_ride is not none %}
     <div class="row mt-3">
         <div class="col">
             <table class="table">
@@ -36,4 +37,9 @@
             {% endfor %}
         </div>
     </div>
+    {% else %}
+    <div class="row mt-3">
+        <p>No ride tracked for type: <span class="fw-bold">{{last_ride_type_selected}}</span></p>
+    </div>
+    {% endif %}
 </div>

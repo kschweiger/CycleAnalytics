@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from typing import Literal
 
 
@@ -43,3 +44,13 @@ def get_month_mapping():
         11: "November",
         12: "December",
     }
+
+
+def get_date_range_from_year_month(year: int, month: None | int) -> tuple[date, date]:
+    if month is None:
+        return date(year, 1, 1), date(year, 12, 31)
+    else:
+        if month == 12:
+            return date(year, 12, 1), date(year, 12, 31)
+        else:
+            return date(year, month, 1), date(year, month + 1, 1) - timedelta(days=1)

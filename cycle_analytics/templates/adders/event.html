@@ -18,12 +18,12 @@
         {{ form.id_ride() }}
         <div class="row  mt-2">
             <div class="col">
-                {{form.date.label(class_="form-label") }}
-                {{form.date(class_="form-control")}}
-            </div>
-            <div class="col">
                 {{form.event_type.label(class_="form-label") }}
                 {{form.event_type(class_="form-select")}}
+            </div>
+            <div class="col">
+                {{form.date.label(class_="form-label") }}
+                {{form.date(class_="form-control")}}
             </div>
             <div class="col">
                 {{form.short_description.label(class_="form-label") }}
@@ -31,6 +31,10 @@
             </div>
         </div>
         <div class="row  mt-2">
+            <div class="col">
+                {{form.severity.label(class_="form-label") }}
+                {{form.severity(class_="form-select")}}
+            </div>
             <div class="col">
                 {{form.latitude.label(class_="form-label") }}
                 {{form.latitude(class_="form-control", placeholder_=form.latitude.description)}}

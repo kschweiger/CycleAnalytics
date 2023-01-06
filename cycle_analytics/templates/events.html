@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block head_scripts %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="container border m-1 p-2 border-primary-subtle rounded-3">
+    <div class="row">
+        <h4>Events</h4>
+    </div>
+    <form method="POST">
+        <div class="row  align-items-center">
+            {{ overview_form.csrf_token }}
+            <div class="col ">
+                <div class="form-floating">
+                    {{overview_form.year(class_="form-select")}}
+                    {{overview_form.year.label(class_="form-label") }}
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-floating">
+                    {{overview_form.month(class_="form-select")}}
+                    {{overview_form.month.label(class_="form-label") }}
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-floating">
+                    {{overview_form.event_type(class_="form-select")}}
+                    {{overview_form.event_type.label(class_="form-label") }}
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="col text-end"><input type="submit" value="Submit" class="btn btn-primary h-100">
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="mt-4">
+        <table class="table table-striped table-hover" id="overview_table">
+            <thead>
+                <tr>
+                    {% for heading in table_data[0]%}
+                    <th>{{heading}}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for line in table_data[1]%}
+                <tr>
+                    {% for elem in line %}
+                    {% if elem is iterable and elem is not string%}
+                    <td><a href="{{elem[1]}}">{{elem[0]}}</a></td>
+                    {% else %}
+                    <td>{{elem}}</td>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% if located_events|length > 0 %}
+<div class="border m-1 p-2 border-primary-subtle rounded-3">
+    <h5>Location of events</h5>
+    <div id="map" style="height:600px"></div>
+</div>
+{% endif %}
+
+
+
+
+{% endblock %}
+
+{% block body_scripts %}
+<script>
+    $(document).ready(function () {
+        $('#overview_table').DataTable(
+            { order: [[0, 'desc']], }
+        );
+    });
+</script>
+{% if located_events|length > 0 %}
+<script src="{{ url_for('static', filename='map_utils.js') }}"></script>
+<script>
+    show_map_with_markers("map",
+        [{% for marker in located_events %}
+    new EventMarker({{ marker.latitude }}, {{ marker.longitude }}, "{{marker.color}}", {{ marker.color_idx }}, "{{marker.popup_text | safe}}")
+    {% if loop.index < (located_events | length) %}, {% endif %}
+    {% endfor %}])
+</script>
+{% endif %}
+{% endblock %}
