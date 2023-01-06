@@ -17,7 +17,7 @@ function set_path_on_map(map, lats, longs) {
         points.push([lat_points[i], long_points[i]])
     }
 
-    var polyline = L.polyline([points], { color: '#0d6efd' }).addTo(map);
+    var polyline = L.polyline([points], { color: '#20c997' }).addTo(map);
     // zoom the map to the polyline
     map.fitBounds(polyline.getBounds());
 }

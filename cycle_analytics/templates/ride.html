@@ -8,80 +8,79 @@
 {% endblock %}
 
 {% block content %}
-<div class="m-1 row">
-    <div class="col">
-        <h3> {{ride_date}} <small class="text-muted">{{ride_from}} - {{ride_to}}</small></h3>
+<div class="p1 m-1 border rounded-3">
+    <div class="p-2 row">
+        <div class="col">
+            <h3> {{ride_date}} <small class="text-muted">{{ride_from}} - {{ride_to}}</small></h3>
+        </div>
+        <div class="col text-end">
+            <a href="{{url_for('adders.add_event')}}?date={{ride_date}}&id_ride={{id_ride}}" class="btn btn-success">
+                Add event
+            </a>
+        </div>
     </div>
-    <div class="col text-end">
-        <a href="{{url_for('adders.add_event')}}?date={{ride_date}}&id_ride={{id_ride}}" class="btn btn-primary">
-            Add event
-        </a>
-    </div>
-</div>
 
-<div class="accordion m-1 p-1 " id="ride_info_accordion">
-    <div class="accordion-item">
-        <h2 class="accordion-header" id="ride_data_heading">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapse_ride_data" aria-expanded="true" aria-controls="collapse_ride_data">
-                Ride data
-            </button>
-        </h2>
-        <div id="collapse_ride_data" class="accordion-collapse collapse show" aria-labelledby="ride_data_heading">
-            <div class="accordion-body">
-                <table class="table mt-3">
-                    <tbody>
-                        {% for data in ride_data%}
-                        <tr>
-                            <th scope="row">{{data[0]}}</th>
-                            <td>{{data[1]}}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <div class="accordion m-1 p-1 " id="ride_info_accordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="ride_data_heading">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse_ride_data" aria-expanded="true" aria-controls="collapse_ride_data">
+                    Ride data
+                </button>
+            </h2>
+            <div id="collapse_ride_data" class="accordion-collapse collapse show" aria-labelledby="ride_data_heading">
+                <div class="accordion-body">
+                    <table class="table mt-3">
+                        <tbody>
+                            {% for data in ride_data%}
+                            <tr>
+                                <th scope="row">{{data[0]}}</th>
+                                <td>{{data[1]}}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
+        {% if track_data is not none %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="track_data_heading">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse_track_data" aria-expanded="false" aria-controls="collapse_track_data">
+                    Track data
+                </button>
+            </h2>
+            <div id="collapse_track_data" class="accordion-collapse collapse" aria-labelledby="track_data_heading">
+                <div class="accordion-body">
+                    <table class="table mt-3">
+                        <tbody>
+                            {% for data in track_data%}
+                            <tr>
+                                <th scope="row">{{data[0]}}</th>
+                                <td>{{data[1]}}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
-    {% if track_data is not none %}
-    <div class="accordion-item">
-        <h2 class="accordion-header" id="track_data_heading">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapse_track_data" aria-expanded="false" aria-controls="collapse_track_data">
-                Track data
-            </button>
-        </h2>
-        <div id="collapse_track_data" class="accordion-collapse collapse" aria-labelledby="track_data_heading">
-            <div class="accordion-body">
-                <table class="table mt-3">
-                    <tbody>
-                        {% for data in track_data%}
-                        <tr>
-                            <th scope="row">{{data[0]}}</th>
-                            <td>{{data[1]}}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+
+    {% if map_data is not none%}
+    <div class="m-2 p-2 border rounded-3">
+        <div id="map" style="height:600px"></div>
+    </div>
+    {% endif %}
+
+    {% if plot_elevation_and_velocity is not none%}
+    <div class=" m-2 p-2 border rounded-3">
+        <div id="chart" class="my-3"></div>
     </div>
     {% endif %}
 </div>
-
-{% if map_data is not none%}
-<div class="border m-1 p-2 border-primary-subtle rounded-3">
-    <div id="map" style="height:600px"></div>
-</div>
-{% endif %}
-
-{% if plot_elevation_and_velocity is not none%}
-<div class="border m-1 p-2 border-primary-subtle rounded-3">
-    <div id="chart" class="my-3"></div>
-</div>
-{% endif %}
-
-<div id="demo"></div>
-
 {% endblock %}
 
 {% block body_scripts %}

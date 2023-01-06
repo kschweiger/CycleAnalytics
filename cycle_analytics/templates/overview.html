@@ -4,7 +4,7 @@
 
 
 
-<div class="border m-1 p-1 border-primary-subtle rounded-3">
+<div class="m-1 p-2 border rounded-3">
     <div class="row mt-2 align-items-center">
         <div class="col">
             <form method="POST">
@@ -21,7 +21,7 @@
         <div class="col"></div>
         <div class="col"></div>
         <div class="col text-center">
-            <a class="btn btn-primary" href="{{url_for('overview.heatmap')}}?year_selected={{year_selected}}">Show
+            <a class="btn btn-success" href="{{url_for('overview.heatmap')}}?year_selected={{year_selected}}">Show
                 Heatmap</a>
         </div>
 
@@ -52,7 +52,7 @@
     </div>
 </div>
 
-<div class="border m-1 p-1 border-success-subtle rounded-3">
+<div class="m-1 mt-2 p-2 border rounded-3">
     <div class="container">
         {% for plot_row in plots %}
         <div class="row">

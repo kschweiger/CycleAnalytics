@@ -7,7 +7,7 @@
 {% block content %}
 
 {% if year_goal_displays|length > 0 %}
-<div class="border m-1 p-2 border-primary-subtle rounded-3">
+<div class="m-1 p-2 border rounded-3">
     <h4>Goals for year {{year}}</h4>
     <div class="accordion" id="accordion_year_goals">
         {% for goal in year_goal_displays %}
@@ -78,7 +78,7 @@
 {% endif %}
 
 {% if month_goal_displays|length > 0 %}
-<div class="border m-1 p-2 border-primary-subtle rounded-3">
+<div class="m-1 mt-2 p-2 border rounded-3">
     <h4>Goals for month {{month}}</h4>
     <div class="accordion" id="accordion_month_goals">
         {% for goal in month_goal_displays %}

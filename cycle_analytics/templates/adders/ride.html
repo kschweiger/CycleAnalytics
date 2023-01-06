@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div class="border p-1 border-primary-subtle rounded-3">
+<div class="m-1 p-1 border rounded-3">
     <h4> Add a new ride</h4>
     <form method="POST" enctype="multipart/form-data">
         {{ form.csrf_token }}
@@ -50,7 +50,7 @@
             <div class="col"></div>
         </div>
         <div class="row mt-2">
-            <div class="col text-end"><input type="submit" value="Submit" class="btn btn-primary"></div>
+            <div class="col text-end"><input type="submit" value="Submit" class="btn btn-success"></div>
         </div>
     </form>
 </div>

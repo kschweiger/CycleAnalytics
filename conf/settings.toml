@@ -27,7 +27,7 @@ auto_fill_ctypes = ["SERIAL"]
     default="any"
 
 [style]
-color_sequence=["#0d6efd", "#dc3545", "#198754", "#6610f2", "#fd7e14", "#20c997"]
+color_sequence=["#20c997","#dc3545","#0d6efd","#ffc107","#d63384","#6f42c1"]
 
 [adders]
     [adders.ride]
