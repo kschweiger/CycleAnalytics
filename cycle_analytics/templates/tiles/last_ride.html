@@ -19,6 +19,11 @@
     </div>
     {% if last_ride is not none %}
     <div class="row mt-3">
+        <div class="col-3">
+            {% for thumbnail in last_ride.thumbnails %}
+            <img src="data:image/png;base64, {{ thumbnail }}" class="img-fluid img-thumbnail" alt="Thumbnail">
+            {% endfor %}
+        </div>
         <div class="col">
             <table class="table">
                 <tbody>
@@ -30,11 +35,6 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-        <div class="col-3">
-            {% for thumbnail in last_ride.thumbnails %}
-            <img src="data:image/png;base64, {{ thumbnail }}" class="img-fluid img-thumbnail" alt="Thumbnail">
-            {% endfor %}
         </div>
     </div>
     {% else %}
