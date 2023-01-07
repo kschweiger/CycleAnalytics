@@ -9,6 +9,7 @@ from cycle_analytics.queries import (
     get_goal_years,
     get_last_ride,
     get_recent_events,
+    get_rides_in_timeframe,
     get_summary_data,
     get_years_in_database,
     load_goals,
@@ -86,6 +87,15 @@ def render_landing_page():
             or goal.month == inv_month_mapping[goal_month_selected]
         )
     ]
+
+    # -----------------------------------------------------------------------------
+    # TODO: Check if this takes too long with more data. Maybe add an update button
+    data = get_rides_in_timeframe(goal_year_selected)
+    for goal in display_goals:
+        reached, _, _ = goal.evaluate(data)
+        goal.reached = reached
+    # -----------------------------------------------------------------------------
+
     goals = format_goals_concise(display_goals)
 
     # --------------------- SUMMARY ---------------------
@@ -93,8 +103,6 @@ def render_landing_page():
     summary_year_selected = str(date_today.year)
     summary_ride_types = ["Any"] + config.adders.ride.type_choices
     summary_ride_type_selected = config.landing_page.summary.default_type
-    # TODO: Add POST requests for summary
-    print("----", request.form)
     if (
         request.method == "POST"
         and request.form.get("form_summary_ride_type") is not None

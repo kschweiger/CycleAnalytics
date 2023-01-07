@@ -61,7 +61,6 @@ def overview():
     else:
         load_year = int(load_year)
     load_month: None | int = int(overview_form.month.data)
-    print(load_month)
     if load_month == 0:
         load_month = None
     load_type = overview_form.event_type.data

@@ -9,6 +9,7 @@ import pandas as pd
 from flask import Blueprint, render_template
 
 from cycle_analytics.model import GoalDisplayData, GoalInfoData
+from cycle_analytics.utils import get_month_mapping
 
 
 class GoalType(str, Enum):
@@ -224,11 +225,9 @@ bp = Blueprint("goals", __name__, url_prefix="/goals")
 def overview():
     from cycle_analytics.queries import get_rides_in_timeframe, load_goals
 
-    # month_mapping = get_month_mapping()
-    # inv_month_mapping = {value: key for key, value in month_mapping.items()}
+    month_mapping = get_month_mapping()
 
     today = date.today()
-    today = date(2022, 12, 31)  # TEMP
 
     load_year = today.year
     load_month = today.month
@@ -269,7 +268,7 @@ def overview():
         "goals.html",
         active_page="goals",
         year=load_year,
-        month=load_month,
+        month=month_mapping[load_month],
         year_goal_displays=year_goal_displays,
         month_goal_displays=month_goal_displays,
     )

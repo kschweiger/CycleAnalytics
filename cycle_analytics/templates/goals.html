@@ -81,7 +81,7 @@
 
 {% if month_goal_displays|length > 0 %}
 <div class="m-1 mt-2 p-2 border rounded-3">
-    <h4>Goals for month {{month}}</h4>
+    <h4>Goals for {{month}} {{year}}</h4>
     <div class="accordion" id="accordion_month_goals">
         {% for goal in month_goal_displays %}
         <div class="accordion-item">

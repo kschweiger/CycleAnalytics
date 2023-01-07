@@ -19,7 +19,6 @@ def display(id_ride: int):
     except QueryReturnedNoData:
         flash("Invalid value of id_ride. Redirecting to overview", "alert-danger")
         return redirect(url_for("overview.main"))
-    print(data)
 
     ride_date = data["date"]
     ride_from = data["start_time"]
