@@ -49,17 +49,23 @@
                 <td>{{data[1]}}</td>
                 <td>
                     {% if data[2] == 1 %}
-                    <div class="border border-success rounded-1 bg-success-subtle text-center pb-1">
-                        &#11016;
-                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
+                        class="bi bi-arrow-up-right-circle-fill text-success" viewBox="0 0 16 16">
+                        <path
+                            d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12zM5.904 10.803 10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z" />
+                    </svg>
                     {% elif data[2] == -1 %}
-                    <div class="border border-danger rounded-1  bg-danger-subtle text-center pb-1">
-                        &#11018;
-                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
+                        class="bi bi-arrow-up-right-circle-fill text-danger" viewBox="0 0 16 16">
+                        <path
+                            d="M14 16a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12zM5.904 5.197 10 9.293V6.525a.5.5 0 0 1 1 0V10.5a.5.5 0 0 1-.5.5H6.525a.5.5 0 0 1 0-1h2.768L5.197 5.904a.5.5 0 0 1 .707-.707z" />
+                    </svg>
                     {% else %}
-                    <div class="border border-warning rounded-1 bg-warning-subtle text-center pb-1">
-                        &#11020;
-                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
+                        class="bi bi-arrow-up-right-circle-fill text-warning" viewBox="0 0 16 16">
+                        <path
+                            d="M0 14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v12zm4.5-6.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5a.5.5 0 0 1 0-1z" />
+                    </svg>
                     {% endif %}
                 </td>
             </tr>

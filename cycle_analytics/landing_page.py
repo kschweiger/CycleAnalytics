@@ -21,10 +21,7 @@ logger = logging.getLogger(__name__)
 def render_landing_page():
     logger.debug("Rendering landing page")
     config = current_app.config
-    print(request.form)
-    # config = current_app.config
     date_today = date.today()
-    # date_today = date(2022, 12, 31)
 
     # --------------------- LAST RIDES ---------------------
     last_ride_types = ["Any"] + config.adders.ride.type_choices
