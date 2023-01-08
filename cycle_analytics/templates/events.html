@@ -9,12 +9,12 @@
 
 {% block content %}
 
-<div class="container m-1 p-2 border rounded-3">
+<div class="m-1 p-2 border rounded-3">
     <div class="row">
         <h4>Events</h4>
     </div>
     <form method="POST">
-        <div class="row  align-items-center">
+        <div class="row">
             {{ overview_form.csrf_token }}
             <div class="col ">
                 <div class="form-floating">
@@ -35,8 +35,7 @@
                 </div>
             </div>
             <div class="col-auto">
-                <div class="col text-end"><input type="submit" value="Submit" class="btn btn-success h-100">
-                </div>
+                <input type="submit" value="Submit" class="btn btn-success h-100">
             </div>
         </div>
     </form>
@@ -66,7 +65,7 @@
     </div>
 </div>
 {% if located_events|length > 0 %}
-<div class="border m-1 p-2 border-primary-subtle rounded-3">
+<div class="m-1 p-2 border rounded-3">
     <h5>Location of events</h5>
     <div id="map" style="height:600px"></div>
 </div>

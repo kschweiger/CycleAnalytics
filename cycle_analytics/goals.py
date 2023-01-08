@@ -7,6 +7,9 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 from flask import Blueprint, render_template
+from flask_wtf import FlaskForm
+from wtforms import SelectField
+from wtforms.validators import DataRequired
 
 from cycle_analytics.model import GoalDisplayData, GoalInfoData
 from cycle_analytics.utils import get_month_mapping
@@ -218,6 +221,18 @@ def format_goals_concise(goals: list[Goal]) -> list[tuple[str, str, str, int]]:
     return formatted_goals
 
 
+class OverviewForm(FlaskForm):
+    year = SelectField(
+        "Year", validators=[DataRequired()], default=str(date.today().year)
+    )
+    month = SelectField(
+        "Month",
+        validators=[DataRequired()],
+        choices=[(i, get_month_mapping()[i]) for i in range(1, 13)],
+        default=0,
+    )
+
+
 bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 
@@ -225,12 +240,18 @@ bp = Blueprint("goals", __name__, url_prefix="/goals")
 def overview():
     from cycle_analytics.queries import get_rides_in_timeframe, load_goals
 
+    form = OverviewForm()
+    form.year.choices = ["2023", "2022"]
+
     month_mapping = get_month_mapping()
 
     today = date.today()
 
     load_year = today.year
     load_month = today.month
+    if form.validate_on_submit():
+        load_year = int(form.year.data)
+        load_month = int(form.month.data)
 
     goals = load_goals(load_year)
 
@@ -267,6 +288,7 @@ def overview():
     return render_template(
         "goals.html",
         active_page="goals",
+        overview_form=form,
         year=load_year,
         month=month_mapping[load_month],
         year_goal_displays=year_goal_displays,

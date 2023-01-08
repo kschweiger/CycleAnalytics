@@ -6,6 +6,29 @@
 
 {% block content %}
 
+<div class="m-1 p-2 border rounded-3">
+    <form method="POST">
+        {{ overview_form.csrf_token }}
+        <div class="row">
+            <div class="col">
+                <div class="form-floating">
+                    {{overview_form.year(class_="form-select")}}
+                    {{overview_form.year.label(class_="form-label") }}
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-floating">
+                    {{overview_form.month(class_="form-select")}}
+                    {{overview_form.month.label(class_="form-label") }}
+                </div>
+            </div>
+            <div class="col-auto">
+                <input type="submit" value="Submit" class="btn btn-success h-100">
+            </div>
+        </div>
+    </form>
+</div>
+
 {% if year_goal_displays|length > 0 %}
 <div class="m-1 p-2 border rounded-3">
     <h4>Goals for year {{year}}</h4>
@@ -70,6 +93,12 @@
                     {% if goal.info.description is not none%}
                     <div class="p-1">{{goal.info.description|safe}}</div>
                     {% endif %}
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-auto"><a href="#" class="btn btn-success disabled">Modify</a></div>
+                            <div class="col-auto"><a href="#" class="btn btn-success disabled">Deactivate</a></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
