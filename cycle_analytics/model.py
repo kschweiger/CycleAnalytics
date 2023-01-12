@@ -34,11 +34,12 @@ class MapMarker:
 class GoalInfoData:
     name: str
     goal: str
-    threshold: str
+    threshold: float
     value: int | float
     progress: float
     reached: int
     description: None | str
+    active: bool
 
 
 @dataclass

@@ -6,9 +6,9 @@ from typing import Dict
 
 import numpy as np
 import pandas as pd
-from flask import Blueprint, render_template
+from flask import Blueprint, flash, render_template, request
 from flask_wtf import FlaskForm
-from wtforms import SelectField
+from wtforms import RadioField, SelectField
 from wtforms.validators import DataRequired
 
 from cycle_analytics.model import GoalDisplayData, GoalInfoData
@@ -223,13 +223,26 @@ def format_goals_concise(goals: list[Goal]) -> list[tuple[str, str, str, int]]:
 
 class OverviewForm(FlaskForm):
     year = SelectField(
-        "Year", validators=[DataRequired()], default=str(date.today().year)
+        "Year", validators=[DataRequired()], default=str(date.today().year), coerce=int
     )
     month = SelectField(
         "Month",
         validators=[DataRequired()],
         choices=[(i, get_month_mapping()[i]) for i in range(1, 13)],
         default=0,
+        coerce=int,
+    )
+    active = RadioField(
+        "Show active",
+        choices=[(True, "Show active")],
+        coerce=bool,
+        validate_choice=False,
+    )
+    inactive = RadioField(
+        "Show inactive",
+        choices=[(True, "Show inactive")],
+        coerce=bool,
+        validate_choice=False,
     )
 
 
@@ -238,7 +251,29 @@ bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 @bp.route("/", methods=("GET", "POST"))
 def overview():
-    from cycle_analytics.queries import get_rides_in_timeframe, load_goals
+    from cycle_analytics.queries import (
+        get_rides_in_timeframe,
+        load_goals,
+        modify_goal_status,
+    )
+
+    if request.form.get("change_state_goal_id") is not None:
+        id_to_update = int(request.form.get("change_state_goal_id"))
+        status_value = request.form.get("change_state_value")
+        modify_succ = modify_goal_status(
+            id_to_update,
+            status_value == "Activate",
+        )
+        if modify_succ:
+            flash(
+                f"Goal {id_to_update} has been {status_value.lower()}d",
+                "alert-success",
+            )
+        else:
+            flash(
+                f"An error corrured with change state if goal {id_to_update}",
+                "alert-danger",
+            )
 
     form = OverviewForm()
     form.year.choices = ["2023", "2022"]
@@ -249,11 +284,26 @@ def overview():
 
     load_year = today.year
     load_month = today.month
-    if form.validate_on_submit():
-        load_year = int(form.year.data)
-        load_month = int(form.month.data)
 
-    goals = load_goals(load_year)
+    load_active = True
+    load_inactive = False
+    if form.validate_on_submit():
+        load_year = form.year.data
+        load_month = form.month.data
+
+        if form.active.data is not None:
+            load_active = True
+        else:
+            load_active = False
+        if form.inactive.data is not None:
+            load_inactive = True
+        else:
+            load_inactive = False
+
+    goals = load_goals(load_year, load_active, load_inactive)
+
+    form.active.data = load_active if load_active else None
+    form.inactive.data = load_inactive if load_inactive else None
 
     year_goals = [g for g in goals if g.month is None]
     month_goals = [g for g in goals if g.month == load_month]
@@ -276,6 +326,7 @@ def overview():
                 else current_value,
                 progress=round(progress * 100) if goal.is_upper_bound else progress,
                 reached=int(status),
+                active=goal.active,
                 description=goal.description,
             ),
             progress_bar=goal.is_upper_bound,

@@ -274,7 +274,7 @@ def get_summary_data(
         summary_month = [
             (
                 "Distance [km]",
-                curr_month_distance,
+                round(curr_month_distance, 2),
                 compare_values(curr_month_distance - last_month_distance, 5),
             ),
             (
@@ -305,11 +305,17 @@ def get_summary_data(
     return summary_data, summary_month
 
 
-@cache.memoize(timeout=86400)
-def load_goals(year: int | str) -> list[Goal]:
+# @cache.memoize(timeout=86400)
+def load_goals(year: int | str, load_active: bool, load_inactive: bool) -> list[Goal]:
     db = get_db()
     table_goals = Table("goals")
     query = db.pypika_query.from_(table_goals).select("*")
+    if load_active and not load_inactive:
+        query = query.where(table_goals.active == True)  # noqa: E712
+    if not load_active and load_inactive:
+        query = query.where(table_goals.active == False)  # noqa: E712
+    if not load_active and not load_inactive:
+        return []
     try:
         query = query.where(table_goals.year == int(year))
     except ValueError:
@@ -393,3 +399,15 @@ def get_recent_events(
         return {}  # type: ignore
 
     return [{key: value for key, value in zip(keys, data)} for data in datas]
+
+
+def modify_goal_status(id_goal: int, active: bool = True) -> bool:
+    table = Table("goals")
+    db = get_db()
+    query = (
+        db.pypika_query.update(table)
+        .set(table.active, active)
+        .where(table.id_goal == id_goal)
+    )
+
+    return db.exec_arbitrary(query)

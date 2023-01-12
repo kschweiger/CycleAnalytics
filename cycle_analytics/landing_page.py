@@ -75,7 +75,7 @@ def render_landing_page():
     goal_months = [month_mapping[i] for i in range(1, 13)]
 
     try:
-        goals_ = load_goals(goal_year_selected)
+        goals_ = load_goals(goal_year_selected, True, False)
     except QueryReturnedNoData:
         goals_ = []
 

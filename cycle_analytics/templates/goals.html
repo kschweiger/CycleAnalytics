@@ -22,6 +22,22 @@
                     {{overview_form.month.label(class_="form-label") }}
                 </div>
             </div>
+            <div class="col my-auto ">
+                {% for subfield in overview_form.active %}
+                <div class="form-check form-switch form-switch-lg">
+                    {{ subfield(type_="checkbox", role_="switch", class_="form-check-input",
+                    checked=subfield==overview_form.active) }}
+                    {{ subfield.label(class_="form-check-label") }}
+                </div>
+                {% endfor %}
+                {% for subfield in overview_form.inactive %}
+                <div class="form-check form-switch form-switch-lg">
+                    {{ subfield(type_="checkbox", role_="switch", class_="form-check-input",
+                    checked=subfield==overview_form.active) }}
+                    {{ subfield.label(class_="form-check-label") }}
+                </div>
+                {% endfor %}
+            </div>
             <div class="col-auto">
                 <input type="submit" value="Submit" class="btn btn-success h-100">
             </div>
@@ -96,7 +112,19 @@
                     <div class="container">
                         <div class="row">
                             <div class="col-auto"><a href="#" class="btn btn-success disabled">Modify</a></div>
-                            <div class="col-auto"><a href="#" class="btn btn-success disabled">Deactivate</a></div>
+                            <div class="col-auto">
+                                <form method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                    <input type="hidden" name="change_state_goal_id" value="{{goal.goal_id}}" />
+                                    {% if goal.info.active %}
+                                    <input type="hidden" name="change_state_value" value="Deactivate" />
+                                    <input type="submit" value="Deactivate" class="btn btn-success">
+                                    {% else %}
+                                    <input type="hidden" name="change_state_value" value="Activate" />
+                                    <input type="submit" value="Activate" class="btn btn-success">
+                                    {% endif %}
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -169,6 +197,27 @@
                                 {% endif %}
                             </tr>
                     </table>
+                    {% if goal.info.description is not none%}
+                    <div class="p-1">{{goal.info.description|safe}}</div>
+                    {% endif %}
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-auto"><a href="#" class="btn btn-success disabled">Modify</a></div>
+                            <div class="col-auto">
+                                <form method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                    <input type="hidden" name="change_state_goal_id" value="{{goal.goal_id}}" />
+                                    {% if goal.info.active %}
+                                    <input type="hidden" name="change_state_value" value="Deactivate" />
+                                    <input type="submit" value="Deactivate" class="btn btn-success">
+                                    {% else %}
+                                    <input type="hidden" name="change_state_value" value="Activate" />
+                                    <input type="submit" value="Activate" class="btn btn-success">
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
