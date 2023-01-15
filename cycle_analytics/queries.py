@@ -446,6 +446,22 @@ def get_recent_events(
     return [{key: value for key, value in zip(keys, data)} for data in datas]
 
 
+def get_events_for_ride(id_ride: int) -> list[Dict[str, Any]]:
+    db = get_db()
+    table_events = Table("events")
+    query = (
+        db.pypika_query.from_(table_events)
+        .select("*")
+        .where(table_events.id_ride == id_ride)
+    )
+    try:
+        datas, keys = db.query_inc_keys(query)
+    except QueryReturnedNoData:
+        return []
+
+    return [{key: value for key, value in zip(keys, data)} for data in datas]
+
+
 def modify_goal_status(id_goal: int, active: bool = True) -> bool:
     table = Table("goals")
     db = get_db()

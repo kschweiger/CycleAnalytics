@@ -20,6 +20,8 @@ function set_path_on_map(map, lats, longs) {
     var polyline = L.polyline([points], { color: '#20c997' }).addTo(map);
     // zoom the map to the polyline
     map.fitBounds(polyline.getBounds());
+
+    return polyline;
 }
 
 function get_map_layer() {
@@ -59,6 +61,22 @@ function show_map_for_form_path(div_id, btn_id, height, lats, longs) {
     map = show_map_for_form(div_id, btn_id, height, 1, 1, 1);
     set_path_on_map(map, lats, longs);
     return map;
+}
+
+
+function show_map_with_path_and_markers(div_id, lats, longs, markers) {
+    let map = L.map(div_id);
+    map.addLayer(get_map_layer());
+
+    let objects = [];
+    objects.push(set_path_on_map(map, lats, longs));
+
+    for (marker of markers) {
+        objects.push(add_marker_to_map(map, marker.lat, marker.long, marker.icon, marker.popup_text))
+    }
+    let group = new L.featureGroup(placed_markers);
+
+    map.fitBounds(group.getBounds());
 }
 
 function get_base_icon() {
@@ -144,7 +162,6 @@ function add_marker_to_map(map, lat, long, icon, popup_text) {
     marker.bindPopup(popup_text);
     return marker
 }
-
 
 
 function show_map_with_markers(div_id, markers) {

@@ -6,14 +6,19 @@ from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import Blueprint, current_app, flash, redirect, render_template, url_for
 from gpx_track_analyzer.visualize import plot_track_2d
 
-from cycle_analytics.model import MapData, MapPathData
-from cycle_analytics.queries import get_full_ride_data, get_track_for_id
+from cycle_analytics.model import MapData, MapMarker, MapPathData
+from cycle_analytics.queries import (
+    get_events_for_ride,
+    get_full_ride_data,
+    get_track_for_id,
+)
 
 bp = Blueprint("ride", __name__, url_prefix="/ride")
 
 
 @bp.route("/<int:id_ride>/", methods=("GET", "POST"))
 def display(id_ride: int):
+    config = current_app.config
     try:
         data = get_full_ride_data(id_ride)
     except QueryReturnedNoData:
@@ -84,6 +89,36 @@ def display(id_ride: int):
         plot_elevation_and_velocity = None
         map_data = None
 
+    events_ = get_events_for_ride(id_ride)
+    located_events = []
+    if events_:
+        severity_mapping = config.mappings.severity.to_dict()
+        event_colors = config.mappings.event_colors.to_dict()
+        event_dataclass = config.tables_as_settings["events"].dataclass
+        events = [event_dataclass(**event_data) for event_data in events_]
+        for event in events:
+            if event.latitude is not None and event.longitude is not None:
+                color = "blue"
+                if event.event_type in event_colors.keys():
+                    color = event_colors[event.event_type]
+
+                popup_text = f"<b>{event.short_description}</b>"
+                if event.severity is not None:
+                    popup_text += (
+                        f" - Severity: {severity_mapping[str(event.severity)]}"
+                    )
+                if event.description is not None:
+                    popup_text += f"<br>{event.description}"
+                located_events.append(
+                    MapMarker(
+                        latitude=event.latitude,
+                        longitude=event.longitude,
+                        popup_text=popup_text,
+                        color=color,
+                        color_idx=0 if event.severity is None else event.severity,
+                    )
+                )
+
     return render_template(
         "ride.html",
         active_page="overview",
@@ -95,4 +130,5 @@ def display(id_ride: int):
         track_data=track_data,
         plot_elevation_and_velocity=plot_elevation_and_velocity,
         map_data=map_data,
+        located_events=located_events,
     )
