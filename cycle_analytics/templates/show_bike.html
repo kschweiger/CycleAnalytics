@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<div class="m-1 p-2 border rounded-3">
+    <h4>Information for bike: {{bike.name}}</h4>
+    <table class="table mt-3">
+        <tbody>
+            <tr>
+                <th scope="row">Name</th>
+                <td>{{bike.name}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Brand</th>
+                <td>{{bike.brand}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Model</th>
+                <td>{{bike.model}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Material</th>
+                <td>{{bike.material.name}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Type</th>
+                <td>{{bike.type.name}}</td>
+            </tr>
+            {% if bike.type_specification is not none%}
+            <tr>
+                <th scope="row"></th>
+                <td>{{bike.type_specification}}</td>
+            </tr>
+            {% endif %}
+            {% if bike.weight is not none%}
+            <tr>
+                <th scope="row"></th>
+                <td>{{bike.weight}}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th scope="row">Purchased</th>
+                <td>{{bike.purchased}}</td>
+            </tr>
+            {% if bike.decommissioned is not none%}
+            <tr>
+                <th scope="row"></th>
+                <td>{{bike.decommissioned}}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+
+    </table>
+
+    {% if agg_data is not none %}
+    <h5>Summary of data tracked for bike:</h5>
+    <table class="table mt-3">
+        <tbody>
+            <tr>
+                <th scope="row">No. Rides</th>
+                <td>{{agg_data["rides"]}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Total distance</th>
+                <td>{{agg_data["total_distance"]}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Total time</th>
+                <td>{{agg_data["total_time"]}}</td>
+            </tr>
+            <tr>
+                <th scope="row">First ride</th>
+                <td>{{agg_data["first_ride"]}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Last ride</th>
+                <td>{{agg_data["last_ride"]}}</td>
+            </tr>
+        </tbody>
+    </table>
+    {%endif%}
+
+
+</div>
+
+{% endblock %}

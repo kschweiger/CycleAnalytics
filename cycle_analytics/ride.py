@@ -30,7 +30,7 @@ def display(id_ride: int):
         ("Duration", data["total_time"]),
         ("Duration (ridden)", data["ride_time"]),
         ("Distance [km]", data["distance"]),
-        ("Bike", data["bike"]),
+        ("Bike", (data["bike"], url_for("bike.show", bike_name=data["bike"]))),
         ("Type", data["ride_type"]),
     ]
 

@@ -35,7 +35,11 @@
                             {% for data in ride_data%}
                             <tr>
                                 <th scope="row">{{data[0]}}</th>
+                                {% if data[1] is iterable and data[1] is not string %}
+                                <td><a href="{{data[1][1]}}">{{data[1][0]}}</a></td>
+                                {% else %}
                                 <td>{{data[1]}}</td>
+                                {% endif %}
                             </tr>
                             {% endfor %}
                         </tbody>

@@ -22,7 +22,7 @@ from wtforms.validators import DataRequired, NumberRange, Optional
 from cycle_analytics.db import get_db
 from cycle_analytics.goals import GoalType
 from cycle_analytics.model import MapData, MapPathData
-from cycle_analytics.queries import get_last_id, get_track_for_id
+from cycle_analytics.queries import get_bike_names, get_last_id, get_track_for_id
 from cycle_analytics.utils import get_month_mapping
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class RideForm(FlaskForm):
     total_time = TimeField("Total Time", validators=[DataRequired()], format="%H:%M:%S")
     ride_time = TimeField("Ride Time", validators=[], format="%H:%M:%S")
     distance = DecimalField("Distance [km]", validators=[DataRequired()])
-    bike = StringField("Bike", validators=[DataRequired()])
+    bike = SelectField("Bike", validators=[DataRequired()])
     ride_type = SelectField("Ride Type")
     track = FileField("GPX Track")
 
@@ -74,6 +74,10 @@ class EventForm(FlaskForm):
         validators=[Optional()],
     )
     id_ride = HiddenField("id_ride", default=None)
+    bike = SelectField(
+        "Bike Name",
+        validators=[Optional()],
+    )
 
 
 class GoalForm(FlaskForm):
@@ -111,7 +115,52 @@ class GoalForm(FlaskForm):
         description="Select zero, one, or more ride types for the goal "
         "(hold ctrl or cmd to select)",
     )
-    bike = StringField("Bike Name", default=None, description="Bike name")
+
+    bike = SelectMultipleField(
+        "Bike Name",
+        default=None,
+        description="Select zero, one, or more bikes for the goal "
+        "(hold ctrl or cmd to select)",
+    )
+
+
+class BikeForm(FlaskForm):
+    name = StringField(
+        "Name",
+        validators=[DataRequired()],
+        description="Unique identifier for the bike",
+    )
+    brand = StringField(
+        "Brand", validators=[DataRequired()], description="Brand of the bike"
+    )
+    model = StringField(
+        "Model", validators=[DataRequired()], description="Full name of the bike"
+    )
+    material = StringField(
+        "Frame material",
+        validators=[DataRequired()],
+        description="Material of the frame",
+    )
+    weight = DecimalField(
+        "Weight",
+        description="Optional weight of the bike in kg",
+        default=None,
+        validators=[Optional()],
+    )
+
+    bike_type = SelectField(
+        "Bike Type",
+        choices=[("mtb", "MTB"), ("road", "Road"), ("gravel", "Gravel")],
+        default="mtb",
+    )
+    bike_type_specification = StringField(
+        "Type specification",
+        description="Optional specification of the bike type",
+        default=None,
+        validators=[Optional()],
+    )
+
+    purchase = DateField("Purchase Date", validators=[DataRequired()])
 
 
 def flash_form_error(form: FlaskForm):
@@ -138,8 +187,7 @@ def add_ride():
     ]
 
     form.ride_type.choices = [(c, c) for c in type_choices]
-
-    form.bike.data = config.defaults.bike
+    form.bike.choices = [(b, b) for b in get_bike_names()]
 
     if form.validate_on_submit():
         db = get_db()
@@ -205,6 +253,8 @@ def add_event():
 
     form.event_type.choices = [(c, c) for c in type_choices]
     form.id_ride.data = None
+    form.bike.choices = [("None", "-")] + [(b, b) for b in get_bike_names()]
+
     if arg_date is not None:
         try:
             date.fromisoformat(arg_date)
@@ -242,6 +292,7 @@ def add_event():
                 form.latitude.data,
                 form.longitude.data,
                 form.id_ride.data,
+                None if form.bike.data == "None" else form.bike.data,
             ]
         ]
         insert_succ, err = db.insert(
@@ -275,12 +326,13 @@ def add_goal():
     config = current_app.config
 
     form.ride_types.choices = config.adders.ride.type_choices
+    form.bike.choices = get_bike_names()
 
     if form.validate_on_submit():
 
         constraints_ = {}
-        if form.bike.data != "":
-            constraints_["bike"] = form.bike.data.split(",")
+        if form.bike.data:
+            constraints_["bike"] = form.bike.data
         if form.ride_types.data:
             constraints_["ride_type"] = form.ride_types.data
 
@@ -302,6 +354,7 @@ def add_goal():
                 True,  # Active
             ]
         ]
+        print(data_to_insert)
         insert_succ, err = db.insert(
             current_app.config.tables_as_settings["goals"],
             data_to_insert,
@@ -312,3 +365,37 @@ def add_goal():
             flash(f"Track could not be added: {err}", "alert-danger")
 
     return render_template("adders/goal.html", active_page="add_goal", form=form)
+
+
+@bp.route("/bike", methods=("GET", "POST"))
+def add_bike():
+    form = BikeForm()
+
+    if form.validate_on_submit():
+        data_to_insert = [
+            (
+                form.name.data,
+                form.brand.data,
+                form.model.data,
+                form.material.data,
+                form.bike_type.data,
+                None
+                if form.bike_type_specification.data == ""
+                else form.bike_type_specification.data,
+                form.weight.data,
+                form.purchase.data.isoformat(),
+                None,
+            )
+        ]
+        db = get_db()
+        insert_succ, err = db.insert(
+            current_app.config.tables_as_settings["bikes"],
+            data_to_insert,
+        )
+        if insert_succ:
+            flash("Goal Added", "alert-success")
+        else:
+            flash(f"Track could not be added: {err}", "alert-danger")
+    elif request.method == "POST":
+        flash_form_error(form)
+    return render_template("adders/bike.html", active_page="settings", form=form)

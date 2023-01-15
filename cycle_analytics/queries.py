@@ -7,12 +7,12 @@ from data_organizer.db.exceptions import QueryReturnedNoData
 from gpx_track_analyzer.track import ByteTrack
 from pandas import Timedelta
 from pypika import Criterion, JoinType, Order, Table
-from pypika.functions import Extract
+from pypika.functions import Count, Extract, Max, Min, Sum
 
 from cycle_analytics.cache import cache
 from cycle_analytics.db import get_db
 from cycle_analytics.goals import Goal, initialize_goals
-from cycle_analytics.model import LastRide
+from cycle_analytics.model import Bike, LastRide, bike_from_dict
 from cycle_analytics.plotting import convert_fig_to_base64, get_track_thumbnails
 from cycle_analytics.utils import (
     compare_values,
@@ -21,6 +21,51 @@ from cycle_analytics.utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def get_bike_names() -> list[str]:
+    db = get_db()
+    tables = Table("bikes")
+    query = db.pypika_query.from_(tables).select(tables.bike_name).distinct()
+    bikes = db.query(query)
+
+    return [b[0] for b in bikes]
+
+
+def get_full_bike_date(bike_name) -> Bike:
+    db = get_db()
+    bikes = Table("bikes")
+    query = db.pypika_query.from_(bikes).select("*").where(bikes.bike_name == bike_name)
+
+    data, keys = db.query_inc_keys(query)
+
+    return bike_from_dict({key: value for key, value in zip(keys, data[0])})
+
+
+def get_agg_data_for_bike(bike_name: str) -> None | Dict[str, Any]:
+    db = get_db()
+    main = Table("main")
+
+    query = (
+        db.pypika_query.from_(main)
+        .select(
+            Count("*").as_("rides"),
+            Sum(main.distance).as_("total_distance"),
+            Sum(main.total_time).as_("total_time"),
+            Min(main.date).as_("first_ride"),
+            Max(main.date).as_("last_ride"),
+        )
+        .where(main.bike == bike_name)
+    )
+
+    try:
+        data, keys = db.query_inc_keys(query)
+    except QueryReturnedNoData:
+        return None
+
+    agg_data = {key: value for key, value in zip(keys, data[0])}
+    agg_data["total_distance"] = round(agg_data["total_distance"], 2)
+    return agg_data
 
 
 def get_last_ride(ride_type: None | str) -> None | LastRide:

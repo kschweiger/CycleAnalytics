@@ -1,4 +1,4 @@
-tables=["main", "tracks", "events", "goals"]
+tables=["main", "tracks", "events", "goals","bikes"]
 
 [defaults]
 bike="Nerve"
@@ -33,7 +33,7 @@ color_sequence=["#20c997","#dc3545","#0d6efd","#ffc107","#d63384","#6f42c1"]
     [adders.ride]
         type_choices=["MTB","Road","Gravel"]
     [adders.event]
-        type_choices=["Mechanical", "Crash", "Service", "Replacement", "Purchase", "Other"]
+        type_choices=["Mechanical", "Crash", "Service", "Repair", "Replacement", "Purchase", "Other"]
         init_map_view_lat=48.02
         init_map_view_long=10.2
         init_map_zoom=8
@@ -124,7 +124,10 @@ color_sequence=["#20c997","#dc3545","#0d6efd","#ffc107","#d63384","#6f42c1"]
         ctype="INT"
         is_nullable=true
         default="NULL"
-
+    [events.bike]
+        ctype="VARCHAR(20)"
+        is_nullable=true
+        default="NULL"
 
 [goals]
     name="goals"
@@ -157,3 +160,31 @@ color_sequence=["#20c997","#dc3545","#0d6efd","#ffc107","#d63384","#6f42c1"]
     [goals.active]
         ctype="BOOLEAN"
         default=true
+
+[bikes]
+    name="bikes"
+    [bikes.bike_name]
+        ctype="VARCHAR(50)"
+        is_primary=true
+    [bikes.bike_brand]
+        ctype="VARCHAR(50)"
+    [bikes.bike_model]
+        ctype="VARCHAR(50)"
+    [bikes.bike_frame_material]
+        ctype="VARCHAR(50)"
+    [bikes.bike_type]
+        ctype="VARCHAR(50)"
+    [bikes.bike_type_specification]
+        ctype="VARCHAR(50)"
+        is_nullable=true
+        default="NULL"
+    [bikes.bike_weight]
+        ctype="FLOAT"
+        is_nullable=true
+        default="NULL"
+    [bikes.purchase_date]
+        ctype="DATE"
+    [bikes.decommission_date]
+        ctype="DATE"
+        is_nullable=true
+        default="NULL"

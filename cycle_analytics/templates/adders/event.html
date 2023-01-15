@@ -46,6 +46,14 @@
         </div>
         <div class="row  mt-2">
             <div class="col">
+                {{form.bike.label(class_="form-label") }}
+                {{form.bike(class_="form-select")}}
+            </div>
+            <div class="col"></div>
+            <div class="col"></div>
+        </div>
+        <div class="row  mt-2">
+            <div class="col">
                 {{form.description.label(class_="form-label") }}
                 {{form.description(class_="form-control", placeholder_=form.description.description)}}
             </div>
