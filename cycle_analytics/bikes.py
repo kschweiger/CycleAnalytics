@@ -1,6 +1,7 @@
 import logging
 
-from flask import Blueprint, render_template
+from data_organizer.db.exceptions import QueryReturnedNoData
+from flask import Blueprint, flash, redirect, render_template, url_for
 
 from cycle_analytics.queries import get_agg_data_for_bike, get_full_bike_date
 
@@ -12,7 +13,15 @@ bp = Blueprint("bike", __name__, url_prefix="/bike")
 
 @bp.route("/<bike_name>/", methods=("GET", "POST"))
 def show(bike_name: str):
-    bike = get_full_bike_date(bike_name)
+    try:
+        bike = get_full_bike_date(bike_name)
+    except QueryReturnedNoData:
+        flash(
+            f"<b>{bike_name}</b> is no valid bike. You can add it via "
+            f"<a href='{url_for('adders.add_bike')}'>this form</a>",
+            "alert-danger",
+        )
+        return redirect("/")
 
     agg_data = get_agg_data_for_bike(bike_name)
 
