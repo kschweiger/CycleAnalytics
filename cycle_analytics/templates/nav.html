@@ -26,7 +26,7 @@
                         href="{{url_for('events.overview')}}">Events</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link disabled {% if active_page == 'segments'%}active{% endif %}"
+                    <a class="nav-link {% if active_page == 'segments'%}active{% endif %}"
                         href="{{url_for('segments.main')}}">Segments</a>
                 </li>
                 <li class="nav-item dropdown">
@@ -41,6 +41,8 @@
                                 href="{{url_for('adders.add_event')}}">Event</a></li>
                         <li><a class="dropdown-item {% if active_page == 'add_goal'%}active{% endif %}"
                                 href="{{url_for('adders.add_goal')}}">Goal</a></li>
+                        <li><a class="dropdown-item {% if active_page == 'add_segment'%}active{% endif %}"
+                                href="{{url_for('segments.add_segment')}}">Segment</a></li>
                     </ul>
                 </li>
                 <li class="nav-item">

@@ -12,7 +12,13 @@ from pypika.functions import Count, Extract, Max, Min, Sum
 from cycle_analytics.cache import cache
 from cycle_analytics.db import get_db
 from cycle_analytics.goals import Goal, initialize_goals
-from cycle_analytics.model import Bike, LastRide, bike_from_dict
+from cycle_analytics.model import (
+    Bike,
+    LastRide,
+    LatLngBounds,
+    SegmentData,
+    bike_from_dict,
+)
 from cycle_analytics.plotting import convert_fig_to_base64, get_track_thumbnails
 from cycle_analytics.utils import (
     compare_values,
@@ -472,3 +478,44 @@ def modify_goal_status(id_goal: int, active: bool = True) -> bool:
     )
 
     return db.exec_arbitrary(query)
+
+
+def get_segment_data(
+    id_segment: int, difficulty_mapping: Dict[int, str]
+) -> SegmentData:
+    db = get_db()
+    table = Table("segments")
+    query = (
+        db.pypika_query.from_(table).select("*").where(table.id_segment == id_segment)
+    )
+
+    datas, keys = db.query_inc_keys(query)
+    data = {key: value for key, value in zip(keys, datas[0])}
+
+    return SegmentData(
+        id=data["id_segment"],
+        name=data["segment_name"],
+        description=data["description"],
+        distance=round(data["distance"], 2),
+        type=data["type"],
+        difficulty=difficulty_mapping[data["difficulty"]],
+        min_elevation=None
+        if data["min_elevation"] is None
+        else round(data["min_elevation"], 2),
+        max_elevation=None
+        if data["max_elevation"] is None
+        else round(data["max_elevation"], 2),
+        uphill_elevation=None
+        if data["uphill_elevation"] is None
+        else round(data["uphill_elevation"], 2),
+        downhill_elevation=None
+        if data["downhill_elevation"] is None
+        else round(data["downhill_elevation"], 2),
+        track=ByteTrack(bytes(data["gpx"]), 0),
+        bounds=LatLngBounds(
+            min_latitude=data["bounds_min_lat"],
+            max_latitude=data["bounds_max_lat"],
+            min_longitude=data["bounds_min_lng"],
+            max_longitude=data["bounds_max_lng"],
+        ),
+    )

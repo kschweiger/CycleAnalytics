@@ -1,4 +1,4 @@
-tables=["main", "tracks", "events", "goals","bikes"]
+tables=["main", "tracks", "events", "goals","bikes","segments"]
 
 [defaults]
 bike="Nerve"
@@ -28,6 +28,7 @@ auto_fill_ctypes = ["SERIAL"]
 
 [style]
 color_sequence=["#20c997","#dc3545","#0d6efd","#ffc107","#d63384","#6f42c1"]
+color_marker="#198754"
 
 [adders]
     [adders.ride]
@@ -37,6 +38,8 @@ color_sequence=["#20c997","#dc3545","#0d6efd","#ffc107","#d63384","#6f42c1"]
         init_map_view_lat=48.02
         init_map_view_long=10.2
         init_map_zoom=8
+    [adders.segments]
+        type_choices=["Single Trail", "Dirt Track", "Gravel track", "Road", "Track"]
 
 [mappings]
     [mappings.severity]
@@ -47,6 +50,12 @@ color_sequence=["#20c997","#dc3545","#0d6efd","#ffc107","#d63384","#6f42c1"]
     [mappings.event_colors]
         "Mechanical"="green"
         "Crash"="red"
+    [mappings.difficulty]
+        0="No Difficulty"
+        1="Easy"
+        2="Moderate"
+        3="Difficult"
+        4="Break Neck"
 
 [landing_page]
     [landing_page.events]
@@ -55,6 +64,13 @@ color_sequence=["#20c997","#dc3545","#0d6efd","#ffc107","#d63384","#6f42c1"]
         default_type="MTB"
     [landing_page.summary]
         default_type="Any"
+
+[external]
+    [external.track_enhancer]
+        name="OpenTopoElevation"
+        url="http://localhost:1409/"
+        [external.track_enhancer.kwargs]
+            dataset="eudem25m"
 
 [main]
     name="main"
@@ -188,3 +204,53 @@ color_sequence=["#20c997","#dc3545","#0d6efd","#ffc107","#d63384","#6f42c1"]
         ctype="DATE"
         is_nullable=true
         default="NULL"
+
+[segments]
+    name="segments"
+    [segments.id_segment]
+        ctype="SERIAL"
+        is_primary=true
+    [segments.segment_name]
+        ctype="VARCHAR(50)"
+    [segments.description]
+        ctype="TEXT"
+        is_nullable=true
+    [segments.type]
+        ctype="VARCHAR(20)"
+        is_nullable=true
+        default="NULL"
+    [segments.difficulty]
+        ctype="INT"
+        is_nullable=true
+        default="NULL"
+    [segments.distance]
+        ctype="FLOAT"
+    [segments.min_elevation]
+        ctype="FLOAT"
+        is_nullable=true
+        default="NULL"
+    [segments.max_elevation]
+        ctype="FLOAT"
+        is_nullable=true
+        default="NULL"
+    [segments.uphill_elevation]
+        ctype="FLOAT"
+        is_nullable=true
+        default="NULL"
+    [segments.downhill_elevation]
+        ctype="FLOAT"
+        is_nullable=true
+        default="NULL"
+    [segments.bounds_min_lat]
+        ctype="FLOAT"
+    [segments.bounds_max_lat]
+        ctype="FLOAT"
+    [segments.bounds_min_lng]
+        ctype="FLOAT"
+    [segments.bounds_max_lng]
+        ctype="FLOAT"
+    [segments.gpx]
+        ctype="BYTEA"
+    [segments.visited]
+        ctype="BOOLEAN"
+        default=true

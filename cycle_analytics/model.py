@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Dict, Optional
 
+from gpx_track_analyzer.track import Track
+
 from cycle_analytics.enums import BikeType, FrameMaterial
 
 
@@ -16,6 +18,30 @@ class Bike:
     type_specification: None | str
     weight: None | float
     decommissioned: None | date
+
+
+@dataclass
+class LatLngBounds:
+    min_latitude: float
+    max_latitude: float
+    min_longitude: float
+    max_longitude: float
+
+
+@dataclass
+class SegmentData:
+    id: int
+    name: str
+    description: None | str
+    type: str
+    difficulty: str
+    distance: float
+    min_elevation: None | float
+    max_elevation: None | float
+    uphill_elevation: None | float
+    downhill_elevation: None | float
+    track: Track
+    bounds: LatLngBounds
 
 
 @dataclass

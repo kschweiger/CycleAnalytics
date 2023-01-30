@@ -354,7 +354,6 @@ def add_goal():
                 True,  # Active
             ]
         ]
-        print(data_to_insert)
         insert_succ, err = db.insert(
             current_app.config.tables_as_settings["goals"],
             data_to_insert,

@@ -1,6 +1,8 @@
 from datetime import date, timedelta
 from typing import Literal
 
+import pandas as pd
+
 
 def get_nice_timedelta_isoformat(time: str):
     time_ = time.split("T")
@@ -54,3 +56,37 @@ def get_date_range_from_year_month(year: int, month: None | int) -> tuple[date, 
             return date(year, 12, 1), date(year, 12, 31)
         else:
             return date(year, month, 1), date(year, month + 1, 1) - timedelta(days=1)
+
+
+def find_closest_elem_to_poi(
+    data: pd.DataFrame, lat: float, lng: float, greedy: bool = True
+) -> int:
+    """
+    Find the colosest element in the passed data to the passed lat and lng
+    values.
+
+    :param data: Dataframe containing *latitude* and *longitude* columns
+    :param lat: Reference latitude
+    :param lng: Reference longitude
+    :param greedy: If True the search will stop as soon as the residuals start
+                   to grow again, defaults to True
+    :raises RuntimeError: If nothing can be found. This is not expected
+    :return: Index in the dataframe closest to the passed lat/lng values
+    """
+
+    min_res_sum = 1e10
+    idx_min = None
+    for i, rcrd in enumerate(data.to_dict("records")):
+        res_lat = abs(rcrd["latitude"] - lat)
+        res_lng = abs(rcrd["longitude"] - lng)
+        res_sum = res_lat + res_lng
+        if res_sum < min_res_sum:
+            min_res_sum = res_sum
+            idx_min = i
+        if greedy and res_sum > min_res_sum:
+            break
+
+    if idx_min is None:
+        raise RuntimeError("Something want wrong here...")
+
+    return idx_min

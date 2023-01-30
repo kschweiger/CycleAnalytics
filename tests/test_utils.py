@@ -1,9 +1,14 @@
 from datetime import date
 
+import pandas as pd
 import pytest
 from pandas import Timedelta
 
-from cycle_analytics.utils import compare_values, get_date_range_from_year_month
+from cycle_analytics.utils import (
+    compare_values,
+    find_closest_elem_to_poi,
+    get_date_range_from_year_month,
+)
 
 
 @pytest.mark.parametrize(
@@ -50,3 +55,22 @@ def test_compare_values(val1, val2, func, thresh, exp):
 )
 def test_daterange(year, month, exp_range):
     assert get_date_range_from_year_month(year, month) == exp_range
+
+
+@pytest.mark.parametrize(
+    ("lats", "lngs", "poi_lat", "poi_lng", "greedy", "exp_idx"),
+    [
+        (
+            [1.00001, 1.00005, 1.0001],
+            [1.00001, 1.00005, 1.0001],
+            1.00004,
+            1.00004,
+            True,
+            1,
+        )
+    ],
+)
+def test_find_closest_elem_to_poi(lats, lngs, poi_lat, poi_lng, greedy, exp_idx):
+    data = pd.DataFrame({"latitude": lats, "longitude": lngs})
+
+    assert find_closest_elem_to_poi(data, poi_lat, poi_lng, greedy) == exp_idx

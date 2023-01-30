@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block head_scripts %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+<script src="{{ url_for('static', filename='map_utils.js') }}"></script>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="m-1 p-1 border rounded-3">
+
+
+    <div class="container">
+        <div class="row px-1">
+            <div class="col p-0">
+                <div class="mb-2" id="map" style="height:600px"></div>
+            </div>
+        </div>
+        <div class="row px-1">
+            <div class="col p-0">
+                <div id="profile_div" class="visually-hidden">
+                    <div class="mb-2">
+                        <img id="profile_plot" src="" class="img-fluid img-thumbnail" alt="Elevation profile">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row px-1">
+            <div class="col p-0">
+                <div id="route_alert" class="visually-hidden" role="alert"></div>
+            </div>
+        </div>
+        <div class="row px-1">
+            <div class="col-xl p-0 ps-1">
+                <form method="POST" enctype="multipart/form-data">
+                    {{ map_segment_form.csrf_token }}
+                    {{ map_segment_form.segment_latitudes() }}
+                    {{ map_segment_form.segment_longitudes() }}
+                    {{ map_segment_form.segment_elevations() }}
+                    <div class="row  align-items-end">
+                        <div class="col">
+                            <button id="get_path" type="button" class="w-100 align-bottom  btn btn-success"
+                                onclick="calc_route('{{ csrf_token() }}', map)">
+                                Find path
+                                <div id="get_path_spinner" role="status"></div>
+                            </button>
+                        </div>
+                        <div class="col">
+                            <div class="form-floating">
+                                {{ map_segment_form.segment_name(class_="form-control",
+                                placeholder_=map_segment_form.segment_name.description, disabled=True)}}
+                                {{map_segment_form.segment_name.label(class_="form-label") }}
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-floating">
+                                {{ map_segment_form.segment_type(class_="form-select", disabled=True) }}
+                                {{map_segment_form.segment_type.label(class_="form-label") }}
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-floating">
+                                {{ map_segment_form.segment_difficulty(class_="form-select", disabled=True) }}
+                                {{map_segment_form.segment_difficulty.label(class_="form-label") }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-3">
+                            <button id="remove_last_marker" type="button" class="w-100 btn btn-success mt-1"
+                                onclick="remove_last_marker_from_map(map)">
+                                Remove last marker
+                            </button>
+                        </div>
+                        <div class="col-9">
+                            {{ map_segment_form.segment_description(class_="form-control mt-1",
+                            placeholder_=map_segment_form.segment_description.description, disabled=True, rows=1)}}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-3">
+                            <button id="Reset" type="button" class="w-100 btn btn-success mt-1"
+                                onclick="reset_map(map)">
+                                Reset
+                            </button>
+                        </div>
+                        <div class="col-9">
+                            <input id="save_segmnet_btn" type="submit" value="Save Segment"
+                                class="w-100 btn btn-success mt-1" disabled>
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block body_scripts %}
+{#
+<script>
+    segment_map = new SegmentAdderMap("map");
+    segment_map.blubb();
+    segment_map.setup();
+</script> #}
+<script>
+    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+    const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+</script>
+<script>
+    let map = segment_adder_map("map");
+</script>
+{%endblock%}

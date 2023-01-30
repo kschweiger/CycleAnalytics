@@ -4,6 +4,7 @@ from typing import Optional
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from gpx_track_analyzer.visualize import plot_track_2d
 
 month_label_order = dict(
     month=[
@@ -123,3 +124,35 @@ def per_month_overview_plots(
     base64_plots = convert_fig_to_base64(plots, width=width, height=height)
     ret_plots = [(base64_plots[i], plot_values[i][2]) for i in range(len(plot_values))]
     return ret_plots
+
+
+def get_track_elevation_plot(
+    segment_data: pd.DataFrame,
+    include_velocity: bool,
+    pois: Optional[list[tuple[float, float]]] = None,
+    color_elevation: Optional[str] = None,
+    color_velocity: Optional[str] = None,
+    color_poi: Optional[str] = None,
+) -> go.Figure:
+    elevation_plot = plot_track_2d(
+        segment_data,
+        height=None,
+        width=None,
+        include_velocity=include_velocity,
+        pois=pois,
+        color_elevation=color_elevation,
+        color_velocity=color_velocity,
+        color_poi=color_poi,
+    )
+
+    elevation_plot.update_layout(
+        autosize=True,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+    )
+    elevation_plot.update_layout(font_color="white")
+
+    elevation_plot.update_xaxes(showgrid=True, gridwidth=1, gridcolor="Gray")
+    elevation_plot.update_yaxes(showgrid=True, gridwidth=1, gridcolor="Gray")
+
+    return elevation_plot

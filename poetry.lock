@@ -315,9 +315,9 @@ WTForms = "*"
 email = ["email-validator"]
 
 [[package]]
-name = "gpx_track_analyzer"
-version = "0.0.1"
-description = ""
+name = "gpx-track-analyzer"
+version = "0.0.2"
+description = "'Analyze PGX tracks'"
 category = "main"
 optional = false
 python-versions = "*"
@@ -328,14 +328,14 @@ coloredlogs = "*"
 gpxpy = ">=1.5.0,<1.6.0"
 numpy = "*"
 pandas = "*"
-plotly = "*"
+plotly = ">=5.11.0"
 requests = "*"
 
 [package.source]
 type = "git"
 url = "ssh://git@github.com/kschweiger/track_analyzer"
-reference = "0.0.1"
-resolved_reference = "bf6abe15d829dc04cf69ac69934c1d4bb1a5703a"
+reference = "0.0.2"
+resolved_reference = "75a94b353683daa09a51e3dcf095f36d09a25d8b"
 
 [[package]]
 name = "gpxpy"
@@ -1127,7 +1127,7 @@ email = ["email-validator"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "8341c64d086d3066a443c9a8461f9e045a4e6ea5aa613d67dcf3d3e659e32c43"
+content-hash = "7220837d2369676a05abf6e6df1cd963cecfb11e10aab7d552f02561cc4db780"
 
 [metadata.files]
 appnope = [
@@ -1285,7 +1285,7 @@ flask-wtf = [
     {file = "Flask-WTF-1.0.1.tar.gz", hash = "sha256:34fe5c6fee0f69b50e30f81a3b7ea16aa1492a771fe9ad0974d164610c09a6c9"},
     {file = "Flask_WTF-1.0.1-py3-none-any.whl", hash = "sha256:9d733658c80be551ce7d5bc13c7a7ac0d80df509be1e23827c847d9520f4359a"},
 ]
-gpx_track_analyzer = []
+gpx-track-analyzer = []
 gpxpy = [
     {file = "gpxpy-1.5.0.tar.gz", hash = "sha256:e6993a8945eae07a833cd304b88bbc6c3c132d63b2bf4a9b0a5d9097616b8708"},
 ]

@@ -4,9 +4,9 @@ from datetime import datetime
 import plotly
 from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import Blueprint, current_app, flash, redirect, render_template, url_for
-from gpx_track_analyzer.visualize import plot_track_2d
 
 from cycle_analytics.model import MapData, MapMarker, MapPathData
+from cycle_analytics.plotting import get_track_elevation_plot
 from cycle_analytics.queries import (
     get_events_for_ride,
     get_full_ride_data,
@@ -51,27 +51,15 @@ def display(id_ride: int):
         ]
         track = get_track_for_id(id_ride)
         track_segment_data = track.get_segment_data(0)
-        plot2d = plot_track_2d(
-            track_segment_data,
-            height=None,
-            width=None,
-            include_velocity=True,
-        )
 
-        plot2d.update_layout(
-            autosize=True,
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-        )
-        plot2d.update_layout(font_color="white")
-
-        plot2d.update_xaxes(showgrid=True, gridwidth=1, gridcolor="Gray")
-        plot2d.update_yaxes(showgrid=True, gridwidth=1, gridcolor="Gray")
-
-        # TEMP: Add color option ot track analyzer
         colors = current_app.config.style.color_sequence
-        plot2d.data[0].marker.color = colors[0]
-        plot2d.data[1].marker.color = colors[1]
+
+        plot2d = get_track_elevation_plot(
+            track_segment_data,
+            True,
+            color_elevation=colors[0],
+            color_velocity=colors[1],
+        )
 
         plot_elevation_and_velocity = json.dumps(
             plot2d, cls=plotly.utils.PlotlyJSONEncoder

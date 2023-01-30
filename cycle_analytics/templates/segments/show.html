@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block head_scripts %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+{% endblock %}
+
+{% block content %}
+<div class="p1 m-1 border rounded-3">
+    <div class="p-2">
+        <h3> {{data.name}} <small class="text-muted">ID: {{data.id}}</small></h3>
+        {% if data.description is not none%}
+        <p>
+            {{data.description | safe}}
+        </p>
+        {% endif %}
+    </div>
+    <div class="p-1 m-1">
+        <table class="table">
+            <tbody>
+                <tr>
+                    <th scope="row">Distance [m]</th>
+                    <td>{{data.distance}}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Type</th>
+                    <td>{{data.type}}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Difficulty</th>
+                    <td>{{data.difficulty}}</td>
+                </tr>
+                {% if data.min_elevation is not none %}
+                <tr>
+                    <th scope="row">Minimum Elevation [m]</th>
+                    <td>{{data.min_elevation}}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Maximum Elevation [m]</th>
+                    <td>{{data.max_elevation}}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Uphill [m]</th>
+                    <td>{{data.uphill_elevation}}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Downhill [m]</th>
+                    <td>{{data.downhill_elevation}}</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    <div class="m-2 p-2 border rounded-3">
+        <div id="map" style="height:600px"></div>
+    </div>
+    {% if plot_elevation is not none%}
+    <div class=" m-2 p-2 border rounded-3">
+        <div id="chart" class="my-3"></div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+
+{% block body_scripts %}
+{% if plot_elevation is not none%}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    var chart = {{ plot_elevation | safe}};
+    var data = chart["data"];
+    var layout = chart["layout"];
+    var config = { displayModeBar: false, responsive: true, width: 10 };
+    Plotly.newPlot("chart", data, layout, config);
+</script>
+{% endif %}
+<script src="{{ url_for('static', filename='map_utils.js') }}"></script>
+<script>
+    show_map_with_path_and_markers('map', "{{ map_data.path.latitudes }}", "{{ map_data.path.longitudes }}", [])
+</script>
+{% endblock %}
