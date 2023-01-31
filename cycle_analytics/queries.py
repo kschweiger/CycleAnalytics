@@ -103,7 +103,9 @@ def get_last_ride(ride_type: None | str) -> None | LastRide:
     except QueryReturnedNoData:
         thumbnails = []
 
-    return LastRide(date=data["date"], data=last_ride_data, thumbnails=thumbnails)
+    return LastRide(
+        id=last_id, date=data["date"], data=last_ride_data, thumbnails=thumbnails
+    )
 
 
 def get_last_id(

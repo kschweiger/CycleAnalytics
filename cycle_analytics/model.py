@@ -46,6 +46,7 @@ class SegmentData:
 
 @dataclass
 class LastRide:
+    id: int
     date: date
     data: Dict[str, str]
     thumbnails: Optional[list[str]]

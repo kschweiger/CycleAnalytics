@@ -21,7 +21,9 @@
     <div class="row mt-3">
         <div class="col-3">
             {% for thumbnail in last_ride.thumbnails %}
-            <img src="data:image/png;base64, {{ thumbnail }}" class="img-fluid img-thumbnail" alt="Thumbnail">
+            <a href="{{url_for('ride.display', id_ride=last_ride.id)}}">
+                <img src="data:image/png;base64, {{ thumbnail }}" class="img-fluid img-thumbnail" alt="Thumbnail">
+            </a>
             {% endfor %}
         </div>
         <div class="col">
