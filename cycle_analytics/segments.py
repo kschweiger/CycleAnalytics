@@ -1,5 +1,6 @@
 import json
 import logging
+from collections import defaultdict
 
 from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import (
@@ -20,6 +21,7 @@ from gpx_track_analyzer.exceptions import (
 )
 from gpx_track_analyzer.track import PyTrack
 from plotly.utils import PlotlyJSONEncoder
+from pydantic import ValidationError
 from pyroutelib3 import Router
 from wtforms import HiddenField, SelectField, StringField, TextAreaField
 from wtforms.validators import DataRequired, Optional
@@ -27,7 +29,11 @@ from wtforms.validators import DataRequired, Optional
 from cycle_analytics.db import get_db
 from cycle_analytics.model import MapData, MapPathData
 from cycle_analytics.plotting import convert_fig_to_base64, get_track_elevation_plot
-from cycle_analytics.queries import get_segment_data
+from cycle_analytics.queries import get_segment_data, get_segments_for_map_in_bounds
+from cycle_analytics.rest_models import (
+    SegmentsInBoundsRequest,
+    SegmentsInBoundsResponse,
+)
 from cycle_analytics.utils import find_closest_elem_to_poi
 
 logger = logging.getLogger(__name__)
@@ -329,3 +335,38 @@ def merge_route_segments(
             else:
                 merged_segments.append(node0)
     return merged_segments
+
+
+@bp.route("/segments-in-bounds", methods=["POST"])
+def get_segments_in_bounds():
+    try:
+        received_request = SegmentsInBoundsRequest(**request.json)
+    except ValidationError:
+        return {
+            "error": "Pass ne_latitude, ne_longitude, sw_latitude, and sw_longitude"
+        }, 400
+
+    config = current_app.config
+
+    color_mapping_ = config.mappings.segment_types
+
+    color_mapping = defaultdict(
+        lambda: color_mapping_["default"],
+        {k: v for k, v in color_mapping_.items() if k != "default"},
+    )
+    url_base = url_for("segments.show_segment", id_segment=0).replace("0", "")
+    try:
+        segments = get_segments_for_map_in_bounds(
+            received_request.ids_on_map,
+            received_request.ne_latitude,
+            received_request.ne_longitude,
+            received_request.sw_latitude,
+            received_request.sw_longitude,
+            {int(k): v for k, v in config.mappings.difficulty.items()},
+            color_mapping,
+            url_base,
+        )
+    except QueryReturnedNoData:
+        segments = []
+
+    return SegmentsInBoundsResponse(segments=segments).json()

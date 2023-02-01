@@ -20,6 +20,7 @@ from cycle_analytics.model import (
     bike_from_dict,
 )
 from cycle_analytics.plotting import convert_fig_to_base64, get_track_thumbnails
+from cycle_analytics.rest_models import SegmentForMap
 from cycle_analytics.utils import (
     compare_values,
     get_date_range_from_year_month,
@@ -521,3 +522,54 @@ def get_segment_data(
             max_longitude=data["bounds_max_lng"],
         ),
     )
+
+
+def get_segments_for_map_in_bounds(
+    ignore_ids: list[int],
+    ne_lat: float,
+    ne_lng: float,
+    sw_lat: float,
+    sw_lng: float,
+    difficulty_mapping: Dict[int, str],
+    color_typ_mappign: Dict[str, str],
+    url_base: str,
+) -> list[SegmentForMap]:
+    table = Table("segments")
+    db = get_db()
+
+    query = (
+        db.pypika_query.from_(table)
+        .select("*")
+        .where(
+            (table.bounds_min_lat >= sw_lat)
+            & (table.bounds_max_lat <= ne_lat)
+            & (table.bounds_min_lng >= sw_lng)
+            & (table.bounds_max_lng <= ne_lng)
+        )
+    )
+    if ignore_ids:
+        query = query.where(table.id_segment.notin(ignore_ids))
+
+    segments_for_map = []
+
+    datas, keys = db.query_inc_keys(query)
+    for data in datas:
+        segment_data = {key: value for key, value in zip(keys, data)}
+
+        track = ByteTrack(bytes(segment_data["gpx"]), 0)
+
+        segments_for_map.append(
+            SegmentForMap(
+                segment_id=segment_data["id_segment"],
+                name=segment_data["segment_name"],
+                points=[
+                    (p.latitude, p.longitude) for p in track.track.segments[0].points
+                ],
+                url=url_base + str(segment_data["id_segment"]),
+                type=segment_data["type"],
+                difficulty=difficulty_mapping[segment_data["difficulty"]],
+                color=color_typ_mappign[segment_data["type"]],
+            )
+        )
+
+    return segments_for_map

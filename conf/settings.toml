@@ -56,6 +56,13 @@ color_marker="#198754"
         2="Moderate"
         3="Difficult"
         4="Break Neck"
+    [mappings.segment_types]
+        "default"="#20c997"
+        "Single Trail"="#dc3545"
+        "Dirt Track"="#fd7e14"
+        "Gravel track"="#ffc107"
+        "Road"="#000000"
+        "Track"="#0dcaf0"
 
 [landing_page]
     [landing_page.events]

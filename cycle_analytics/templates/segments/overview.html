@@ -1,5 +1,29 @@
 {% extends 'base.html' %}
 
-{% block content %}
+{% block head_scripts %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+{% endblock %}
 
+
+{% block content %}
+<div class="m-1 p-1 border rounded-3">
+    <h4> Segments</h4>
+    <div class="container">
+        <div class="row px-1">
+            <div class="col p-0">
+                <div class="mb-2" id="map" style="height:600px"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block body_scripts %}
+<script src="{{ url_for('static', filename='map_utils.js') }}"></script>
+<script>
+    segment_map("map", '{{ csrf_token() }}')
+</script>
 {% endblock %}

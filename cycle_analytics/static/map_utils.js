@@ -390,3 +390,55 @@ function reset_map(map) {
     document.getElementById('profile_plot').setAttribute("src", "");
 
 }
+
+
+function segment_map(div_id, csrf_token) {
+    let map = L.map(div_id).setView([47.598342, 7.759027], 12);;
+
+    let carto = get_map_layer("carto");
+    let osm = get_map_layer("osm");
+    map.addLayer(carto);
+
+    var baseMaps = {
+        "Carto (Light)": carto,
+        "OpenStreetMap": osm,
+    };
+
+    let segments_on_map = [];
+
+    L.control.layers(baseMaps).addTo(map);
+    function on_map_zoom(e) {
+        const curr_bounds = map.getBounds()
+        const north_east = curr_bounds.getNorthEast()
+        const south_west = curr_bounds.getSouthWest()
+        fetch("/segments/segments-in-bounds", {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                "X-CSRFToken": csrf_token
+            },
+            body: JSON.stringify({
+                "ids_on_map": segments_on_map,
+                "ne_latitude": north_east.lat,
+                "ne_longitude": north_east.lng,
+                "sw_latitude": south_west.lat,
+                "sw_longitude": south_west.lng
+            }),
+        }
+        ).then((response) => response.json()).then((data) => {
+            for (segment of data["segments"]) {
+                segments_on_map.push(segment["segment_id"])
+                var polyline = L.polyline([segment["points"]], { color: segment["color"] }).addTo(map);
+                polyline.bindPopup(
+                    `<span class="fw-bold">${segment["name"]}</span>:
+                     ${segment["type"]} - ${segment["difficulty"]} <br>
+                    <a href="${segment["url"]}">More info</a>`
+                );
+            }
+        });
+    }
+    on_map_zoom();
+    map.on("zoomend", on_map_zoom);
+    map.on("moveend", on_map_zoom);
+}

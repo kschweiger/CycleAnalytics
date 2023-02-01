@@ -19,6 +19,7 @@ flask-wtf = "^1.0.1"
 pypika = "^0.48.9"
 kaleido = "0.2.1"
 pyroutelib3 = "^1.7.2"
+pydantic = "^1.10.4"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.12.0"

@@ -1127,7 +1127,7 @@ email = ["email-validator"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "7220837d2369676a05abf6e6df1cd963cecfb11e10aab7d552f02561cc4db780"
+content-hash = "ce8f020f6ad88133ab04f319d8a5bf7e9c24f9c6e50886f18e6d5f5b65da4d50"
 
 [metadata.files]
 appnope = [
