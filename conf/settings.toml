@@ -1,11 +1,13 @@
-tables=["main", "tracks", "events", "goals","bikes","segments"]
+tables=["main", "tracks", "events", "goals","bikes","segments","tracks_enhanced_v1","tracks_v1_overview"]
 
 [defaults]
 bike="Nerve"
 ride_type="MTB"
 event_type="Mechanical"
+main_data_table="main"
 raw_track_table="tracks"
 track_table="tracks_enhanced_v1"
+track_overview_table="tracks_v1_overview"
 
 [db]
 name="CycleAnalytics"
@@ -118,6 +120,60 @@ color_marker="#198754"
         ctype="INT"
     [tracks.gpx]
         ctype="BYTEA"
+
+
+[tracks_enhanced_v1]
+    name="tracks_enhanced_v1"
+    [tracks_enhanced_v1.id_track]
+        ctype="SERIAL"
+        is_primary=true
+    [tracks_enhanced_v1.id_ride]
+        ctype="INT"
+    [tracks_enhanced_v1.gpx]
+        ctype="BYTEA"
+
+[tracks_v1_overview]
+    name="tracks_v1_overview"
+    [tracks_v1_overview.id_track]
+        ctype="INT"
+        is_primary=true
+        is_unique=true
+    [tracks_v1_overview.id_segment]
+        ctype="INT"
+        is_primary=true
+    [tracks_v1_overview.moving_time_seconds]
+        ctype="FLOAT"
+    [tracks_v1_overview.total_time_seconds]
+        ctype="FLOAT"
+    [tracks_v1_overview.moving_distance]
+        ctype="FLOAT"
+    [tracks_v1_overview.total_distance]
+        ctype="FLOAT"
+    [tracks_v1_overview.max_velocity]
+        ctype="FLOAT"
+    [tracks_v1_overview.avg_velocity]
+        ctype="FLOAT"
+    [tracks_v1_overview.max_elevation]
+        ctype="FLOAT"
+        is_nullable=true
+    [tracks_v1_overview.min_elevation]
+        ctype="FLOAT"
+        is_nullable=true
+    [tracks_v1_overview.uphill_elevation]
+        ctype="FLOAT"
+        is_nullable=true
+    [tracks_v1_overview.downhill_elevation]
+        ctype="FLOAT"
+        is_nullable=true
+    [tracks_v1_overview.moving_distance_km]
+        ctype="FLOAT"
+    [tracks_v1_overview.total_distance_km]
+        ctype="FLOAT"
+    [tracks_v1_overview.max_velocity_kmh]
+        ctype="FLOAT"
+    [tracks_v1_overview.avg_velocity_kmh]
+        ctype="FLOAT"
+
 
 [events]
     name="events"

@@ -127,6 +127,19 @@ def get_last_id(
     return db.query(query)[0][0]
 
 
+def get_last_track_id(table: str, order_by: str, descending: bool) -> int:
+    db = get_db()
+
+    query = (
+        db.pypika_query.from_(Table(table))
+        .select("id_track")
+        .orderby(order_by, order=Order.desc if descending else Order.asc)
+        .limit(1)
+    )
+
+    return db.query(query)[0][0]
+
+
 @cache.memoize(timeout=86400)
 def get_full_ride_data(id_ride: int) -> pd.DataFrame:
 

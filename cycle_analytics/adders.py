@@ -6,6 +6,12 @@ from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import Blueprint, current_app, flash, redirect, render_template, request
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
+from gpx_track_analyzer.enhancer import get_enhancer
+from gpx_track_analyzer.exceptions import (
+    APIHealthCheckFailedException,
+    APIResponseException,
+)
+from gpx_track_analyzer.track import ByteTrack
 from wtforms import (
     DateField,
     DecimalField,
@@ -22,7 +28,12 @@ from wtforms.validators import DataRequired, NumberRange, Optional
 from cycle_analytics.db import get_db
 from cycle_analytics.goals import GoalType
 from cycle_analytics.model import MapData, MapPathData
-from cycle_analytics.queries import get_bike_names, get_last_id, get_track_for_id
+from cycle_analytics.queries import (
+    get_bike_names,
+    get_last_id,
+    get_last_track_id,
+    get_track_for_id,
+)
 from cycle_analytics.utils import get_month_mapping
 
 logger = logging.getLogger(__name__)
@@ -203,7 +214,9 @@ def add_ride():
             ]
         ]
         insert_succ, err = db.insert(
-            current_app.config.tables_as_settings["main"],
+            current_app.config.tables_as_settings[
+                current_app.config.defaults.main_data_table
+            ],
             data_to_insert,
         )
         if insert_succ:
@@ -214,23 +227,104 @@ def add_ride():
             gpx_value = form.track.data.stream.read()
 
             last_id = get_last_id(
-                current_app.config.tables_as_settings["main"].name,
+                current_app.config.tables_as_settings[
+                    current_app.config.defaults.main_data_table
+                ].name,
                 "id_ride",
                 True,
                 None,
             )
 
-            insert_succ, err = db.insert(
+            insert_succ_track, err = db.insert(
                 current_app.config.tables_as_settings[
                     current_app.config.defaults.raw_track_table
                 ],
                 [[last_id, gpx_value]],
             )
 
-            if insert_succ:
+            if insert_succ_track:
                 flash(f"Track added for ride {last_id}", "alert-success")
+
+                enhancer = None
+                try:
+                    enhancer = get_enhancer(config.external.track_enhancer.name)(
+                        url=config.external.track_enhancer.url,
+                        **config.external.track_enhancer.kwargs.to_dict(),
+                    )
+                except APIHealthCheckFailedException:
+                    logger.warning("Enhancer not available. Skipping elevation profile")
+                    flash("Track could not be enhanced - API not available")
+                if enhancer is not None:
+                    track = ByteTrack(gpx_value)
+                    try:
+                        enhancer.enhance_track(track.track, True)
+                    except APIResponseException:
+                        logger.error("Could not enhance track with elevation")
+
+                    enhance_insert_succ_track, err = db.insert(
+                        current_app.config.tables_as_settings[
+                            current_app.config.defaults.track_table
+                        ],
+                        [[last_id, track.get_xml().encode()]],
+                    )
+
+                    if enhance_insert_succ_track:
+                        flash(
+                            f"Enhanced Track added for ride {last_id}", "alert-success"
+                        )
+                        new_data_to_insert = []
+                        id_track = get_last_track_id(
+                            current_app.config.defaults.track_table, "id_track", True
+                        )
+                        for i_segment in range(track.n_segments):
+                            this_track_overview = track.get_segment_overview(i_segment)
+                            new_data_to_insert.append(
+                                [
+                                    id_track,
+                                    i_segment,
+                                    this_track_overview.moving_time_seconds,
+                                    this_track_overview.total_time_seconds,
+                                    this_track_overview.moving_distance,
+                                    this_track_overview.total_distance,
+                                    this_track_overview.max_velocity,
+                                    this_track_overview.avg_velocity,
+                                    this_track_overview.max_elevation,
+                                    this_track_overview.min_elevation,
+                                    this_track_overview.uphill_elevation,
+                                    this_track_overview.downhill_elevation,
+                                    this_track_overview.moving_distance_km,
+                                    this_track_overview.total_distance_km,
+                                    this_track_overview.max_velocity_kmh,
+                                    this_track_overview.avg_velocity_kmh,
+                                ]
+                            )
+                        if new_data_to_insert:
+                            overview_insert_succ_track, err = db.insert(
+                                current_app.config.tables_as_settings[
+                                    current_app.config.defaults.track_overview_table
+                                ],
+                                new_data_to_insert,
+                            )
+                            if overview_insert_succ_track:
+                                flash(
+                                    f"Overview inserted for track {id_track}",
+                                    "alert-success",
+                                )
+                            else:
+                                flash(
+                                    f"Overview could not be generated: {err[0:250]}",
+                                    "alert-danger",
+                                )
+                        else:
+                            logger.info("No data to insert", "alter-warning")
+                    else:
+                        flash(
+                            f"Enhanced Track could not be inserted: {err[0:250]}",
+                            "alert-danger",
+                        )
+
             else:
-                flash(f"Track could not be added: {err}", "alert-danger")
+                flash(f"Track could not be added: {err[0:250]}", "alert-danger")
 
         return redirect("/overview")
 
