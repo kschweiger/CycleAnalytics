@@ -163,6 +163,7 @@ tilescache/
 
 # Configuration
 .secrets.toml
+docker/secrets.env
 
 # pyenv
 .python-version

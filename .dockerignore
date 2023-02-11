@@ -1,0 +1,15 @@
+**/__pycache__/
+**/.git
+**/.github
+**/.gitignore
+**/.vscode
+**/.idea
+**/.mypy_cache
+**/.pytest_cache
+**/tests
+**/tilescache
+**/.coverage
+**/.pre-commit-config.yaml
+**/.DS_Store
+**/poetry.lock
+**/requirements_test.txt
