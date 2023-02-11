@@ -229,7 +229,7 @@ class OverviewForm(FlaskForm):
         "Month",
         validators=[DataRequired()],
         choices=[(i, get_month_mapping()[i]) for i in range(1, 13)],
-        default=0,
+        default=date.today().month,
         coerce=int,
     )
     active = RadioField(
