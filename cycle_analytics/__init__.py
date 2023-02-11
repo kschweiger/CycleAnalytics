@@ -48,7 +48,7 @@ def create_app(test_config=None):
     logger.debug("Initializing Cache")
     cache.init_app(app=app)
 
-    logger.debug("Running cache: %s", type(cache.cache))
+    logger.debug("Running cache: %s", type(cache.cache).__name__)
 
     from cycle_analytics import db
 

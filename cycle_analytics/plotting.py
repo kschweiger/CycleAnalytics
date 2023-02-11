@@ -80,7 +80,7 @@ def per_month_overview_plots(
     """
 
     plots = []
-    years = data.year.unique()
+    years = list(data.year.unique())
     if not years:
         raise RuntimeError
 
@@ -115,6 +115,8 @@ def per_month_overview_plots(
             categoryorder="array",
             categoryarray=month_label_order["month"],
         )
+        if enable_cum:
+            fig.update_layout(barmode="stack")
 
         if dark_mode:
             fig.update_layout(font_color="white")
