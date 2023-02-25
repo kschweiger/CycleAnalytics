@@ -100,10 +100,12 @@
 {% endif %}
 <script src="{{ url_for('static', filename='map_utils.js') }}"></script>
 
+{% if map_data is not none%}
 <script>
     show_map_with_path_and_markers('map', "{{ map_data.path.latitudes }}", "{{ map_data.path.longitudes }}", [{% for marker in located_events %}
     new EventMarker({{ marker.latitude }}, {{ marker.longitude }}, "{{marker.color}}", {{ marker.color_idx }}, "{{marker.popup_text | safe}}")
     {% if loop.index < (located_events | length) %}, {% endif %}
     {% endfor %}])
 </script>
+{% endif %}
 {% endblock %}
