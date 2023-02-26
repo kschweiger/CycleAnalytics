@@ -70,7 +70,33 @@
                 </div>
             </div>
         </div>
+        {% elif form is not none %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="track_data_heading">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse_track_data" aria-expanded="false" aria-controls="collapse_track_data">
+                    Add Track
+                </button>
+            </h2>
+            <div id="collapse_track_data" class="accordion-collapse collapse" aria-labelledby="track_data_heading">
+                <div class="accordion-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.csrf_token }}
+                        <div class="row mt-2">
+                            <div class="col">
+                                {{form.track.label(class_="form-label") }}
+                                {{form.track(class_="form-control")}}
+                            </div>
+                            <div class="col mt-auto text-end">
+                                <input type="submit" value="Submit" class="btn btn-success">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
         {% endif %}
+
     </div>
 
     {% if map_data is not none%}

@@ -11,7 +11,7 @@ from gpx_track_analyzer.exceptions import (
     APIHealthCheckFailedException,
     APIResponseException,
 )
-from gpx_track_analyzer.track import ByteTrack
+from gpx_track_analyzer.track import ByteTrack, Track
 from wtforms import (
     DateField,
     DecimalField,
@@ -37,6 +37,8 @@ from cycle_analytics.queries import (
 from cycle_analytics.utils import get_month_mapping
 
 logger = logging.getLogger(__name__)
+
+numeric = int | float
 
 bp = Blueprint("adders", __name__, url_prefix="/add")
 
@@ -186,6 +188,58 @@ def flash_form_error(form: FlaskForm):
         ),
         "alert-danger",
     )
+
+
+def enhance_track(
+    track: Track,
+) -> tuple[None, None] | tuple[bytes, list[list[numeric]]]:
+    track_data = None
+    track_overview_data = None
+
+    enhancer = None
+    try:
+        enhancer = get_enhancer(current_app.config.external.track_enhancer.name)(
+            url=current_app.config.external.track_enhancer.url,
+            **current_app.config.external.track_enhancer.kwargs.to_dict(),
+        )
+    except APIHealthCheckFailedException:
+        logger.warning("Enhancer not available. Skipping elevation profile")
+        flash("Track could not be enhanced - API not available")
+        return None, None
+
+    try:
+        enhancer.enhance_track(track.track, True)
+    except APIResponseException:
+        logger.error("Could not enhance track with elevation")
+        return None, None
+
+    track_data = track.get_xml().encode()
+
+    track_overview_data = []
+
+    for i_segment in range(track.n_segments):
+        this_track_overview = track.get_segment_overview(i_segment)
+        track_overview_data.append(
+            [
+                i_segment,
+                this_track_overview.moving_time_seconds,
+                this_track_overview.total_time_seconds,
+                this_track_overview.moving_distance,
+                this_track_overview.total_distance,
+                this_track_overview.max_velocity,
+                this_track_overview.avg_velocity,
+                this_track_overview.max_elevation,
+                this_track_overview.min_elevation,
+                this_track_overview.uphill_elevation,
+                this_track_overview.downhill_elevation,
+                this_track_overview.moving_distance_km,
+                this_track_overview.total_distance_km,
+                this_track_overview.max_velocity_kmh,
+                this_track_overview.avg_velocity_kmh,
+            ]
+        )
+
+    return track_data, track_overview_data
 
 
 @bp.route("/ride", methods=("GET", "POST"))

@@ -178,6 +178,22 @@ def get_track_for_id(id_ride: int) -> ByteTrack:
     return ByteTrack(bytes(data), 0)
 
 
+def ride_has_track(id_ride: int, table_name: str) -> bool:
+    db = get_db()
+    tracks = Table(table_name)
+    query = (
+        db.pypika_query.from_(tracks)
+        .select(tracks.gpx)
+        .where(tracks.id_ride == id_ride)
+    )
+    try:
+        db.query(query)
+    except QueryReturnedNoData:
+        return False
+
+    return True
+
+
 @cache.memoize(timeout=86400)
 def get_thumbnails_for_id(id_ride: int) -> list[str]:
     track = get_track_for_id(id_ride)
