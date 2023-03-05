@@ -29,7 +29,11 @@ from wtforms.validators import DataRequired, Optional
 from cycle_analytics.db import get_db
 from cycle_analytics.model import MapData, MapPathData
 from cycle_analytics.plotting import convert_fig_to_base64, get_track_elevation_plot
-from cycle_analytics.queries import get_segment_data, get_segments_for_map_in_bounds
+from cycle_analytics.queries import (
+    get_segment_data,
+    get_segments_for_map_in_bounds,
+    modify_segment_visited_flag,
+)
 from cycle_analytics.rest_models import (
     SegmentsInBoundsRequest,
     SegmentsInBoundsResponse,
@@ -70,9 +74,18 @@ def main():
     return render_template("segments/overview.html", active_page="segments")
 
 
-@bp.route("/show/<int:id_segment>")
+@bp.route("/show/<int:id_segment>", methods=("GET", "POST"))
 def show_segment(id_segment: int):
     config = current_app.config
+
+    if request.form.get("change_visited_flag") is not None:
+        switch_to = request.form.get("change_visited_flag") == "visited"
+        modify_segment_visited_flag(
+            id_segment=id_segment,
+            visited=switch_to,
+        )
+        logger.info("Switch segmenet %s to %s", id_segment, switch_to)
+
     try:
         data = get_segment_data(
             id_segment,

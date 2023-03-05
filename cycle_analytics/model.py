@@ -36,6 +36,7 @@ class SegmentData:
     type: str
     difficulty: str
     distance: float
+    visited: bool
     min_elevation: None | float
     max_elevation: None | float
     uphill_elevation: None | float

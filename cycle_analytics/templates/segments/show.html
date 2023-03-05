@@ -9,13 +9,27 @@
 
 {% block content %}
 <div class="p1 m-1 border rounded-3">
-    <div class="p-2">
-        <h3> {{data.name}} <small class="text-muted">ID: {{data.id}}</small></h3>
-        {% if data.description is not none%}
-        <p>
-            {{data.description | safe}}
-        </p>
-        {% endif %}
+    <div class="row p-2">
+        <div class="col ">
+            <h3> {{data.name}} <small class="text-muted">ID: {{data.id}}</small></h3>
+            {% if data.description is not none%}
+            <p>
+                {{data.description | safe}}
+            </p>
+            {% endif %}
+        </div>
+        <div class="col-auto">
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                {% if data.visited %}
+                <input type="hidden" name="change_visited_flag" value="not_visited" />
+                <input type="submit" value="Set to: Not visited" class="btn btn-danger">
+                {% else %}
+                <input type="hidden" name="change_visited_flag" value="visited" />
+                <input type="submit" value="Set to: Visited" class="btn btn-success">
+                {% endif %}
+            </form>
+        </div>
     </div>
     <div class="p-1 m-1">
         <table class="table">

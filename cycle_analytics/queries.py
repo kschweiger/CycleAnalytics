@@ -529,6 +529,7 @@ def get_segment_data(
         name=data["segment_name"],
         description=data["description"],
         distance=round(data["distance"], 2),
+        visited=data["visited"],
         type=data["type"],
         difficulty=difficulty_mapping[data["difficulty"]],
         min_elevation=None
@@ -602,3 +603,15 @@ def get_segments_for_map_in_bounds(
         )
 
     return segments_for_map
+
+
+def modify_segment_visited_flag(id_segment: int, visited: bool = True) -> bool:
+    table = Table("segments")
+    db = get_db()
+    query = (
+        db.pypika_query.update(table)
+        .set(table.visited, visited)
+        .where(table.id_segment == id_segment)
+    )
+
+    return db.exec_arbitrary(query)
