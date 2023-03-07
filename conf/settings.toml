@@ -31,6 +31,11 @@ auto_fill_ctypes = ["SERIAL"]
 [style]
 color_sequence=["#20c997","#dc3545","#0d6efd","#ffc107","#d63384","#6f42c1"]
 color_marker="#198754"
+[style.slope_colors]
+    neutral="#198754"
+    min="#0d6efd"
+    max="#dc3545"
+
 
 [adders]
     [adders.ride]

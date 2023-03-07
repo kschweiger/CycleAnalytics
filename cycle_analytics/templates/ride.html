@@ -110,6 +110,12 @@
         <div id="chart" class="my-3"></div>
     </div>
     {% endif %}
+
+    {% if slope_plot is not none%}
+    <div class=" m-2 p-2 border rounded-3">
+        <div id="slope_plot" class="my-3"></div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
 
@@ -122,6 +128,16 @@
     var layout = chart["layout"];
     var config = { displayModeBar: false, responsive: true, width: 10 };
     Plotly.newPlot("chart", data, layout, config);
+</script>
+{% endif %}
+{% if slope_plot is not none%}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    var chart = {{ slope_plot | safe}};
+    var data = chart["data"];
+    var layout = chart["layout"];
+    var config = { displayModeBar: false, responsive: true, width: 10 };
+    Plotly.newPlot("slope_plot", data, layout, config);
 </script>
 {% endif %}
 <script src="{{ url_for('static', filename='map_utils.js') }}"></script>

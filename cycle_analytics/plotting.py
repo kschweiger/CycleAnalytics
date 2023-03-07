@@ -4,7 +4,8 @@ from typing import Optional
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from gpx_track_analyzer.visualize import plot_track_2d
+from gpx_track_analyzer.track import Track
+from gpx_track_analyzer.visualize import plot_track_2d, plot_track_with_slope
 
 month_label_order = dict(
     month=[
@@ -158,3 +159,33 @@ def get_track_elevation_plot(
     elevation_plot.update_yaxes(showgrid=True, gridwidth=1, gridcolor="Gray")
 
     return elevation_plot
+
+
+def get_track_elevation_slope_plot(
+    track: Track,
+    n_segment: int,
+    color_neutral: str,
+    color_min: str,
+    color_max: str,
+    intervals: float = 200,
+) -> go.Figure:
+    fig = plot_track_with_slope(
+        track,
+        n_segment,
+        intervals,
+        (color_min, color_neutral, color_max),
+        height=None,
+        width=None,
+    )
+
+    fig.update_layout(
+        autosize=True,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+    )
+    fig.update_layout(font_color="white")
+
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor="Gray")
+    fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor="Gray")
+
+    return fig

@@ -13,7 +13,10 @@ from cycle_analytics.adders import enhance_track
 from cycle_analytics.cache import cache
 from cycle_analytics.db import get_db
 from cycle_analytics.model import MapData, MapMarker, MapPathData
-from cycle_analytics.plotting import get_track_elevation_plot
+from cycle_analytics.plotting import (
+    get_track_elevation_plot,
+    get_track_elevation_slope_plot,
+)
 from cycle_analytics.queries import (
     get_events_for_ride,
     get_full_ride_data,
@@ -156,10 +159,17 @@ def display(id_ride: int):
 
         map_data = MapData(path=MapPathData(latitudes=lats, longitudes=longs))
 
+        slope_colors = current_app.config.style.slope_colors
+        slope_figure = get_track_elevation_slope_plot(
+            track, 0, slope_colors.neutral, slope_colors.min, slope_colors.max
+        )
+        slope_plot = json.dumps(slope_figure, cls=plotly.utils.PlotlyJSONEncoder)
+
     else:
         track_data = None
         plot_elevation_and_velocity = None
         map_data = None
+        slope_plot = None
     events_ = get_events_for_ride(id_ride)
     located_events = []
     if events_:
@@ -200,6 +210,7 @@ def display(id_ride: int):
         ride_data=ride_data,
         track_data=track_data,
         plot_elevation_and_velocity=plot_elevation_and_velocity,
+        slope_plot=slope_plot,
         map_data=map_data,
         located_events=located_events,
         form=form,
