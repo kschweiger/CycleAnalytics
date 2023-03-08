@@ -106,14 +106,27 @@
     {% endif %}
 
     {% if plot_elevation_and_velocity is not none%}
-    <div class=" m-2 p-2 border rounded-3">
-        <div id="chart" class="my-3"></div>
-    </div>
-    {% endif %}
+    <div class="d-flex justify-content-center">
+        <div class="btn-group" role="group">
+            <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off"
+                onclick="ele_plus_velo_click()" checked>
+            <label class="btn btn-outline-success" for="btnradio1">Elevation + Velocity</label>
 
-    {% if slope_plot is not none%}
-    <div class=" m-2 p-2 border rounded-3">
-        <div id="slope_plot" class="my-3"></div>
+            <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off"
+                onclick="ele_plus_slope_click()">
+            <label class="btn btn-outline-success" for="btnradio2">Elevation + Slope</label>
+        </div>
+    </div>
+    <div id="ele_plus_velo_plot">
+        <div class=" m-2 p-2 border rounded-3">
+            <div id="chart" class="my-3"></div>
+        </div>
+    </div>
+
+    <div id="ele_plus_slope_plot">
+        <div class=" m-2 p-2 border rounded-3">
+            <div id="slope_plot" class="my-3"></div>
+        </div>
     </div>
     {% endif %}
 </div>
@@ -129,9 +142,6 @@
     var config = { displayModeBar: false, responsive: true, width: 10 };
     Plotly.newPlot("chart", data, layout, config);
 </script>
-{% endif %}
-{% if slope_plot is not none%}
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
     var chart = {{ slope_plot | safe}};
     var data = chart["data"];
@@ -150,4 +160,16 @@
     {% endfor %}])
 </script>
 {% endif %}
+<script>
+    document.getElementById("ele_plus_slope_plot").setAttribute("class", "visually-hidden");
+
+    function ele_plus_slope_click() {
+        document.getElementById("ele_plus_slope_plot").setAttribute("class", "");
+        document.getElementById("ele_plus_velo_plot").setAttribute("class", "visually-hidden");
+    }
+    function ele_plus_velo_click() {
+        document.getElementById("ele_plus_slope_plot").setAttribute("class", "visually-hidden");
+        document.getElementById("ele_plus_velo_plot").setAttribute("class", "");
+    }
+</script>
 {% endblock %}
