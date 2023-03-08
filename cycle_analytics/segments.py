@@ -28,7 +28,11 @@ from wtforms.validators import DataRequired, Optional
 
 from cycle_analytics.db import get_db
 from cycle_analytics.model import MapData, MapPathData
-from cycle_analytics.plotting import convert_fig_to_base64, get_track_elevation_plot
+from cycle_analytics.plotting import (
+    convert_fig_to_base64,
+    get_track_elevation_plot,
+    get_track_elevation_slope_plot,
+)
 from cycle_analytics.queries import (
     get_segment_data,
     get_segments_for_map_in_bounds,
@@ -107,16 +111,14 @@ def show_segment(id_segment: int):
 
     map_data = MapData(path=MapPathData(latitudes=lats, longitudes=longs))
 
-    colors = current_app.config.style.color_sequence
-
     if data.track.track.has_elevations():
-        plot2d = get_track_elevation_plot(
-            track_segment_data,
-            False,
-            color_elevation=colors[0],
+        slope_colors = current_app.config.style.slope_colors
+        plot2d = get_track_elevation_slope_plot(
+            data.track, 0, slope_colors.neutral, slope_colors.min, slope_colors.max, 20
         )
 
         plot_elevation = json.dumps(plot2d, cls=PlotlyJSONEncoder)
+
     else:
         plot_elevation = None
 
