@@ -324,7 +324,7 @@ email = ["email-validator"]
 
 [[package]]
 name = "gpx-track-analyzer"
-version = "0.0.7"
+version = "0.0.8"
 description = "Analyze GPX tracks"
 category = "main"
 optional = false
@@ -342,8 +342,8 @@ requests = "^2.28.2"
 [package.source]
 type = "git"
 url = "https://github.com/kschweiger/track_analyzer.git"
-reference = "0.0.7"
-resolved_reference = "fc007c22f722a4a8a8f57d9feaea2c14d4ab9bc9"
+reference = "0.0.8"
+resolved_reference = "606645304f7da69e78b092f31d39a7e8af5f26c1"
 
 [[package]]
 name = "gpxpy"
@@ -1150,7 +1150,7 @@ email = ["email-validator"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "fbb6536f49bf24f81e3c76a5c3931030992e09cc6e07c742867b255d6ecea02b"
+content-hash = "9487f0f0a08082352e617187b0c09c0f5c844f1c9481abb35e85093706f1c947"
 
 [metadata.files]
 appnope = [

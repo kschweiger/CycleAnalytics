@@ -136,6 +136,7 @@ def get_track_elevation_plot(
     color_elevation: Optional[str] = None,
     color_velocity: Optional[str] = None,
     color_poi: Optional[str] = None,
+    slider: bool = False,
 ) -> go.Figure:
     elevation_plot = plot_track_2d(
         segment_data,
@@ -146,6 +147,7 @@ def get_track_elevation_plot(
         color_elevation=color_elevation,
         color_velocity=color_velocity,
         color_poi=color_poi,
+        slider=slider,
     )
 
     elevation_plot.update_layout(
@@ -168,6 +170,7 @@ def get_track_elevation_slope_plot(
     color_min: str,
     color_max: str,
     intervals: float = 200,
+    slider: bool = False,
 ) -> go.Figure:
     fig = plot_track_with_slope(
         track,
@@ -176,6 +179,7 @@ def get_track_elevation_slope_plot(
         (color_min, color_neutral, color_max),
         height=None,
         width=None,
+        slider=slider,
     )
 
     fig.update_layout(

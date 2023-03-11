@@ -146,6 +146,7 @@ def display(id_ride: int):
             True,
             color_elevation=colors[0],
             color_velocity=colors[1],
+            slider=True,
         )
 
         plot_elevation_and_velocity = json.dumps(
@@ -161,7 +162,12 @@ def display(id_ride: int):
 
         slope_colors = current_app.config.style.slope_colors
         slope_figure = get_track_elevation_slope_plot(
-            track, 0, slope_colors.neutral, slope_colors.min, slope_colors.max
+            track,
+            0,
+            slope_colors.neutral,
+            slope_colors.min,
+            slope_colors.max,
+            slider=True,
         )
         slope_plot = json.dumps(slope_figure, cls=plotly.utils.PlotlyJSONEncoder)
 
