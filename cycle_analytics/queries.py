@@ -1,6 +1,6 @@
 import logging
 from datetime import date, timedelta
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import pandas as pd
 from data_organizer.db.exceptions import QueryReturnedNoData
@@ -171,6 +171,21 @@ def get_track_for_id(id_ride: int) -> ByteTrack:
         db.pypika_query.from_(tracks)
         .select(tracks.gpx)
         .where(tracks.id_ride == id_ride)
+    )
+
+    data = db.query(query)[0][0]
+
+    return ByteTrack(bytes(data), 0)
+
+
+@cache.memoize(timeout=86400)
+def get_track(id_track: int) -> ByteTrack:
+    db = get_db()
+    tracks = Table("tracks_enhanced_v1")
+    query = (
+        db.pypika_query.from_(tracks)
+        .select(tracks.gpx)
+        .where(tracks.id_track == id_track)
     )
 
     data = db.query(query)[0][0]
@@ -513,7 +528,7 @@ def modify_goal_status(id_goal: int, active: bool = True) -> bool:
 
 
 def get_segment_data(
-    id_segment: int, difficulty_mapping: Dict[int, str]
+    id_segment: int, difficulty_mapping: Optional[Dict[int, str]]
 ) -> SegmentData:
     db = get_db()
     table = Table("segments")
@@ -531,7 +546,9 @@ def get_segment_data(
         distance=round(data["distance"], 2),
         visited=data["visited"],
         type=data["type"],
-        difficulty=difficulty_mapping[data["difficulty"]],
+        difficulty=None
+        if not difficulty_mapping
+        else difficulty_mapping[data["difficulty"]],
         min_elevation=None
         if data["min_elevation"] is None
         else round(data["min_elevation"], 2),
@@ -552,6 +569,12 @@ def get_segment_data(
             max_longitude=data["bounds_max_lng"],
         ),
     )
+
+
+def get_segment_track(id_segment: int) -> Tuple[ByteTrack, str]:
+    data = get_segment_data(id_segment=id_segment, difficulty_mapping=None)
+
+    return data.track, data.name
 
 
 def get_segments_for_map_in_bounds(

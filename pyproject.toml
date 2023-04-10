@@ -63,3 +63,6 @@ pytest-mark-no-parentheses = true
 python_version = "3.10"
 check_untyped_defs = true
 exclude = ["tests/*"]
+
+[tool.pyright]
+venv = "cycle_analytics"

@@ -2,11 +2,12 @@ import logging
 
 from data_organizer.config import OrganizerConfig
 from dynaconf import FlaskDynaconf
-from flask import Flask
+from flask import Flask, request, send_file
 from flask.logging import default_handler
 from flask_wtf.csrf import CSRFProtect
 
 from cycle_analytics.landing_page import render_landing_page
+from cycle_analytics.serve import get_segment_download, get_track_download
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +62,29 @@ def create_app(test_config=None):
     @app.route("/", methods=["GET", "POST"])
     def landing_page():
         return render_landing_page()
+
+    @app.route("/download", methods=["GET"])
+    def download_data():
+        data_type = request.args.get("datatype")
+        if data_type in ["track", "segment"]:
+            identifier = request.args.get("id")
+            if identifier is None:
+                raise KeyError(
+                    "An id must be passed as parameter for track and segement download"
+                )
+
+            if data_type == "track":
+                data, name = get_track_download(int(identifier))
+            if data_type == "segment":
+                data, name = get_segment_download(int(identifier))
+
+        else:
+            raise NotImplementedError(
+                "Data type %s is not supported for download" % data_type
+            )
+
+        print(data)
+        return send_file(data, download_name=name, as_attachment=True)
 
     from cycle_analytics.segments import bp as segments
 

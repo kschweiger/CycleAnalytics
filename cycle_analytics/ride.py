@@ -127,6 +127,7 @@ def display(id_ride: int):
 
     if data["id_track"] is not None:
         form = None  # type: ignore
+        id_track = data["id_track"]
         track_data = [
             ("Distance (moving) [km]", round(data["moving_distance"] / 1000, 2)),
             ("Max velocity [km/h]", round(data["max_velocity_kmh"], 2)),
@@ -173,6 +174,7 @@ def display(id_ride: int):
 
     else:
         track_data = None
+        id_track = None  # type: ignore
         plot_elevation_and_velocity = None
         map_data = None
         slope_plot = None
@@ -214,6 +216,7 @@ def display(id_ride: int):
         ride_from=ride_from,
         ride_to=ride_to,
         ride_data=ride_data,
+        id_track=id_track,
         track_data=track_data,
         plot_elevation_and_velocity=plot_elevation_and_velocity,
         slope_plot=slope_plot,

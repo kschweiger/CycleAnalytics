@@ -34,7 +34,7 @@ class SegmentData:
     name: str
     description: None | str
     type: str
-    difficulty: str
+    difficulty: None | str
     distance: float
     visited: bool
     min_elevation: None | float
