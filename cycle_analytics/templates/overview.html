@@ -6,22 +6,29 @@
 
 <div class="m-1 p-2 border rounded-3">
     <div class="row mt-2 align-items-center">
-        <div class="col">
+        <div class="col-auto">
             <form method="POST">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <label>Select a year:</label>
-                <select id="year" name="year" onchange='this.form.submit()' class="form-select">
-                    {% for year in years %}
-                    <option value="{{year}}" {% if year==year_selected%}selected{% endif %}>{{year}}
-                    </option>
-                    {% endfor %}
-                </select>
+                <div class="row">
+                    {{ overview_form.csrf_token }}
+                    <div class="col ">
+                        <div class="form-floating">
+                            {{overview_form.year(class_="form-select", onchange="this.form.submit()")}}
+                            {{overview_form.year.label(class_="form-label") }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="form-floating">
+                            {{overview_form.ride_type(class_="form-select", onchange="this.form.submit()")}}
+                            {{overview_form.ride_type.label(class_="form-label") }}
+                        </div>
+                    </div>
+                </div>
             </form>
         </div>
         <div class="col"></div>
         <div class="col"></div>
-        <div class="col text-center">
-            <a class="btn btn-success" href="{{url_for('overview.heatmap')}}?year_selected={{year_selected}}">Show
+        <div class="col text-center h-100">
+            <a class="btn btn-success h-100" href="{{url_for('overview.heatmap')}}?year_selected={{year_selected}}">Show
                 Heatmap</a>
         </div>
 

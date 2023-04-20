@@ -142,7 +142,6 @@ def get_last_track_id(table: str, order_by: str, descending: bool) -> int:
 
 @cache.memoize(timeout=86400)
 def get_full_ride_data(id_ride: int) -> pd.DataFrame:
-
     db = get_db()
     logger.debug("Getting id_ride %s", id_ride)
     main = Table("main")
@@ -219,7 +218,7 @@ def get_thumbnails_for_id(id_ride: int) -> list[str]:
 
 @cache.memoize(timeout=86400)
 def get_rides_in_timeframe(
-    timeframe: int | str | list[int], ride_type: str = "Any"
+    timeframe: int | str | list[int], ride_type: str | list[str] = "Any"
 ) -> pd.DataFrame:
     db = get_db()
     main = Table("main")
@@ -255,8 +254,11 @@ def get_rides_in_timeframe(
     if ride_type == "Any" or ride_type == "All":
         logger.debug("Will not constrain rides to a specific ride_type")
     else:
-        query = query.where(main.ride_type == ride_type)
-
+        if isinstance(ride_type, str):
+            ride_type_ = [ride_type]
+        else:
+            ride_type_ = ride_type
+        query = query.where(main.ride_type.isin(ride_type_))
     data = db.query_to_df(query)
 
     month_labels = {
@@ -291,7 +293,6 @@ def get_years_in_database() -> list[int]:
 def get_summary_data(
     timeframe: int | str, current_year: int, curr_month: int, ride_type: str = "Any"
 ):
-
     try:
         rides = get_rides_in_timeframe(timeframe, ride_type=ride_type)
     except QueryReturnedNoData:

@@ -39,7 +39,7 @@ color_marker="#198754"
 
 [adders]
     [adders.ride]
-        type_choices=["MTB","Road","Gravel"]
+        type_choices=["MTB","Road","Gravel","Testing/Setup"]
     [adders.event]
         type_choices=["Mechanical", "Crash", "Service", "Repair", "Replacement", "Purchase", "Other"]
         init_map_view_lat=48.02
@@ -70,6 +70,10 @@ color_marker="#198754"
         "Gravel track"="#ffc107"
         "Road"="#000000"
         "Track"="#0dcaf0"
+
+[overview]
+default_types=["MTB","Road","Gravel"]
+
 
 [landing_page]
     [landing_page.events]
@@ -322,3 +326,13 @@ color_marker="#198754"
     [segments.visited]
         ctype="BOOLEAN"
         default=true
+
+[ride_notes]
+    name="ride_notes"
+    [ride_notes.id_ride]
+        ctype="INT"
+        is_primary=true
+    [ride_notes.note]
+        ctype="TEXT"
+        is_nullable=false
+

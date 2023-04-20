@@ -47,7 +47,7 @@ class RideForm(FlaskForm):
     date = DateField("Date", validators=[DataRequired()])
     start_time = TimeField("Start Time", validators=[DataRequired()], format="%H:%M:%S")
     total_time = TimeField("Total Time", validators=[DataRequired()], format="%H:%M:%S")
-    ride_time = TimeField("Ride Time", validators=[], format="%H:%M:%S")
+    ride_time = TimeField("Ride Time", validators=[Optional()], format="%H:%M:%S")
     distance = DecimalField("Distance [km]", validators=[DataRequired()])
     bike = SelectField("Bike", validators=[DataRequired()])
     ride_type = SelectField("Ride Type")
@@ -260,7 +260,9 @@ def add_ride():
             [
                 form.date.data,
                 form.start_time.data.isoformat(),  # TEMP: Fix in DataOrganizer
-                form.ride_time.data.isoformat(),  # TEMP: Fix in DataOrganizer
+                form.ride_time.data.isoformat()
+                if form.ride_time.data
+                else None,  # TEMP: Fix in DataOrganizer
                 form.total_time.data.isoformat(),  # TEMP: Fix in DataOrganizer
                 form.distance.data,
                 form.bike.data,
@@ -477,7 +479,6 @@ def add_goal():
     form.bike.choices = get_bike_names()
 
     if form.validate_on_submit():
-
         constraints_ = {}
         if form.bike.data:
             constraints_["bike"] = form.bike.data

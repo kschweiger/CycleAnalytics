@@ -83,7 +83,6 @@ def create_app(test_config=None):
                 "Data type %s is not supported for download" % data_type
             )
 
-        print(data)
         return send_file(data, download_name=name, as_attachment=True)
 
     from cycle_analytics.segments import bp as segments

@@ -6,7 +6,10 @@ import plotly
 import plotly.express as px
 from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import Blueprint, current_app, render_template, request, url_for
+from flask_wtf import FlaskForm
 from gpx_track_analyzer.utils import center_geolocation
+from wtforms import SelectField
+from wtforms.validators import DataRequired
 
 from cycle_analytics.plotting import per_month_overview_plots
 from cycle_analytics.queries import (
@@ -16,16 +19,36 @@ from cycle_analytics.queries import (
 )
 from cycle_analytics.utils import get_nice_timedelta_isoformat
 
+
+class OverviewForm(FlaskForm):
+    year = SelectField(
+        "Year", validators=[DataRequired()], default=str(date.today().year)
+    )
+
+    ride_type = SelectField("Ride Type", validators=[DataRequired()], default="Default")
+
+
 bp = Blueprint("overview", __name__, url_prefix="/overview")
 
 
 @bp.route("/", methods=("GET", "POST"))
 def main():
-    years = ["All"] + [str(y) for y in get_years_in_database()]
-    selected_year = date.today().year
+    config = current_app.config
 
-    if request.method == "POST":
-        selected_year = request.form.get("year")
+    overview_form = OverviewForm()
+    type_choices = ["All"] + config.adders.ride.type_choices
+
+    overview_form.ride_type.choices = [
+        ("Default", " , ".join(config.overview.default_types))
+    ] + [(c, c) for c in type_choices]
+
+    curr_year = date.today().year
+    overview_form.year.choices = (
+        [(str(curr_year), str(curr_year))]
+        + [(str(y), str(y)) for y in get_years_in_database() if y != curr_year]
+        + [("All", "All")]
+    )
+    selected_year = overview_form.year.data
 
     table_headings = [
         "Date",
@@ -38,7 +61,13 @@ def main():
     ]
     table_data = []
     try:
-        rides = get_rides_in_timeframe(selected_year)
+        select_ride_types_ = overview_form.ride_type.data
+        if select_ride_types_ == "Default":
+            select_ride_types = config.overview.default_types
+        else:
+            select_ride_types = select_ride_types_
+
+        rides = get_rides_in_timeframe(selected_year, ride_type=select_ride_types)
     except QueryReturnedNoData:
         rides = pd.DataFrame()
 
@@ -100,8 +129,9 @@ def main():
     return render_template(
         "overview.html",
         active_page="overview",
+        overview_form=overview_form,
         year_selected=str(selected_year),
-        years=years,
+        # years=years,
         table_data=(table_headings, table_data),
         plots=plots,
     )
