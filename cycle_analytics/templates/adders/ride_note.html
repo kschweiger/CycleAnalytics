@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="m-1 p-1 border rounded-3">
+    <h4> Add Note to ride {{id_ride}}</h4>
+    <form method="POST">
+        <div class="row  mt-2">
+            <div class="col">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <textarea class="form-control" name="note" id="note" {% if prefill_note_value is not
+                    none%}placeholder="{{prefill_note_value}}" {% endif %}required></textarea>
+            </div>
+            <div class="col-auto">
+                <input type="submit" value="Submit" class="btn btn-success h-100">
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

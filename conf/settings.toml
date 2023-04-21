@@ -1,4 +1,4 @@
-tables=["main", "tracks", "events", "goals","bikes","segments","tracks_enhanced_v1","tracks_v1_overview"]
+tables=["main", "tracks", "events", "goals","bikes","segments","tracks_enhanced_v1","tracks_v1_overview", "ride_notes"]
 
 [defaults]
 bike="Nerve"

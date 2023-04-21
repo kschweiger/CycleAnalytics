@@ -140,23 +140,25 @@ def get_last_track_id(table: str, order_by: str, descending: bool) -> int:
     return db.query(query)[0][0]
 
 
-@cache.memoize(timeout=86400)
+# @cache.memoize(timeout=86400)
 def get_full_ride_data(id_ride: int) -> pd.DataFrame:
     db = get_db()
     logger.debug("Getting id_ride %s", id_ride)
     main = Table("main")
     tracks = Table("tracks_enhanced_v1")
     track_data = Table("tracks_v1_overview")
+    notes = Table("ride_notes")
     query = (
         db.pypika_query.from_(main)
         .join(tracks, how=JoinType.left)
         .on_field("id_ride")
         .join(track_data, how=JoinType.left)
         .on(tracks.id_track == track_data.id_track)
-        .select(main.star, track_data.star)
+        .join(notes, how=JoinType.left)
+        .on(main.id_ride == notes.id_ride)
+        .select(main.star, track_data.star, notes.note)
         .where(main.id_ride == id_ride)
     )
-
     data = db.query_to_df(query).iloc[0]
 
     return data
@@ -636,6 +638,35 @@ def modify_segment_visited_flag(id_segment: int, visited: bool = True) -> bool:
         db.pypika_query.update(table)
         .set(table.visited, visited)
         .where(table.id_segment == id_segment)
+    )
+
+    return db.exec_arbitrary(query)
+
+
+def get_note(id_ride: int) -> None | str:
+    db = get_db()
+    ride_notes = Table("ride_notes")
+    query = (
+        db.pypika_query.from_(ride_notes)
+        .select(ride_notes.note)
+        .where(ride_notes.id_ride == id_ride)
+    )
+
+    try:
+        data = db.query(query)
+    except QueryReturnedNoData:
+        return None
+
+    return data[0][0]
+
+
+def modify_note(id_ride: int, note_value: str) -> bool:
+    table = Table("ride_notes")
+    db = get_db()
+    query = (
+        db.pypika_query.update(table)
+        .set(table.note, note_value)
+        .where(table.id_ride == id_ride)
     )
 
     return db.exec_arbitrary(query)

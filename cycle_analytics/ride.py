@@ -4,7 +4,15 @@ from datetime import datetime
 
 import plotly
 from data_organizer.db.exceptions import QueryReturnedNoData
-from flask import Blueprint, current_app, flash, redirect, render_template, url_for
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
 from gpx_track_analyzer.track import ByteTrack
@@ -21,7 +29,9 @@ from cycle_analytics.queries import (
     get_events_for_ride,
     get_full_ride_data,
     get_last_track_id,
+    get_note,
     get_track_for_id,
+    modify_note,
     ride_has_track,
 )
 
@@ -115,7 +125,10 @@ def display(id_ride: int):
         ("Bike", (data["bike"], url_for("bike.show", bike_name=data["bike"]))),
         ("Type", data["ride_type"]),
     ]
-
+    has_note = False
+    if data["note"] is not None:
+        ride_data.append(("Note", data["note"]))
+        has_note = True
     if ride_has_track(
         id_ride,
         current_app.config.tables_as_settings[
@@ -223,4 +236,37 @@ def display(id_ride: int):
         map_data=map_data,
         located_events=located_events,
         form=form,
+        has_note=has_note,
+    )
+
+
+@bp.route("add_note/<int:id_ride>/", methods=("GET", "POST"))
+def add_note(id_ride: int):
+    current_note_value = get_note(id_ride)
+
+    if request.method == "POST":
+        print(request.form.get("note"))
+        new_note_value = request.form.get("note")
+        db = get_db()
+        if current_note_value is None:
+            insert_succ, err = db.insert(
+                current_app.config.tables_as_settings["ride_notes"],
+                [[id_ride, new_note_value]],
+            )
+            succ_msg = "Note added"
+        else:
+            insert_succ = modify_note(id_ride, new_note_value)
+            err = "Error on update. See log"
+            succ_msg = "Note updated"
+        if insert_succ:
+            flash(succ_msg, "alert-success")
+            return redirect(url_for("ride.display", id_ride=id_ride))
+        else:
+            flash(f"Note could not be inserted: {err}", "alert-danger")
+
+    return render_template(
+        "adders/ride_note.html",
+        active_page="overview",
+        id_ride=id_ride,
+        prefill_note_value=current_note_value,
     )
