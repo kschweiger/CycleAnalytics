@@ -6,11 +6,9 @@ import plotly
 import plotly.express as px
 from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import Blueprint, current_app, render_template, request, url_for
-from flask_wtf import FlaskForm
 from gpx_track_analyzer.utils import center_geolocation
-from wtforms import SelectField
-from wtforms.validators import DataRequired
 
+from cycle_analytics.forms import YearAndRideTypeForm
 from cycle_analytics.plotting import per_month_overview_plots
 from cycle_analytics.queries import (
     get_rides_in_timeframe,
@@ -19,15 +17,6 @@ from cycle_analytics.queries import (
 )
 from cycle_analytics.utils import get_nice_timedelta_isoformat
 
-
-class OverviewForm(FlaskForm):
-    year = SelectField(
-        "Year", validators=[DataRequired()], default=str(date.today().year)
-    )
-
-    ride_type = SelectField("Ride Type", validators=[DataRequired()], default="Default")
-
-
 bp = Blueprint("overview", __name__, url_prefix="/overview")
 
 
@@ -35,7 +24,7 @@ bp = Blueprint("overview", __name__, url_prefix="/overview")
 def main():
     config = current_app.config
 
-    overview_form = OverviewForm()
+    overview_form = YearAndRideTypeForm()
     type_choices = ["All"] + config.adders.ride.type_choices
 
     overview_form.ride_type.choices = [
@@ -80,18 +69,18 @@ def main():
                     url_for("ride.display", id_ride=rcrd["id_ride"]),
                 ),
                 ""
-                if pd.isnull(rcrd["ride_time"])
+                if pd.isna(rcrd["ride_time"])
                 else get_nice_timedelta_isoformat(rcrd["ride_time"].isoformat()),
                 get_nice_timedelta_isoformat(rcrd["total_time"].isoformat()),
                 rcrd["distance"],
                 ""
-                if pd.isnull(rcrd["avg_velocity_kmh"])
+                if pd.isna(rcrd["avg_velocity_kmh"])
                 else round(rcrd["avg_velocity_kmh"], 2),
                 ""
-                if pd.isnull(rcrd["uphill_elevation"])
+                if pd.isna(rcrd["uphill_elevation"])
                 else round(rcrd["uphill_elevation"], 2),
                 ""
-                if pd.isnull(rcrd["downhill_elevation"])
+                if pd.isna(rcrd["downhill_elevation"])
                 else round(rcrd["downhill_elevation"], 2),
             )
         )

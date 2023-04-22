@@ -4,6 +4,7 @@ from datetime import date
 from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import current_app, render_template, request
 
+from cycle_analytics.forms import YearAndRideTypeForm
 from cycle_analytics.goals import YearlyGoal, format_goals_concise
 from cycle_analytics.queries import (
     get_goal_years,
@@ -99,16 +100,25 @@ def render_landing_page():
     goals = format_goals_concise(display_goals)
 
     # --------------------- SUMMARY ---------------------
-    summary_years = ["All"] + [str(y) for y in get_years_in_database()]
-    summary_year_selected = str(date_today.year)
-    summary_ride_types = ["Any"] + config.adders.ride.type_choices
-    summary_ride_type_selected = config.landing_page.summary.default_type
-    if (
-        request.method == "POST"
-        and request.form.get("form_summary_ride_type") is not None
-    ):
-        summary_year_selected = request.form.get("form_summary_year")
-        summary_ride_type_selected = request.form.get("form_summary_ride_type")
+    summary_form = YearAndRideTypeForm()
+
+    summary_form.ride_type.choices = [
+        ("Default", " , ".join(config.overview.default_types)),
+        ("All", "All"),
+    ] + [(c, c) for c in config.adders.ride.type_choices]
+
+    curr_year = date.today().year
+    summary_form.year.choices = (
+        [(str(curr_year), str(curr_year))]
+        + [(str(y), str(y)) for y in get_years_in_database() if y != curr_year]
+        + [("All", "All")]
+    )
+    summary_year_selected = summary_form.year.data
+    select_ride_types_ = summary_form.ride_type.data
+    if select_ride_types_ == "Default":
+        summary_ride_type_selected = config.overview.default_types
+    else:
+        summary_ride_type_selected = select_ride_types_
 
     summary_data, summary_month = get_summary_data(
         summary_year_selected,
@@ -130,9 +140,8 @@ def render_landing_page():
         goal_years=goal_years,
         goal_year_selected=goal_year_selected,
         goals=goals,
-        summary_years=summary_years,
+        summary_form=summary_form,
         summary_year_selected=summary_year_selected,
-        summary_ride_types=summary_ride_types,
         summary_ride_type_selected=summary_ride_type_selected,
         summary_data=summary_data,
         summary_month=summary_month,

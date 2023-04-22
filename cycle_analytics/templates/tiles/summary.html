@@ -1,29 +1,19 @@
 <h4>Summary</h4>
 <div class="container">
     <form method="POST">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="row">
-            <div class="col"></div>
-            <div class="col">
-                <select id="form_summary_ride_type" name="form_summary_ride_type" class="form-select">
-                    {% for ride_type in summary_ride_types %}
-                    <option value="{{ride_type}}" {% if ride_type==summary_ride_type_selected%}selected{% endif %}>
-                        {{ride_type}}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col">
-                <select id="form_summary_year" name="form_summary_year" class="form-select">
-                    {% for year in summary_years %}
-                    <option value="{{year}}" {% if year==summary_year_selected%}selected{% endif %}>
-                        {{year}}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
+            {{ summary_form.csrf_token }}
             <div class="col-auto">
-                <input type="submit" value="Apply" class="btn btn-success w-100">
+                <div class="form-floating">
+                    {{summary_form.year(class_="form-select", onchange="this.form.submit()")}}
+                    {{summary_form.year.label(class_="form-label") }}
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-floating">
+                    {{summary_form.ride_type(class_="form-select", onchange="this.form.submit()")}}
+                    {{summary_form.ride_type.label(class_="form-label") }}
+                </div>
             </div>
         </div>
     </form>
