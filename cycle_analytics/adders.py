@@ -219,6 +219,7 @@ def enhance_track(
 
     for i_segment in range(track.n_segments):
         this_track_overview = track.get_segment_overview(i_segment)
+        bounds = track.track.get_bounds()
         track_overview_data.append(
             [
                 i_segment,
@@ -236,6 +237,10 @@ def enhance_track(
                 this_track_overview.total_distance_km,
                 this_track_overview.max_velocity_kmh,
                 this_track_overview.avg_velocity_kmh,
+                bounds.min_latitude,
+                bounds.max_latitude,
+                bounds.min_longitude,
+                bounds.max_longitude,
             ]
         )
 
@@ -334,6 +339,7 @@ def add_ride():
                         )
                         for i_segment in range(track.n_segments):
                             this_track_overview = track.get_segment_overview(i_segment)
+                            bounds = track.track.get_bounds()
                             new_data_to_insert.append(
                                 [
                                     id_track,
@@ -352,6 +358,10 @@ def add_ride():
                                     this_track_overview.total_distance_km,
                                     this_track_overview.max_velocity_kmh,
                                     this_track_overview.avg_velocity_kmh,
+                                    bounds.min_latitude,
+                                    bounds.max_latitude,
+                                    bounds.min_longitude,
+                                    bounds.max_longitude,
                                 ]
                             )
                         if new_data_to_insert:

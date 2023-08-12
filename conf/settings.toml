@@ -182,7 +182,14 @@ default_types=["MTB","Road","Gravel"]
         ctype="FLOAT"
     [tracks_v1_overview.avg_velocity_kmh]
         ctype="FLOAT"
-
+    [tracks_v1_overview.bounds_min_lat]
+        ctype="FLOAT"
+    [tracks_v1_overview.bounds_max_lat]
+        ctype="FLOAT"
+    [tracks_v1_overview.bounds_min_lng]
+        ctype="FLOAT"
+    [tracks_v1_overview.bounds_max_lng]
+        ctype="FLOAT"
 
 [events]
     name="events"

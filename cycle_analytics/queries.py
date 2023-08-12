@@ -670,3 +670,61 @@ def modify_note(id_ride: int, note_value: str) -> bool:
     )
 
     return db.exec_arbitrary(query)
+
+
+def get_ride_bounds() -> None | list[tuple[int, int, float, float, float, float]]:
+    db = get_db()
+
+    tre = Table("tracks_enhanced_v1")
+    tro = Table("tracks_v1_overview")
+
+    query = (
+        db.pypika_query.from_(tre)
+        .join(tro, how=JoinType.left)
+        .on_field("id_track")
+        .select(
+            tre.id_ride,
+            tre.id_track,
+            tro.id_segment,
+            tro.bounds_min_lat,
+            tro.bounds_max_lat,
+            tro.bounds_min_lng,
+            tro.bounds_max_lng,
+        )
+    )
+
+    try:
+        data = db.query(query)
+    except QueryReturnedNoData:
+        return None
+
+    return data
+
+
+def get_rides_in_bounds(
+    ne_lat: float, ne_lng: float, sw_lat: float, sw_lng: float
+) -> None | list[tuple[int, int]]:
+    db = get_db()
+
+    tre = Table("tracks_enhanced_v1")
+    tro = Table("tracks_v1_overview")
+
+    query = (
+        db.pypika_query.from_(tre)
+        .join(tro, how=JoinType.left)
+        .on_field("id_track")
+        .select(tre.id_ride, tre.id_track)
+        .where(
+            (tro.bounds_min_lat <= sw_lat)
+            & (tro.bounds_max_lat >= ne_lat)
+            & (tro.bounds_min_lng <= sw_lng)
+            & (tro.bounds_max_lng >= ne_lng)
+        )
+    )
+
+    try:
+        data = db.query(query)
+    except QueryReturnedNoData:
+        return None
+
+    return data
