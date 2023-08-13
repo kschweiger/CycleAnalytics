@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="m-1 p-2 border rounded-3">
+    {% if present_categories|length > 0%}
+    <div class="container-fluid pt-3">
+        <div class="row">
+            {% for cat in present_categories%}
+            <div class="col-auto">
+                <div class="btn {{cat.btn_class}}">
+                    {{cat.name}}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% include "calender.html" %}
+
+</div>
+{% endblock %}

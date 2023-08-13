@@ -48,3 +48,37 @@ a {
 .page-link:focus {
     box-shadow: var(--bs-success-bg-subtle);
 }
+
+.journal_summary {
+    --bs-bg-opacity: 0.4;
+    background-color: rgba(var(--bs-light-rgb), var(--bs-bg-opacity)) !important;
+    color: var(--bs-emphasis-color);
+}
+
+.journal-week {
+    --bs-bg-opacity: 0.1;
+    background-color: rgba(var(--bs-tertiary-bg-rgb), var(--bs-bg-opacity)) !important;
+    color: var(--bs-emphasis-color);
+}
+
+.in-month-journal-day {
+    --bs-bg-opacity: 0.25;
+    background-color: rgba(var(--bs-success-rgb), var(--bs-bg-opacity)) !important;
+    color: var(--bs-emphasis-color);
+}
+
+.in-month-highlight-journal-day {
+    --bs-bg-opacity: 0.25;
+    background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)) !important;
+    color: var(--bs-emphasis-color);
+}
+
+.out-month-journal-day {
+    --bs-bg-opacity: 0.1;
+    background-color: rgba(var(--bs-tertiary-bg-rgb), var(--bs-bg-opacity)) !important
+}
+
+.out-month-highlight-journal-day {
+    --bs-bg-opacity: 0.75;
+    background-color: rgba(var(--bs-secondary-bg-rgb), var(--bs-bg-opacity)) !important
+}

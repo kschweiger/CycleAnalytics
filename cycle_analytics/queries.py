@@ -220,7 +220,8 @@ def get_thumbnails_for_id(id_ride: int) -> list[str]:
 
 @cache.memoize(timeout=86400)
 def get_rides_in_timeframe(
-    timeframe: int | str | list[int], ride_type: str | list[str] = "Any"
+    timeframe: int | str | list[int] | tuple[date, date],
+    ride_type: str | list[str] = "Any",
 ) -> pd.DataFrame:
     db = get_db()
     main = Table("main")
@@ -245,6 +246,12 @@ def get_rides_in_timeframe(
                     for year in timeframe
                 ]
             )
+        )
+
+    elif isinstance(timeframe, tuple):
+        start_date, end_date = timeframe
+        query = query.where(
+            Criterion.any([(main.date <= end_date) & (main.date >= start_date)])
         )
     else:
         year = int(timeframe)
