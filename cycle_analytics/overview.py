@@ -11,7 +11,7 @@ import plotly.express as px
 from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import Blueprint, current_app, render_template, request, url_for
 from flask_wtf import FlaskForm
-from gpx_track_analyzer.utils import center_geolocation
+from track_analyzer.utils import center_geolocation
 from wtforms import SelectField
 from wtforms.validators import DataRequired
 

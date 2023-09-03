@@ -1,11 +1,11 @@
 import base64
-from typing import Optional
+from typing import Literal, Optional
 
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from gpx_track_analyzer.track import Track
-from gpx_track_analyzer.visualize import plot_track_2d, plot_track_with_slope
+from track_analyzer.track import Track
+from track_analyzer.visualize import plot_track_2d, plot_track_with_slope
 
 month_label_order = dict(
     month=[
@@ -145,11 +145,42 @@ def get_track_elevation_plot(
         include_velocity=include_velocity,
         pois=pois,
         color_elevation=color_elevation,
-        color_velocity=color_velocity,
+        color_additional_trace=color_velocity,
         color_poi=color_poi,
         slider=slider,
     )
 
+    elevation_plot.update_layout(
+        autosize=True,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+    )
+    elevation_plot.update_layout(font_color="white")
+
+    elevation_plot.update_xaxes(showgrid=True, gridwidth=1, gridcolor="Gray")
+    elevation_plot.update_yaxes(showgrid=True, gridwidth=1, gridcolor="Gray")
+
+    return elevation_plot
+
+
+def get_track_elevation_extension_plot(
+    segment_data: pd.DataFrame,
+    plot_extension: Literal["heartrate", "cadence", "power"],
+    color_elevation: Optional[str] = None,
+    color_extention: Optional[str] = None,
+    slider: bool = False,
+):
+    elevation_plot = plot_track_2d(
+        segment_data,
+        height=None,
+        width=None,
+        color_elevation=color_elevation,
+        color_additional_trace=color_extention,
+        slider=slider,
+        include_heartrate=plot_extension == "heartrate",
+        include_cadence=plot_extension == "cadence",
+        include_power=plot_extension == "power",
+    )
     elevation_plot.update_layout(
         autosize=True,
         paper_bgcolor="rgba(0,0,0,0)",

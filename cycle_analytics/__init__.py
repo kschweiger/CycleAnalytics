@@ -28,17 +28,18 @@ def create_app(test_config=None):
         # load the test config if passed in
         app.config.from_mapping(test_config)
 
-    for logger in (
+    for logger_ in (
         app.logger,
-        logging.getLogger("gpx_track_analyzer"),
+        logging.getLogger("track_analyzer"),
         logging.getLogger("data_organizer"),
     ):
-        logger.setLevel("DEBUG" if app.debug else "INFO")
-        logger.addHandler(default_handler)
+        logger_.setLevel("DEBUG" if app.debug else "INFO")
+        logger_.addHandler(default_handler)
 
     organizer_config = OrganizerConfig(
         name="CycleAnalytics",
         config_dir_base="conf/",
+        additional_configs=["tables.toml"],
     )
 
     logger.debug("Initializing FlaskDynaconf")
@@ -83,7 +84,7 @@ def create_app(test_config=None):
                 "Data type %s is not supported for download" % data_type
             )
 
-        return send_file(data, download_name=name, as_attachment=True)
+        return send_file(data, download_name=name, as_attachment=True)  # type: ignore
 
     from cycle_analytics.segments import bp as segments
 

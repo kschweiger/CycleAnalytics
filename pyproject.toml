@@ -5,13 +5,13 @@ description = "WApp for tracking, analyzing, and visualizing bicycle rides and g
 authors = ["Korbinian Schweiger <korbinian.schweiger@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "cycle_analytics"}]
+packages = [{ include = "cycle_analytics" }]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 Flask = "^2.2.2"
-data-organizer = {git = "https://github.com/kschweiger/data_organizer.git", rev = "1.4.0"}
-gpx-track-analyzer = {git = "https://github.com/kschweiger/track_analyzer.git", rev = "0.1.2"}
+data-organizer = { git = "https://github.com/kschweiger/data_organizer.git", rev = "1.4.0" }
+track-analyzer = { git = "https://github.com/kschweiger/track_analyzer.git", rev = "0.3.2" }
 Flask-Caching = "^2.0.1"
 gunicorn = "^20.1.0"
 dynaconf = "^3.1.11"
@@ -47,7 +47,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.flake8]
 max-line-length = 88
-extend-ignore = ["E203","E266","E402","PT012"]
+extend-ignore = ["E203", "E266", "E402", "PT012"]
 # flake8-pytest-style
 # PT001:
 pytest-fixture-no-parentheses = true
@@ -66,7 +66,7 @@ exclude = ["tests/*"]
 
 
 [tool.ruff]
-select = ["E", "F", "I", "PD","PT", "NPY", "N", "W"]
+select = ["E", "F", "I", "PD", "PT", "NPY", "N", "W"]
 unfixable = ["F841"]
 
 # [tool.pyright]

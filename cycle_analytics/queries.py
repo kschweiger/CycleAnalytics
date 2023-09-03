@@ -4,10 +4,10 @@ from typing import Any, Dict, Optional, Tuple
 
 import pandas as pd
 from data_organizer.db.exceptions import QueryReturnedNoData
-from gpx_track_analyzer.track import ByteTrack
 from pandas import Timedelta
 from pypika import Criterion, JoinType, Order, Table
 from pypika.functions import Count, Extract, Max, Min, Sum
+from track_analyzer.track import ByteTrack
 
 from cycle_analytics.cache import cache
 from cycle_analytics.db import get_db

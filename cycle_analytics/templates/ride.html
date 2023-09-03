@@ -135,6 +135,21 @@
             <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off"
                 onclick="ele_plus_slope_click()">
             <label class="btn btn-outline-success" for="btnradio2">Elevation + Slope</label>
+            {% if heartrate_plot is not none%}
+            <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off"
+                onclick="ele_plus_hr_click()">
+            <label class="btn btn-outline-success" for="btnradio3">Elevation + Heartrate</label>
+            {% endif %}
+            {% if cadence_plot is not none%}
+            <input type="radio" class="btn-check" name="btnradio" id="btnradio4" autocomplete="off"
+                onclick="ele_plus_cadence_click()">
+            <label class="btn btn-outline-success" for="btnradio4">Elevation + Cadence</label>
+            {% endif %}
+            {% if power_plot is not none%}
+            <input type="radio" class="btn-check" name="btnradio" id="btnradio5" autocomplete="off"
+                onclick="ele_plus_power_click()">
+            <label class="btn btn-outline-success" for="btnradio5">Elevation + Power</label>
+            {% endif %}
         </div>
     </div>
     <div id="ele_plus_velo_plot">
@@ -148,6 +163,27 @@
             <div id="slope_plot" class="my-3"></div>
         </div>
     </div>
+    {% if heartrate_plot is not none%}
+    <div id="ele_plus_hr_plot">
+        <div class=" m-2 p-2 border rounded-3">
+            <div id="heartrate_plot" class="my-3"></div>
+        </div>
+    </div>
+    {% endif %}
+    {% if cadence_plot is not none%}
+    <div id="ele_plus_cadence_plot">
+        <div class=" m-2 p-2 border rounded-3">
+            <div id="cadence_plot" class="my-3"></div>
+        </div>
+    </div>
+    {% endif %}
+    {% if power_plot is not none%}
+    <div id="ele_plus_power_plot">
+        <div class=" m-2 p-2 border rounded-3">
+            <div id="power_plot" class="my-3"></div>
+        </div>
+    </div>
+    {% endif %}
     {% endif %}
 </div>
 {% endblock %}
@@ -169,6 +205,33 @@
     var config = { displayModeBar: false, responsive: true, width: 10 };
     Plotly.newPlot("slope_plot", data, layout, config);
 </script>
+{% if heartrate_plot is not none%}
+<script>
+    var chart = {{ heartrate_plot | safe}};
+    var data = chart["data"];
+    var layout = chart["layout"];
+    var config = { displayModeBar: false, responsive: true, width: 10 };
+    Plotly.newPlot("heartrate_plot", data, layout, config);
+</script>
+{% endif %}
+{% if cadence_plot is not none%}
+<script>
+    var chart = {{ cadence_plot | safe}};
+    var data = chart["data"];
+    var layout = chart["layout"];
+    var config = { displayModeBar: false, responsive: true, width: 10 };
+    Plotly.newPlot("cadence_plot", data, layout, config);
+</script>
+{% endif %}
+{% if power_plot is not none%}
+<script>
+    var chart = {{ power_plot | safe}};
+    var data = chart["data"];
+    var layout = chart["layout"];
+    var config = { displayModeBar: false, responsive: true, width: 10 };
+    Plotly.newPlot("power_plot", data, layout, config);
+</script>
+{% endif %}
 {% endif %}
 <script src="{{ url_for('static', filename='map_utils.js') }}"></script>
 
@@ -182,14 +245,47 @@
 {% endif %}
 <script>
     document.getElementById("ele_plus_slope_plot").setAttribute("class", "visually-hidden");
+    document.getElementById("ele_plus_hr_plot").setAttribute("class", "visually-hidden");
+    document.getElementById("ele_plus_cadence_plot").setAttribute("class", "visually-hidden");
+    document.getElementById("ele_plus_power_plot").setAttribute("class", "visually-hidden");
+
+    function ele_plus_hr_click() {
+        document.getElementById("ele_plus_slope_plot").setAttribute("class", "visually-hidden");
+        document.getElementById("ele_plus_velo_plot").setAttribute("class", "visually-hidden");
+        document.getElementById("ele_plus_hr_plot").setAttribute("class", "");
+        document.getElementById("ele_plus_cadence_plot").setAttribute("class", "visually-hidden");
+        document.getElementById("ele_plus_power_plot").setAttribute("class", "visually-hidden");
+    }
+
+    function ele_plus_cadence_click() {
+        document.getElementById("ele_plus_slope_plot").setAttribute("class", "visually-hidden");
+        document.getElementById("ele_plus_velo_plot").setAttribute("class", "visually-hidden");
+        document.getElementById("ele_plus_hr_plot").setAttribute("class", "visually-hidden");
+        document.getElementById("ele_plus_cadence_plot").setAttribute("class", "");
+        document.getElementById("ele_plus_power_plot").setAttribute("class", "visually-hidden");
+    }
+
+    function ele_plus_power_click() {
+        document.getElementById("ele_plus_slope_plot").setAttribute("class", "visually-hidden");
+        document.getElementById("ele_plus_velo_plot").setAttribute("class", "visually-hidden");
+        document.getElementById("ele_plus_hr_plot").setAttribute("class", "visually-hidden");
+        document.getElementById("ele_plus_cadence_plot").setAttribute("class", "visually-hidden");
+        document.getElementById("ele_plus_power_plot").setAttribute("class", "");
+    }
 
     function ele_plus_slope_click() {
         document.getElementById("ele_plus_slope_plot").setAttribute("class", "");
         document.getElementById("ele_plus_velo_plot").setAttribute("class", "visually-hidden");
+        document.getElementById("ele_plus_hr_plot").setAttribute("class", "visually-hidden");
+        document.getElementById("ele_plus_cadence_plot").setAttribute("class", "visually-hidden");
+        document.getElementById("ele_plus_power_plot").setAttribute("class", "visually-hidden");
     }
     function ele_plus_velo_click() {
         document.getElementById("ele_plus_slope_plot").setAttribute("class", "visually-hidden");
         document.getElementById("ele_plus_velo_plot").setAttribute("class", "");
+        document.getElementById("ele_plus_hr_plot").setAttribute("class", "visually-hidden");
+        document.getElementById("ele_plus_cadence_plot").setAttribute("class", "visually-hidden");
+        document.getElementById("ele_plus_power_plot").setAttribute("class", "visually-hidden");
     }
 </script>
 {% endblock %}

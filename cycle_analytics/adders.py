@@ -6,12 +6,12 @@ from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import Blueprint, current_app, flash, redirect, render_template, request
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
-from gpx_track_analyzer.enhancer import get_enhancer
-from gpx_track_analyzer.exceptions import (
-    APIHealthCheckFailedException,
-    APIResponseException,
+from track_analyzer.enhancer import get_enhancer
+from track_analyzer.exceptions import (
+    APIHealthCheckFailedError,
+    APIResponseError,
 )
-from gpx_track_analyzer.track import ByteTrack, Track
+from track_analyzer.track import ByteTrack, Track
 from wtforms import (
     DateField,
     DecimalField,
@@ -176,6 +176,14 @@ class BikeForm(FlaskForm):
     purchase = DateField("Purchase Date", validators=[DataRequired()])
 
 
+def allowed_file(filename: str) -> bool:
+    return (
+        "." in filename
+        and filename.rsplit(".", 1)[1].lower()
+        in current_app.config["ALLOWED_TRACKEXTENSIONS"]
+    )
+
+
 def flash_form_error(form: FlaskForm):
     flash(
         "\n".join(
@@ -202,14 +210,14 @@ def enhance_track(
             url=current_app.config.external.track_enhancer.url,
             **current_app.config.external.track_enhancer.kwargs.to_dict(),
         )
-    except APIHealthCheckFailedException:
+    except APIHealthCheckFailedError:
         logger.warning("Enhancer not available. Skipping elevation profile")
         flash("Track could not be enhanced - API not available")
         return None, None
 
     try:
         enhancer.enhance_track(track.track, True)
-    except APIResponseException:
+    except APIResponseError:
         logger.error("Could not enhance track with elevation")
         return None, None
 
@@ -312,14 +320,14 @@ def add_ride():
                         url=config.external.track_enhancer.url,
                         **config.external.track_enhancer.kwargs.to_dict(),
                     )
-                except APIHealthCheckFailedException:
+                except APIHealthCheckFailedError:
                     logger.warning("Enhancer not available. Skipping elevation profile")
                     flash("Track could not be enhanced - API not available")
                 if enhancer is not None:
                     track = ByteTrack(gpx_value)
                     try:
                         enhancer.enhance_track(track.track, True)
-                    except APIResponseException:
+                    except APIResponseError:
                         logger.error("Could not enhance track with elevation")
 
                     enhance_insert_succ_track, err = db.insert(
@@ -378,19 +386,24 @@ def add_ride():
                                 )
                             else:
                                 flash(
-                                    f"Overview could not be generated: {err[0:250]}",
+                                    "Overview could not be generated: "
+                                    f"{err[0:250]}",  # type: ignore
                                     "alert-danger",
                                 )
                         else:
                             logger.info("No data to insert", "alter-warning")
                     else:
                         flash(
-                            f"Enhanced Track could not be inserted: {err[0:250]}",
+                            "Enhanced Track could not be inserted: "
+                            f"{err[0:250]}",  # type: ignore
                             "alert-danger",
                         )
 
             else:
-                flash(f"Track could not be added: {err[0:250]}", "alert-danger")
+                flash(
+                    f"Track could not be added: {err[0:250]}",  # type: ignore
+                    "alert-danger",
+                )
 
         return redirect("/overview")
 

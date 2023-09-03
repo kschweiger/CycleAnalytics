@@ -15,13 +15,15 @@ from flask import (
 )
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
-from gpx_track_analyzer.track import ByteTrack
+from track_analyzer.exceptions import VisualizationSetupError
+from track_analyzer.track import ByteTrack
 
 from cycle_analytics.adders import enhance_track
 from cycle_analytics.cache import cache
 from cycle_analytics.db import get_db
 from cycle_analytics.model import MapData, MapMarker, MapPathData
 from cycle_analytics.plotting import (
+    get_track_elevation_extension_plot,
     get_track_elevation_plot,
     get_track_elevation_slope_plot,
 )
@@ -93,18 +95,23 @@ def display(id_ride: int):
                             )
                         else:
                             flash(
-                                f"Overview could not be generated: {err[0:250]}",
+                                "Overview could not be generated: "
+                                f"{err[0:250]}",  # type: ignore
                                 "alert-danger",
                             )
                 else:
                     flash(
-                        f"Enhanced Track could not be inserted: {err[0:250]}",
+                        "Enhanced Track could not be inserted: "
+                        f"{err[0:250]}",  # type: ignore
                         "alert-danger",
                     )
             logger.warning("Resetting cache")
             cache.clear()
         else:
-            flash(f"Track could not be added: {err[0:250]}", "alert-danger")
+            flash(
+                f"Track could not be added: {err[0:250]}",  # type: ignore
+                "alert-danger",
+            )
 
     try:
         data = get_full_ride_data(id_ride)
@@ -185,12 +192,57 @@ def display(id_ride: int):
         )
         slope_plot = json.dumps(slope_figure, cls=plotly.utils.PlotlyJSONEncoder)
 
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        try:
+            hr_figure = get_track_elevation_extension_plot(
+                track_segment_data,
+                "heartrate",
+                color_elevation=colors[0],
+                color_extention=colors[1],
+                slider=True,
+            )
+        except VisualizationSetupError:
+            hr_plot = None
+        else:
+            hr_plot = json.dumps(hr_figure, cls=plotly.utils.PlotlyJSONEncoder)
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        try:
+            cad_figure = get_track_elevation_extension_plot(
+                track_segment_data,
+                "cadence",
+                color_elevation=colors[0],
+                color_extention=colors[1],
+                slider=True,
+            )
+        except VisualizationSetupError:
+            cad_plot = None
+        else:
+            cad_plot = json.dumps(cad_figure, cls=plotly.utils.PlotlyJSONEncoder)
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        try:
+            pw_figure = get_track_elevation_extension_plot(
+                track_segment_data,
+                "power",
+                color_elevation=colors[0],
+                color_extention=colors[1],
+                slider=True,
+            )
+        except VisualizationSetupError:
+            pw_plot = None
+        else:
+            pw_figure.show()
+            pw_plot = json.dumps(pw_figure, cls=plotly.utils.PlotlyJSONEncoder)
+
     else:
         track_data = None
         id_track = None  # type: ignore
         plot_elevation_and_velocity = None
         map_data = None
         slope_plot = None
+        hr_plot = None
+        cad_plot = None
+        pw_plot = None
     events_ = get_events_for_ride(id_ride)
     located_events = []
     if events_:
@@ -233,6 +285,9 @@ def display(id_ride: int):
         track_data=track_data,
         plot_elevation_and_velocity=plot_elevation_and_velocity,
         slope_plot=slope_plot,
+        heartrate_plot=hr_plot,
+        cadence_plot=cad_plot,
+        power_plot=pw_plot,
         map_data=map_data,
         located_events=located_events,
         form=form,

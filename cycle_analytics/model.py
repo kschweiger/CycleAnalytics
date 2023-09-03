@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Dict, Optional
 
-from gpx_track_analyzer.track import Track
+from track_analyzer.track import Track
 
 from cycle_analytics.enums import BikeType, FrameMaterial
 

@@ -14,15 +14,17 @@ from flask import (
     url_for,
 )
 from flask_wtf import FlaskForm
-from gpx_track_analyzer.enhancer import get_enhancer
-from gpx_track_analyzer.exceptions import (
-    APIHealthCheckFailedException,
-    APIResponseException,
-)
-from gpx_track_analyzer.track import PyTrack
 from plotly.utils import PlotlyJSONEncoder
 from pydantic import ValidationError
 from pyroutelib3 import Router
+from track_analyzer.enhancer import get_enhancer
+from track_analyzer.exceptions import (
+    APIHealthCheckFailedError,
+    APIResponseError,
+)
+from track_analyzer.model import Position2D
+from track_analyzer.track import PyTrack, Track
+from track_analyzer.utils import get_latitude_at_distance, get_longitude_at_distance
 from wtforms import HiddenField, SelectField, StringField, TextAreaField
 from wtforms.validators import DataRequired, Optional
 
@@ -224,7 +226,7 @@ def get_router():
 def calcualte_route():
     config = current_app.config
     router = get_router()
-    waypoints = request.json["waypoints"]
+    waypoints = request.json["waypoints"]  # type: ignore
     calc_route_for = [(waypoints[0], waypoints[1])]
     for waypoint in waypoints[2::]:
         i = len(calc_route_for) - 1
@@ -263,14 +265,14 @@ def calcualte_route():
             url=config.external.track_enhancer.url,
             **config.external.track_enhancer.kwargs.to_dict(),
         )
-    except APIHealthCheckFailedException:
+    except APIHealthCheckFailedError:
         logger.warning("Enhancer not available. Skipping elevation profile")
 
     generate_elevation_plot = False
     if enhancer is not None:
         try:
             enhancer.enhance_track(track.track, True)
-        except APIResponseException:
+        except APIResponseError:
             logger.error("Could not enhance track with elevation")
         else:
             generate_elevation_plot = True
