@@ -74,23 +74,49 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                    <div>
-                        <a class="btn btn-success" href="{{url_for('download_data')}}?datatype=track&id={{id_track}}">
-                            <span class="px-2">Download Track</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                                class="bi bi-download" viewBox="0 0 16 16">
-                                <path
-                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
-                                <path
-                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z" />
-                            </svg>
-                            <span class="pe-2"></span>
-                        </a>
+                    <div class="row" id="track_interaction_buttons">
+                        <div class="col-auto">
+                            <a class="btn btn-success" id="download_track_button"
+                                href="{{url_for('download_data')}}?datatype=track&id={{id_track}}">
+                                <span class="px-2">Download Track</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-download" viewBox="0 0 16 16">
+                                    <path
+                                        d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+                                    <path
+                                        d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z" />
+                                </svg>
+                                <span class="pe-2"></span>
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-warning" id="replace_track_button"
+                                onclick="show_replace_track_form()">
+                                <span class="px-2">Replace Track</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-arrow-repeat" viewBox="0 0 16 16">
+                                    <path
+                                        d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z" />
+                                    <path fill-rule="evenodd"
+                                        d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z" />
+                                </svg>
+                                <span class="pe-2"></span>
+                            </button>
+                        </div>
+
+                    </div>
+                    <div class="visually-hidden" id="track_replace_form">
+                        <div class="p-3 border rounded-3 border-warning bg-warning-subtle">
+                            <strong class="text-warning-emphasis">Replace current track</strong>
+                            {% set set_replace = true %}
+                            {% include "add_track_to_ride_form.html"%}
+
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        {% elif form is not none %}
+        {% elif show_track_add_from %}
         <div class="accordion-item">
             <h2 class="accordion-header" id="track_data_heading">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -100,18 +126,8 @@
             </h2>
             <div id="collapse_track_data" class="accordion-collapse collapse" aria-labelledby="track_data_heading">
                 <div class="accordion-body">
-                    <form method="POST" enctype="multipart/form-data">
-                        {{ form.csrf_token }}
-                        <div class="row mt-2">
-                            <div class="col">
-                                {{form.track.label(class_="form-label") }}
-                                {{form.track(class_="form-control")}}
-                            </div>
-                            <div class="col mt-auto text-end">
-                                <input type="submit" value="Submit" class="btn btn-success">
-                            </div>
-                        </div>
-                    </form>
+                    {% set set_replace = false %}
+                    {% include "add_track_to_ride_form.html"%}
                 </div>
             </div>
         </div>
@@ -286,6 +302,11 @@
         document.getElementById("ele_plus_hr_plot").setAttribute("class", "visually-hidden");
         document.getElementById("ele_plus_cadence_plot").setAttribute("class", "visually-hidden");
         document.getElementById("ele_plus_power_plot").setAttribute("class", "visually-hidden");
+    }
+
+    function show_replace_track_form() {
+        document.getElementById("track_interaction_buttons").setAttribute("class", "visually-hidden");
+        document.getElementById("track_replace_form").setAttribute("class", "");
     }
 </script>
 {% endblock %}

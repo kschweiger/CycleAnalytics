@@ -1,0 +1,17 @@
+<form method="POST" enctype="multipart/form-data">
+    {{form.csrf_token}}
+    {% if set_replace %}
+    {{form.replace(class_="form-control visually-hidden", value_="1")}}
+    {% else %}
+    {{form.replace(class_="form-control visually-hidden", value_="0")}}
+    {%endif%}
+    <div class="row mt-2">
+        <div class="col">
+            {{form.track.label(class_="form-label") }}
+            {{form.track(class_="form-control")}}
+        </div>
+        <div class="col mt-auto text-end">
+            <input type="submit" value="Submit" class="btn btn-success">
+        </div>
+    </div>
+</form>

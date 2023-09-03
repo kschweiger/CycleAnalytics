@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from typing import Any, Dict, Optional, Tuple
 
 import pandas as pd
+import psycopg2
 from data_organizer.db.exceptions import QueryReturnedNoData
 from pandas import Timedelta
 from pypika import Criterion, JoinType, Order, Table
@@ -195,19 +196,27 @@ def get_track(id_track: int) -> ByteTrack:
 
 
 def ride_has_track(id_ride: int, table_name: str) -> bool:
+    data = ride_track_id(id_ride, table_name)
+    if data is None:
+        return False
+    else:
+        return True
+
+
+def ride_track_id(id_ride: int, table_name: str) -> None | int:
     db = get_db()
     tracks = Table(table_name)
     query = (
         db.pypika_query.from_(tracks)
-        .select(tracks.gpx)
+        .select(tracks.id_track)
         .where(tracks.id_ride == id_ride)
     )
     try:
-        db.query(query)
+        data = db.query(query)
     except QueryReturnedNoData:
-        return False
+        return None
 
-    return True
+    return data[0][0]
 
 
 @cache.memoize(timeout=86400)
@@ -532,6 +541,39 @@ def modify_goal_status(id_goal: int, active: bool = True) -> bool:
         db.pypika_query.update(table)
         .set(table.active, active)
         .where(table.id_goal == id_goal)
+    )
+
+    return db.exec_arbitrary(query)
+
+
+def update_track(table_name: str, id_track: int, id_ride: int, track: bytes):
+    db = get_db()
+    table = Table(table_name)
+    query = (
+        db.pypika_query.update(table)
+        .set(table.gpx, psycopg2.Binary(track))
+        .where(table.id_track == id_track)
+        .where(table.id_ride == id_ride)
+    )
+    return db.exec_arbitrary(query)
+
+
+def update_track_overview(
+    table_name: str,
+    id_track: int,
+    id_segment: int,
+    cols: list[str],
+    data: list[int | float],
+):
+    assert len(cols) == len(data)
+
+    db = get_db()
+    table = Table(table_name)
+    query = db.pypika_query.update(table)
+    for icol, col in enumerate(cols):
+        query = query.set(table[col], data[icol])
+    query = query.where(table.id_track == id_track).where(
+        table.id_segment == id_segment
     )
 
     return db.exec_arbitrary(query)
