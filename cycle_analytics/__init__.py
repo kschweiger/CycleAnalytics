@@ -118,4 +118,8 @@ def create_app(test_config=None):
 
     app.register_blueprint(settings)
 
+    from cycle_analytics.track import bp as track
+
+    app.register_blueprint(track)
+
     return app

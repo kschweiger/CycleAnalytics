@@ -81,7 +81,7 @@ def enhance_track(
         )
     except APIHealthCheckFailedError:
         logger.warning("Enhancer not available. Skipping elevation profile")
-        flash("Track could not be enhanced - API not available")
+        flash("Track could not be enhanced - API not available", "alert-danger")
         return None, None
 
     try:
@@ -125,6 +125,7 @@ def enhance_track(
 
 
 def enhance_and_insert_track(data: bytes, id_ride: int, enhance_id: None | int) -> None:
+    logger.info("Enhancing: id_ride = %s, enhance_id = %s", id_ride, enhance_id)
     db = get_db()
     enhanced_table_name = current_app.config.tables_as_settings[
         current_app.config.defaults.track_table

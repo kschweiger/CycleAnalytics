@@ -180,10 +180,14 @@ def get_track_for_id(id_ride: int) -> ByteTrack:
     return ByteTrack(bytes(data), 0)
 
 
-@cache.memoize(timeout=86400)
 def get_track(id_track: int) -> ByteTrack:
+    return ByteTrack(get_track_data(id_track), 0)
+
+
+@cache.memoize(timeout=86400)
+def get_track_data(id_track: int, table_name: str = "tracks_enhanced_v1") -> bytes:
     db = get_db()
-    tracks = Table("tracks_enhanced_v1")
+    tracks = Table(table_name)
     query = (
         db.pypika_query.from_(tracks)
         .select(tracks.gpx)
@@ -192,7 +196,7 @@ def get_track(id_track: int) -> ByteTrack:
 
     data = db.query(query)[0][0]
 
-    return ByteTrack(bytes(data), 0)
+    return bytes(data)
 
 
 def ride_has_track(id_ride: int, table_name: str) -> bool:

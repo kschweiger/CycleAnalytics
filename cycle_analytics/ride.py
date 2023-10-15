@@ -34,7 +34,7 @@ from cycle_analytics.queries import (
     get_note,
     get_track_for_id,
     modify_note,
-    ride_has_track,
+    ride_track_id,
 )
 from cycle_analytics.utils.track import add_track_to_db
 
@@ -68,6 +68,8 @@ def display(id_ride: int):
             id_ride=id_ride,
         )
 
+    show_track_enhance_from = False
+
     ride_date = data["date"]
     ride_from = data["start_time"]
     ride_to = (
@@ -85,12 +87,13 @@ def display(id_ride: int):
     if data["note"] is not None:
         ride_data.append(("Note", data["note"]))
         has_note = True
-    if ride_has_track(
+    id_raw_track = ride_track_id(
         id_ride,
         current_app.config.tables_as_settings[
             current_app.config.defaults.raw_track_table
         ].name,
-    ):
+    )
+    if id_raw_track is not None:
         logger.debug("Disabling form because ride has raw track")
         show_track_add_from = False
 
@@ -192,6 +195,9 @@ def display(id_ride: int):
         hr_plot = None
         cad_plot = None
         pw_plot = None
+        if id_raw_track is not None:
+            logger.debug("Found raw track data but no enhanced track data")
+            show_track_enhance_from = True
     events_ = get_events_for_ride(id_ride)
     located_events = []
     if events_:
@@ -241,6 +247,8 @@ def display(id_ride: int):
         located_events=located_events,
         form=form,
         show_track_add_from=show_track_add_from,
+        show_track_enhance_from=show_track_enhance_from,
+        id_raw_track=id_raw_track,
         has_note=has_note,
     )
 
