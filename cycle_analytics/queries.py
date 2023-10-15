@@ -92,7 +92,7 @@ def get_last_ride(ride_type: None | str) -> None | LastRide:
         "Distance [km]": data["distance"],
         "Duration": get_nice_timedelta_isoformat(data["total_time"].isoformat()),
     }
-    if data["id_segment"] is not None:
+    if data["avg_velocity_kmh"] is not None:
         last_ride_data.update(
             {
                 "Avg. Velocity [km/h]": round(data["avg_velocity_kmh"], 2),
