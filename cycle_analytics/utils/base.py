@@ -4,7 +4,7 @@ from typing import Literal
 import pandas as pd
 
 
-def get_nice_timedelta_isoformat(time: str):
+def get_nice_timedelta_isoformat(time: str) -> str:
     time_ = time.split("T")
     days = time_[0].replace("P", "").replace("D", "")
     if "Y" in days or "M" in days:
@@ -22,7 +22,7 @@ def get_nice_timedelta_isoformat(time: str):
     return "{0:02d}:{1:02d}:{2:02d}".format(hours, mins, secs)
 
 
-def compare_values(diff, simularity_threshold) -> Literal[-1, 0, 1]:
+def compare_values(diff: float, simularity_threshold: float) -> Literal[-1, 0, 1]:
     if abs(diff) <= simularity_threshold:
         return 0
     if diff < simularity_threshold:
@@ -31,7 +31,7 @@ def compare_values(diff, simularity_threshold) -> Literal[-1, 0, 1]:
         return 1
 
 
-def get_month_mapping():
+def get_month_mapping() -> dict[int, str]:
     return {
         1: "January",
         2: "February",

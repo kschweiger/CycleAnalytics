@@ -17,7 +17,7 @@ numeric = int | float
 logger = logging.getLogger(__name__)
 
 
-def add_track_to_db(data: bytes, replace: bool, id_ride: int):
+def add_track_to_db(data: bytes, replace: bool, id_ride: int) -> None:
     raw_table_name = current_app.config.tables_as_settings[
         current_app.config.defaults.raw_track_table
     ].name
@@ -48,7 +48,7 @@ def add_track_to_db(data: bytes, replace: bool, id_ride: int):
         insert_succ_track = update_track(
             raw_table_name, insert_raw_id, id_ride, data  # type: ignore
         )
-        err = ("Could not update track",)
+        err = "Could not update track"
     else:
         insert_succ_track, err = db.insert(
             current_app.config.tables_as_settings[
@@ -61,6 +61,7 @@ def add_track_to_db(data: bytes, replace: bool, id_ride: int):
         flash("Track updated" if replace else "Track added", "alert-success")
         enhance_and_insert_track(data=data, id_ride=id_ride, enhance_id=enhanced_id)
     else:
+        err = "No error msg available" if err is None else err
         flash(
             f"Track could not be {'updated' if replace else 'added'}: {err[0:250]}",
             "alert-danger",
@@ -78,7 +79,7 @@ def enhance_track(
         enhancer = get_enhancer(current_app.config.external.track_enhancer.name)(
             url=current_app.config.external.track_enhancer.url,
             **current_app.config.external.track_enhancer.kwargs.to_dict(),
-        )
+        )  # type: ignore
     except APIHealthCheckFailedError:
         logger.warning("Enhancer not available. Skipping elevation profile")
         flash("Track could not be enhanced - API not available", "alert-danger")
@@ -166,6 +167,7 @@ def enhance_and_insert_track(data: bytes, id_ride: int, enhance_id: None | int) 
         current_app.config.defaults.track_table, "id_track", True
     )
     track_overview_data = [[id_track] + seg_data for seg_data in track_overview_data]
+    err: str | None
     if enhance_id is not None:
         overview_table = current_app.config.tables_as_settings[
             current_app.config.defaults.track_overview_table
@@ -184,7 +186,7 @@ def enhance_and_insert_track(data: bytes, id_ride: int, enhance_id: None | int) 
                 cols=cols,
                 data=this_segment_overview[2:],
             )
-            err = f"Segment {this_segment_overview[1]} could not " "be updated "
+            err = f"Segment {this_segment_overview[1]} could not be updated "
             if not overview_insert_succ_track:
                 break
     else:
@@ -200,6 +202,7 @@ def enhance_and_insert_track(data: bytes, id_ride: int, enhance_id: None | int) 
             "alert-success",
         )
     else:
+        err = "No error msg available" if err is None else err
         flash(
             "Overview could not be generated: " f"{err[0:250]}",  # type: ignore
             "alert-danger",

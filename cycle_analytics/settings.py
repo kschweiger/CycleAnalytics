@@ -10,7 +10,7 @@ bp = Blueprint("settings", __name__, url_prefix="/settings")
 
 
 @bp.route("/", methods=("GET", "POST"))
-def main():
+def main() -> str:
     if request.method == "POST":
         if request.form.get("reset_cache") is not None:
             logger.warning("Resetting cache")

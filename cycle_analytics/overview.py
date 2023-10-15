@@ -118,7 +118,7 @@ class JournalForm(FlaskForm):
 
 
 @bp.route("/", methods=("GET", "POST"))
-def main():
+def main() -> str:
     config = current_app.config
 
     overview_form = YearAndRideTypeForm()
@@ -224,7 +224,7 @@ def main():
 
 
 @bp.route("/heatmap", methods=("GET", "POST"))
-def heatmap():
+def heatmap() -> str:
     heatmap_plot = None
     year_selected = request.args.get("year_selected")
 

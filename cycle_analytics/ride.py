@@ -16,6 +16,7 @@ from flask import (
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
 from track_analyzer.exceptions import VisualizationSetupError
+from werkzeug import Response
 from wtforms import (
     StringField,
 )
@@ -49,7 +50,7 @@ class AddTrackForm(FlaskForm):
 
 
 @bp.route("/<int:id_ride>/", methods=("GET", "POST"))
-def display(id_ride: int):
+def display(id_ride: int) -> str | Response:
     config = current_app.config
 
     form = AddTrackForm()
@@ -254,7 +255,7 @@ def display(id_ride: int):
 
 
 @bp.route("add_note/<int:id_ride>/", methods=("GET", "POST"))
-def add_note(id_ride: int):
+def add_note(id_ride: int) -> str | Response:
     current_note_value = get_note(id_ride)
 
     if request.method == "POST":

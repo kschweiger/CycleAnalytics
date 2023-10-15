@@ -6,6 +6,7 @@ from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import Blueprint, current_app, flash, redirect, render_template, request
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
+from werkzeug import Response
 from wtforms import (
     DateField,
     DecimalField,
@@ -177,7 +178,7 @@ def allowed_file(filename: str) -> bool:
     )
 
 
-def flash_form_error(form: FlaskForm):
+def flash_form_error(form: FlaskForm) -> None:
     flash(
         "\n".join(
             ["<ul>"]
@@ -192,7 +193,7 @@ def flash_form_error(form: FlaskForm):
 
 
 @bp.route("/ride", methods=("GET", "POST"))
-def add_ride():
+def add_ride() -> str | Response:
     form = RideForm()
     config = current_app.config
 
@@ -250,7 +251,7 @@ def add_ride():
 
 
 @bp.route("/event", methods=("GET", "POST"))
-def add_event():
+def add_event() -> str | Response:
     config = current_app.config
     arg_date = request.args.get("date")
     arg_ride_id = request.args.get("id_ride")
@@ -330,7 +331,7 @@ def add_event():
 
 
 @bp.route("/goal", methods=("GET", "POST"))
-def add_goal():
+def add_goal() -> str | Response:
     form = GoalForm()
     config = current_app.config
 
@@ -375,7 +376,7 @@ def add_goal():
 
 
 @bp.route("/bike", methods=("GET", "POST"))
-def add_bike():
+def add_bike() -> str | Response:
     form = BikeForm()
 
     if form.validate_on_submit():

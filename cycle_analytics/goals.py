@@ -38,7 +38,7 @@ bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 
 @bp.route("/", methods=("GET", "POST"))
-def overview():
+def overview() -> str:
     from cycle_analytics.queries import (
         get_rides_in_timeframe,
         load_goals,

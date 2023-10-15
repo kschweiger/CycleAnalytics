@@ -27,7 +27,7 @@ bp = Blueprint("events", __name__, url_prefix="/events")
 
 
 @bp.route("/", methods=("GET", "POST"))
-def overview():
+def overview() -> str:
     config = current_app.config
 
     table_headings = [

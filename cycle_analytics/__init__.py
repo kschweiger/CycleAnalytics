@@ -5,6 +5,7 @@ from dynaconf import FlaskDynaconf
 from flask import Flask, request, send_file
 from flask.logging import default_handler
 from flask_wtf.csrf import CSRFProtect
+from werkzeug import Response
 
 from cycle_analytics.landing_page import render_landing_page
 from cycle_analytics.serve import get_segment_download, get_track_download
@@ -12,7 +13,7 @@ from cycle_analytics.serve import get_segment_download, get_track_download
 logger = logging.getLogger(__name__)
 
 
-def create_app(test_config=None):
+def create_app(test_config: None | dict = None) -> Flask:
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
@@ -61,11 +62,11 @@ def create_app(test_config=None):
     CSRFProtect(app)
 
     @app.route("/", methods=["GET", "POST"])
-    def landing_page():
+    def landing_page() -> str:
         return render_landing_page()
 
     @app.route("/download", methods=["GET"])
-    def download_data():
+    def download_data() -> Response:
         data_type = request.args.get("datatype")
         if data_type in ["track", "segment"]:
             identifier = request.args.get("id")

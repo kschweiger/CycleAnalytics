@@ -22,6 +22,7 @@ pyroutelib3 = "^1.7.2"
 pydantic = "^1.10.13"
 redis = "^4.6.0"
 wtforms = "^3.1.0"
+plotly = "^5.17.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.12.0"
@@ -69,7 +70,7 @@ exclude = ["tests/*"]
 [tool.ruff]
 select = ["E", "F", "I", "PD", "PT", "NPY", "N", "W", "RET", "ANN", "RUF"]
 unfixable = ["F841", "RUF005"]
-ignore = ["ANN101", "RUF009", "E731", "RET505"]
+ignore = ["ANN101", "RUF009", "E731", "RET505", "RUF005"]
 ignore-init-module-imports = true
 target-version = "py310"
 

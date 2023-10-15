@@ -20,7 +20,7 @@ from cycle_analytics.utils import get_month_mapping
 logger = logging.getLogger(__name__)
 
 
-def render_landing_page():
+def render_landing_page() -> str:
     logger.debug("Rendering landing page")
     config = current_app.config
     date_today = date.today()

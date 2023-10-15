@@ -22,7 +22,7 @@ def get_track_download(track_id: int) -> Tuple[BinaryIO, str]:
     return binary_data, file_name
 
 
-def get_segment_download(segment_id: int):
+def get_segment_download(segment_id: int) -> tuple[BytesIO, str]:
     """Create the data for downloading the gpx file of a segment
 
     :param track_id: id of the segment to download

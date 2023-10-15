@@ -40,7 +40,7 @@ def get_bike_names() -> list[str]:
     return [b[0] for b in bikes]
 
 
-def get_full_bike_date(bike_name) -> Bike:
+def get_full_bike_date(bike_name: str) -> Bike:
     db = get_db()
     bikes = Table("bikes")
     query = db.pypika_query.from_(bikes).select("*").where(bikes.bike_name == bike_name)
@@ -314,7 +314,7 @@ def get_years_in_database() -> list[int]:
 
 def get_summary_data(
     timeframe: int | str, current_year: int, curr_month: int, ride_type: str = "Any"
-):
+) -> tuple[list, list]:
     try:
         rides = get_rides_in_timeframe(timeframe, ride_type=ride_type)
     except QueryReturnedNoData:
@@ -550,7 +550,7 @@ def modify_goal_status(id_goal: int, active: bool = True) -> bool:
     return db.exec_arbitrary(query)
 
 
-def update_track(table_name: str, id_track: int, id_ride: int, track: bytes):
+def update_track(table_name: str, id_track: int, id_ride: int, track: bytes) -> bool:
     db = get_db()
     table = Table(table_name)
     query = (
@@ -568,7 +568,7 @@ def update_track_overview(
     id_segment: int,
     cols: list[str],
     data: list[int | float],
-):
+) -> bool:
     assert len(cols) == len(data)
 
     db = get_db()

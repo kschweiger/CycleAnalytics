@@ -168,7 +168,7 @@ def get_track_elevation_extension_plot(
     color_elevation: Optional[str] = None,
     color_extention: Optional[str] = None,
     slider: bool = False,
-):
+) -> go.Figure:
     elevation_plot = plot_track_2d(
         segment_data,
         height=None,
