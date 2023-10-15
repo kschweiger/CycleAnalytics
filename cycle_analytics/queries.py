@@ -238,11 +238,13 @@ def get_rides_in_timeframe(
     track_data = Table("tracks_v1_overview")
     query = (
         db.pypika_query.from_(main)
+        .distinct_on(main.id_ride)
         .join(tracks, how=JoinType.left)
         .on_field("id_ride")
         .join(track_data, how=JoinType.left)
         .on(tracks.id_track == track_data.id_track)
         .select(main.star, track_data.star)
+        .orderby(main.id_ride, tracks.id_track, order=Order.desc)
     )
 
     if timeframe == "All" or timeframe == "Any":
