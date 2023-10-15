@@ -1634,7 +1634,7 @@ files = [
 
 [[package]]
 name = "track-analyzer"
-version = "0.4.0"
+version = "0.4.1"
 description = "Analyze geospacial data tracks"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -1654,8 +1654,8 @@ requests = "^2.31.0"
 [package.source]
 type = "git"
 url = "https://github.com/kschweiger/track_analyzer.git"
-reference = "0.4.0"
-resolved_reference = "9be4a16d43f3b12f7e97df4765c92a6cd99b8c73"
+reference = "0.4.1"
+resolved_reference = "132b526692fbefc5a354f7f9a1d589321baf7200"
 
 [[package]]
 name = "typing-extensions"
@@ -1753,4 +1753,4 @@ email = ["email-validator"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
-content-hash = "7773f2f9eaa83ddba5edc1de3cbb04c1a947615f3befab51d864de2406f72469"
+content-hash = "beb2a11a487fc8a225018bda8682c37e7e04be3e97bdc76c20d9a65ea7048508"

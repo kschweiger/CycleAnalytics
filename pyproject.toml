@@ -11,7 +11,7 @@ packages = [{ include = "cycle_analytics" }]
 python = ">=3.10,<3.13"
 Flask = "^2.3.3"
 data-organizer = { git = "https://github.com/kschweiger/data_organizer.git", rev = "1.4.0" }
-track-analyzer = {git = "https://github.com/kschweiger/track_analyzer.git", rev = "0.4.0"}
+track-analyzer = {git = "https://github.com/kschweiger/track_analyzer.git", rev = "0.4.1"}
 Flask-Caching = "^2.1.0"
 gunicorn = "^20.1.0"
 dynaconf = "^3.2.3"

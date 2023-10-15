@@ -37,6 +37,7 @@ from cycle_analytics.queries import (
     modify_note,
     ride_track_id,
 )
+from cycle_analytics.utils.forms import get_track_data_from_form
 from cycle_analytics.utils.track import add_track_to_db
 
 bp = Blueprint("ride", __name__, url_prefix="/ride")
@@ -64,7 +65,7 @@ def display(id_ride: int) -> str | Response:
     show_track_add_from = True
     if form.validate_on_submit():
         add_track_to_db(
-            data=form.track.data.stream.read(),
+            data=get_track_data_from_form(form, "track"),
             replace=form.replace.data == "1",
             id_ride=id_ride,
         )

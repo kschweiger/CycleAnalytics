@@ -29,6 +29,7 @@ from cycle_analytics.queries import (
     get_track_for_id,
 )
 from cycle_analytics.utils import get_month_mapping
+from cycle_analytics.utils.forms import get_track_data_from_form
 from cycle_analytics.utils.track import add_track_to_db
 
 logger = logging.getLogger(__name__)
@@ -239,7 +240,9 @@ def add_ride() -> str | Response:
                 None,
             )
             add_track_to_db(
-                data=form.track.data.stream.read(), replace=False, id_ride=last_id
+                data=get_track_data_from_form(form, "track"),
+                replace=False,
+                id_ride=last_id,
             )
 
         return redirect("/overview")
