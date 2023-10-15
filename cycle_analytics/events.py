@@ -5,7 +5,7 @@ from flask_wtf import FlaskForm
 from wtforms import SelectField
 from wtforms.validators import DataRequired
 
-from cycle_analytics.model import MapMarker
+from cycle_analytics.model.base import MapMarker
 from cycle_analytics.queries import get_event_years, get_events
 from cycle_analytics.utils import get_month_mapping
 
@@ -27,7 +27,7 @@ bp = Blueprint("events", __name__, url_prefix="/events")
 
 
 @bp.route("/", methods=("GET", "POST"))
-def overview():
+def overview() -> str:
     config = current_app.config
 
     table_headings = [

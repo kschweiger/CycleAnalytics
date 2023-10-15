@@ -5,7 +5,7 @@ from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import current_app, render_template, request
 
 from cycle_analytics.forms import YearAndRideTypeForm
-from cycle_analytics.goals import YearlyGoal, format_goals_concise
+from cycle_analytics.model.goal import YearlyGoal, format_goals_concise
 from cycle_analytics.queries import (
     get_goal_years,
     get_last_ride,
@@ -20,7 +20,7 @@ from cycle_analytics.utils import get_month_mapping
 logger = logging.getLogger(__name__)
 
 
-def render_landing_page():
+def render_landing_page() -> str:
     logger.debug("Rendering landing page")
     config = current_app.config
     date_today = date.today()

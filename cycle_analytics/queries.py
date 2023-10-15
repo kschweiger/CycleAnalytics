@@ -12,14 +12,14 @@ from track_analyzer.track import ByteTrack
 
 from cycle_analytics.cache import cache
 from cycle_analytics.db import get_db
-from cycle_analytics.goals import Goal, initialize_goals
-from cycle_analytics.model import (
+from cycle_analytics.model.base import (
     Bike,
     LastRide,
     LatLngBounds,
     SegmentData,
     bike_from_dict,
 )
+from cycle_analytics.model.goal import Goal, initialize_goals
 from cycle_analytics.plotting import convert_fig_to_base64, get_track_thumbnails
 from cycle_analytics.rest_models import SegmentForMap
 from cycle_analytics.utils import (
@@ -40,7 +40,7 @@ def get_bike_names() -> list[str]:
     return [b[0] for b in bikes]
 
 
-def get_full_bike_date(bike_name) -> Bike:
+def get_full_bike_date(bike_name: str) -> Bike:
     db = get_db()
     bikes = Table("bikes")
     query = db.pypika_query.from_(bikes).select("*").where(bikes.bike_name == bike_name)
@@ -160,9 +160,7 @@ def get_full_ride_data(id_ride: int) -> pd.DataFrame:
         .select(main.star, track_data.star, notes.note)
         .where(main.id_ride == id_ride)
     )
-    data = db.query_to_df(query).iloc[0]
-
-    return data
+    return db.query_to_df(query).iloc[0]
 
 
 @cache.memoize(timeout=86400)
@@ -180,10 +178,14 @@ def get_track_for_id(id_ride: int) -> ByteTrack:
     return ByteTrack(bytes(data), 0)
 
 
-@cache.memoize(timeout=86400)
 def get_track(id_track: int) -> ByteTrack:
+    return ByteTrack(get_track_data(id_track), 0)
+
+
+@cache.memoize(timeout=86400)
+def get_track_data(id_track: int, table_name: str = "tracks_enhanced_v1") -> bytes:
     db = get_db()
-    tracks = Table("tracks_enhanced_v1")
+    tracks = Table(table_name)
     query = (
         db.pypika_query.from_(tracks)
         .select(tracks.gpx)
@@ -192,7 +194,7 @@ def get_track(id_track: int) -> ByteTrack:
 
     data = db.query(query)[0][0]
 
-    return ByteTrack(bytes(data), 0)
+    return bytes(data)
 
 
 def ride_has_track(id_ride: int, table_name: str) -> bool:
@@ -238,11 +240,13 @@ def get_rides_in_timeframe(
     track_data = Table("tracks_v1_overview")
     query = (
         db.pypika_query.from_(main)
+        .distinct_on(main.id_ride)
         .join(tracks, how=JoinType.left)
         .on_field("id_ride")
         .join(track_data, how=JoinType.left)
         .on(tracks.id_track == track_data.id_track)
         .select(main.star, track_data.star)
+        .orderby(main.id_ride, tracks.id_track, order=Order.desc)
     )
 
     if timeframe == "All" or timeframe == "Any":
@@ -310,7 +314,7 @@ def get_years_in_database() -> list[int]:
 
 def get_summary_data(
     timeframe: int | str, current_year: int, curr_month: int, ride_type: str = "Any"
-):
+) -> tuple[list, list]:
     try:
         rides = get_rides_in_timeframe(timeframe, ride_type=ride_type)
     except QueryReturnedNoData:
@@ -546,7 +550,7 @@ def modify_goal_status(id_goal: int, active: bool = True) -> bool:
     return db.exec_arbitrary(query)
 
 
-def update_track(table_name: str, id_track: int, id_ride: int, track: bytes):
+def update_track(table_name: str, id_track: int, id_ride: int, track: bytes) -> bool:
     db = get_db()
     table = Table(table_name)
     query = (
@@ -558,13 +562,24 @@ def update_track(table_name: str, id_track: int, id_ride: int, track: bytes):
     return db.exec_arbitrary(query)
 
 
+def track_has_overview(id_track: int, table_name: str = "tracks_v1_overview") -> bool:
+    db = get_db()
+    table = Table(table_name)
+    query = db.pypika_query.from_(table).select("*").where(table.id_track == id_track)
+    try:
+        db.query(query)
+    except QueryReturnedNoData:
+        return False
+
+    return True
+
+
 def update_track_overview(
     table_name: str,
     id_track: int,
-    id_segment: int,
     cols: list[str],
     data: list[int | float],
-):
+) -> bool:
     assert len(cols) == len(data)
 
     db = get_db()
@@ -572,10 +587,7 @@ def update_track_overview(
     query = db.pypika_query.update(table)
     for icol, col in enumerate(cols):
         query = query.set(table[col], data[icol])
-    query = query.where(table.id_track == id_track).where(
-        table.id_segment == id_segment
-    )
-
+    query = query.where(table.id_track == id_track)
     return db.exec_arbitrary(query)
 
 

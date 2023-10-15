@@ -22,14 +22,13 @@ from track_analyzer.exceptions import (
     APIHealthCheckFailedError,
     APIResponseError,
 )
-from track_analyzer.model import Position2D
-from track_analyzer.track import PyTrack, Track
-from track_analyzer.utils import get_latitude_at_distance, get_longitude_at_distance
+from track_analyzer.track import PyTrack
+from werkzeug import Response
 from wtforms import HiddenField, SelectField, StringField, TextAreaField
 from wtforms.validators import DataRequired, Optional
 
 from cycle_analytics.db import get_db
-from cycle_analytics.model import MapData, MapPathData
+from cycle_analytics.model.base import MapData, MapPathData
 from cycle_analytics.plotting import (
     convert_fig_to_base64,
     get_track_elevation_plot,
@@ -76,12 +75,12 @@ class AddMapSegmentForm(FlaskForm):
 
 
 @bp.route("/", methods=("GET", "POST"))
-def main():
+def main() -> str | Response:
     return render_template("segments/overview.html", active_page="segments")
 
 
 @bp.route("/show/<int:id_segment>", methods=("GET", "POST"))
-def show_segment(id_segment: int):
+def show_segment(id_segment: int) -> str | Response:
     config = current_app.config
 
     if request.form.get("change_visited_flag") is not None:
@@ -134,7 +133,7 @@ def show_segment(id_segment: int):
 
 
 @bp.route("/add", methods=("GET", "POST"))
-def add_segment():
+def add_segment() -> str | Response:
     config = current_app.config
 
     map_segment_form = AddMapSegmentForm()
@@ -215,7 +214,7 @@ def add_segment():
     )
 
 
-def get_router():
+def get_router() -> Router:
     if "osm_router" not in g:
         logger.debug("Initializing router")
         g.osm_router = Router("cycle")
@@ -223,7 +222,7 @@ def get_router():
 
 
 @bp.route("/calc-route", methods=["POST"])
-def calcualte_route():
+def calcualte_route() -> dict | tuple[dict, int]:
     config = current_app.config
     router = get_router()
     waypoints = request.json["waypoints"]  # type: ignore
@@ -241,8 +240,8 @@ def calcualte_route():
             logger.debug("Found route for waypoints:")
             logger.debug("  Start: %s / %s", start_lat, start_lng)
             logger.debug("    End: %s / %s", end_lat, end_lng)
-            routeLatLons = list(map(router.nodeLatLon, route))
-            route_segments.append(routeLatLons)
+            route_lat_lons = list(map(router.nodeLatLon, route))
+            route_segments.append(route_lat_lons)
         else:
             return {
                 "error": (
@@ -355,7 +354,7 @@ def merge_route_segments(
 
 
 @bp.route("/segments-in-bounds", methods=["POST"])
-def get_segments_in_bounds():
+def get_segments_in_bounds() -> tuple[dict, int] | str:
     try:
         received_request = SegmentsInBoundsRequest(**request.json)
     except ValidationError:

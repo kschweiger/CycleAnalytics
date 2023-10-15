@@ -6,12 +6,7 @@ from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import Blueprint, current_app, flash, redirect, render_template, request
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
-from track_analyzer.enhancer import get_enhancer
-from track_analyzer.exceptions import (
-    APIHealthCheckFailedError,
-    APIResponseError,
-)
-from track_analyzer.track import ByteTrack, Track
+from werkzeug import Response
 from wtforms import (
     DateField,
     DecimalField,
@@ -26,19 +21,19 @@ from wtforms import (
 from wtforms.validators import DataRequired, NumberRange, Optional
 
 from cycle_analytics.db import get_db
-from cycle_analytics.goals import GoalType
-from cycle_analytics.model import MapData, MapPathData
+from cycle_analytics.model.base import MapData, MapPathData
+from cycle_analytics.model.goal import GoalType
 from cycle_analytics.queries import (
     get_bike_names,
     get_last_id,
-    get_last_track_id,
     get_track_for_id,
 )
 from cycle_analytics.utils import get_month_mapping
+from cycle_analytics.utils.forms import get_track_data_from_form
+from cycle_analytics.utils.track import add_track_to_db
 
 logger = logging.getLogger(__name__)
 
-numeric = int | float
 
 bp = Blueprint("adders", __name__, url_prefix="/add")
 
@@ -184,7 +179,7 @@ def allowed_file(filename: str) -> bool:
     )
 
 
-def flash_form_error(form: FlaskForm):
+def flash_form_error(form: FlaskForm) -> None:
     flash(
         "\n".join(
             ["<ul>"]
@@ -198,65 +193,8 @@ def flash_form_error(form: FlaskForm):
     )
 
 
-def enhance_track(
-    track: Track,
-) -> tuple[None, None] | tuple[bytes, list[list[numeric]]]:
-    track_data = None
-    track_overview_data = None
-
-    enhancer = None
-    try:
-        enhancer = get_enhancer(current_app.config.external.track_enhancer.name)(
-            url=current_app.config.external.track_enhancer.url,
-            **current_app.config.external.track_enhancer.kwargs.to_dict(),
-        )
-    except APIHealthCheckFailedError:
-        logger.warning("Enhancer not available. Skipping elevation profile")
-        flash("Track could not be enhanced - API not available")
-        return None, None
-
-    try:
-        enhancer.enhance_track(track.track, True)
-    except APIResponseError:
-        logger.error("Could not enhance track with elevation")
-        return None, None
-
-    track_data = track.get_xml().encode()
-
-    track_overview_data = []
-
-    for i_segment in range(track.n_segments):
-        this_track_overview = track.get_segment_overview(i_segment)
-        bounds = track.track.get_bounds()
-        track_overview_data.append(
-            [
-                i_segment,
-                this_track_overview.moving_time_seconds,
-                this_track_overview.total_time_seconds,
-                this_track_overview.moving_distance,
-                this_track_overview.total_distance,
-                this_track_overview.max_velocity,
-                this_track_overview.avg_velocity,
-                this_track_overview.max_elevation,
-                this_track_overview.min_elevation,
-                this_track_overview.uphill_elevation,
-                this_track_overview.downhill_elevation,
-                this_track_overview.moving_distance_km,
-                this_track_overview.total_distance_km,
-                this_track_overview.max_velocity_kmh,
-                this_track_overview.avg_velocity_kmh,
-                bounds.min_latitude,
-                bounds.max_latitude,
-                bounds.min_longitude,
-                bounds.max_longitude,
-            ]
-        )
-
-    return track_data, track_overview_data
-
-
 @bp.route("/ride", methods=("GET", "POST"))
-def add_ride():
+def add_ride() -> str | Response:
     form = RideForm()
     config = current_app.config
 
@@ -293,8 +231,6 @@ def add_ride():
         else:
             flash(f"Ride could not be added: {err}", "alert-danger")
         if form.track.data is not None and insert_succ:
-            gpx_value = form.track.data.stream.read()
-
             last_id = get_last_id(
                 current_app.config.tables_as_settings[
                     current_app.config.defaults.main_data_table
@@ -303,107 +239,11 @@ def add_ride():
                 True,
                 None,
             )
-
-            insert_succ_track, err = db.insert(
-                current_app.config.tables_as_settings[
-                    current_app.config.defaults.raw_track_table
-                ],
-                [[last_id, gpx_value]],
+            add_track_to_db(
+                data=get_track_data_from_form(form, "track"),
+                replace=False,
+                id_ride=last_id,
             )
-
-            if insert_succ_track:
-                flash(f"Track added for ride {last_id}", "alert-success")
-
-                enhancer = None
-                try:
-                    enhancer = get_enhancer(config.external.track_enhancer.name)(
-                        url=config.external.track_enhancer.url,
-                        **config.external.track_enhancer.kwargs.to_dict(),
-                    )
-                except APIHealthCheckFailedError:
-                    logger.warning("Enhancer not available. Skipping elevation profile")
-                    flash("Track could not be enhanced - API not available")
-                if enhancer is not None:
-                    track = ByteTrack(gpx_value)
-                    try:
-                        enhancer.enhance_track(track.track, True)
-                    except APIResponseError:
-                        logger.error("Could not enhance track with elevation")
-
-                    enhance_insert_succ_track, err = db.insert(
-                        current_app.config.tables_as_settings[
-                            current_app.config.defaults.track_table
-                        ],
-                        [[last_id, track.get_xml().encode()]],
-                    )
-
-                    if enhance_insert_succ_track:
-                        flash(
-                            f"Enhanced Track added for ride {last_id}", "alert-success"
-                        )
-                        new_data_to_insert = []
-                        id_track = get_last_track_id(
-                            current_app.config.defaults.track_table, "id_track", True
-                        )
-                        for i_segment in range(track.n_segments):
-                            this_track_overview = track.get_segment_overview(i_segment)
-                            bounds = track.track.get_bounds()
-                            new_data_to_insert.append(
-                                [
-                                    id_track,
-                                    i_segment,
-                                    this_track_overview.moving_time_seconds,
-                                    this_track_overview.total_time_seconds,
-                                    this_track_overview.moving_distance,
-                                    this_track_overview.total_distance,
-                                    this_track_overview.max_velocity,
-                                    this_track_overview.avg_velocity,
-                                    this_track_overview.max_elevation,
-                                    this_track_overview.min_elevation,
-                                    this_track_overview.uphill_elevation,
-                                    this_track_overview.downhill_elevation,
-                                    this_track_overview.moving_distance_km,
-                                    this_track_overview.total_distance_km,
-                                    this_track_overview.max_velocity_kmh,
-                                    this_track_overview.avg_velocity_kmh,
-                                    bounds.min_latitude,
-                                    bounds.max_latitude,
-                                    bounds.min_longitude,
-                                    bounds.max_longitude,
-                                ]
-                            )
-                        if new_data_to_insert:
-                            overview_insert_succ_track, err = db.insert(
-                                current_app.config.tables_as_settings[
-                                    current_app.config.defaults.track_overview_table
-                                ],
-                                new_data_to_insert,
-                            )
-                            if overview_insert_succ_track:
-                                flash(
-                                    f"Overview inserted for track {id_track}",
-                                    "alert-success",
-                                )
-                            else:
-                                flash(
-                                    "Overview could not be generated: "
-                                    f"{err[0:250]}",  # type: ignore
-                                    "alert-danger",
-                                )
-                        else:
-                            logger.info("No data to insert", "alter-warning")
-                    else:
-                        flash(
-                            "Enhanced Track could not be inserted: "
-                            f"{err[0:250]}",  # type: ignore
-                            "alert-danger",
-                        )
-
-            else:
-                flash(
-                    f"Track could not be added: {err[0:250]}",  # type: ignore
-                    "alert-danger",
-                )
 
         return redirect("/overview")
 
@@ -414,7 +254,7 @@ def add_ride():
 
 
 @bp.route("/event", methods=("GET", "POST"))
-def add_event():
+def add_event() -> str | Response:
     config = current_app.config
     arg_date = request.args.get("date")
     arg_ride_id = request.args.get("id_ride")
@@ -494,7 +334,7 @@ def add_event():
 
 
 @bp.route("/goal", methods=("GET", "POST"))
-def add_goal():
+def add_goal() -> str | Response:
     form = GoalForm()
     config = current_app.config
 
@@ -539,7 +379,7 @@ def add_goal():
 
 
 @bp.route("/bike", methods=("GET", "POST"))
-def add_bike():
+def add_bike() -> str | Response:
     form = BikeForm()
 
     if form.validate_on_submit():

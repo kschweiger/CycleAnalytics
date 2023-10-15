@@ -92,7 +92,7 @@ class GoalDisplayData:
     progress_bar: bool
 
 
-def bike_from_dict(dict: Dict):
+def bike_from_dict(dict: Dict) -> Bike:
     if isinstance(dict["purchase_date"], str):
         p_date = date.fromisoformat(dict["purchase_date"])
     else:

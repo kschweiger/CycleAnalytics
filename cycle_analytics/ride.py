@@ -16,16 +16,14 @@ from flask import (
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
 from track_analyzer.exceptions import VisualizationSetupError
-from track_analyzer.track import ByteTrack
+from werkzeug import Response
 from wtforms import (
     StringField,
 )
 from wtforms.validators import DataRequired
 
-from cycle_analytics.adders import enhance_track
-from cycle_analytics.cache import cache
 from cycle_analytics.db import get_db
-from cycle_analytics.model import MapData, MapMarker, MapPathData
+from cycle_analytics.model.base import MapData, MapMarker, MapPathData
 from cycle_analytics.plotting import (
     get_track_elevation_extension_plot,
     get_track_elevation_plot,
@@ -34,15 +32,13 @@ from cycle_analytics.plotting import (
 from cycle_analytics.queries import (
     get_events_for_ride,
     get_full_ride_data,
-    get_last_track_id,
     get_note,
     get_track_for_id,
     modify_note,
-    ride_has_track,
     ride_track_id,
-    update_track,
-    update_track_overview,
 )
+from cycle_analytics.utils.forms import get_track_data_from_form
+from cycle_analytics.utils.track import add_track_to_db
 
 bp = Blueprint("ride", __name__, url_prefix="/ride")
 
@@ -55,7 +51,7 @@ class AddTrackForm(FlaskForm):
 
 
 @bp.route("/<int:id_ride>/", methods=("GET", "POST"))
-def display(id_ride: int):
+def display(id_ride: int) -> str | Response:
     config = current_app.config
 
     form = AddTrackForm()
@@ -68,132 +64,13 @@ def display(id_ride: int):
 
     show_track_add_from = True
     if form.validate_on_submit():
-        db = get_db()
-        raw_id = None
-        enhanced_id = None
-        replace = False
-        raw_table_name = current_app.config.tables_as_settings[
-            current_app.config.defaults.raw_track_table
-        ].name
-        enhanced_table_name = current_app.config.tables_as_settings[
-            current_app.config.defaults.track_table
-        ].name
-        if form.replace.data == "1":
-            replace = True
-            raw_id = ride_track_id(
-                id_ride,
-                raw_table_name,
-            )
+        add_track_to_db(
+            data=get_track_data_from_form(form, "track"),
+            replace=form.replace.data == "1",
+            id_ride=id_ride,
+        )
 
-            enhanced_id = ride_track_id(
-                id_ride,
-                enhanced_table_name,
-            )
-            if raw_id is None:
-                flash(
-                    "Can not update track because ride has no track yet. Use the "
-                    "regular adder instead",
-                    "alert-danger",
-                )
-                return redirect(url_for("ride.display", id_ride=id_ride))
-        gpx_value = form.track.data.stream.read()
-        if replace:
-            logger.debug("Updating raw track at track_id: %s", raw_id)
-            insert_succ_track = update_track(
-                raw_table_name, raw_id, id_ride, gpx_value  # type: ignore
-            )
-            err = ("Could not update track",)
-        else:
-            insert_succ_track, err = db.insert(
-                current_app.config.tables_as_settings[
-                    current_app.config.defaults.raw_track_table
-                ],
-                [[id_ride, gpx_value]],
-            )
-        if insert_succ_track:
-            flash("Track updated" if replace else "Track added", "alert-success")
-
-            track = ByteTrack(gpx_value)
-            enhanced_track_data, track_overview_data = enhance_track(track)
-            if enhanced_track_data is not None:
-                if replace and enhanced_id is not None:
-                    logger.debug("Updating enhanced track at track_id: %s", enhanced_id)
-                    enhance_insert_succ_track = update_track(
-                        enhanced_table_name, enhanced_id, id_ride, enhanced_track_data
-                    )
-                    err = ("Could not update enhanced track",)
-                else:
-                    enhance_insert_succ_track, err = db.insert(
-                        current_app.config.tables_as_settings[
-                            current_app.config.defaults.track_table
-                        ],
-                        [[id_ride, enhanced_track_data]],
-                    )
-                if enhance_insert_succ_track:
-                    flash("Enhanced Track added", "alert-success")
-                    if track_overview_data:
-                        id_track = get_last_track_id(
-                            current_app.config.defaults.track_table, "id_track", True
-                        )
-                        # Add the id_track to the data for insertion in the db
-                        track_overview_data = [
-                            [id_track] + seg_data for seg_data in track_overview_data
-                        ]
-                        if replace:
-                            overview_table = current_app.config.tables_as_settings[
-                                current_app.config.defaults.track_overview_table
-                            ]
-                            cols = [c.name for c in overview_table.columns][2:]
-                            overview_insert_succ_track = False
-                            for this_segment_overview in track_overview_data:
-                                logger.debug(
-                                    "Updating overview for segment %s",
-                                    this_segment_overview[1],
-                                )
-                                overview_insert_succ_track = update_track_overview(
-                                    table_name=overview_table.name,
-                                    id_track=enhanced_id,
-                                    id_segment=this_segment_overview[1],
-                                    cols=cols,
-                                    data=this_segment_overview[2:],
-                                )
-                                err = (
-                                    f"Segment {this_segment_overview[1]} could not "
-                                    "be updated "
-                                )
-                                if not overview_insert_succ_track:
-                                    break
-                        else:
-                            overview_insert_succ_track, err = db.insert(
-                                current_app.config.tables_as_settings[
-                                    current_app.config.defaults.track_overview_table
-                                ],
-                                track_overview_data,
-                            )
-                        if overview_insert_succ_track:
-                            flash(
-                                f"Overview inserted for track {id_track}",
-                                "alert-success",
-                            )
-                        else:
-                            flash(
-                                "Overview could not be generated: "
-                                f"{err[0:250]}",  # type: ignore
-                                "alert-danger",
-                            )
-                else:
-                    flash(
-                        "Enhanced Track could not be inserted: "
-                        f"{err[0:250]}",  # type: ignore
-                        "alert-danger",
-                    )
-            logger.warning("Resetting cache")
-            cache.clear()
-        else:
-            flash(
-                f"Track could not be added: {err[0:250]}",  # type: ignore
-                "alert-danger",
-            )
+    show_track_enhance_from = False
 
     ride_date = data["date"]
     ride_from = data["start_time"]
@@ -212,12 +89,13 @@ def display(id_ride: int):
     if data["note"] is not None:
         ride_data.append(("Note", data["note"]))
         has_note = True
-    if ride_has_track(
+    id_raw_track = ride_track_id(
         id_ride,
         current_app.config.tables_as_settings[
             current_app.config.defaults.raw_track_table
         ].name,
-    ):
+    )
+    if id_raw_track is not None:
         logger.debug("Disabling form because ride has raw track")
         show_track_add_from = False
 
@@ -319,6 +197,9 @@ def display(id_ride: int):
         hr_plot = None
         cad_plot = None
         pw_plot = None
+        if id_raw_track is not None:
+            logger.debug("Found raw track data but no enhanced track data")
+            show_track_enhance_from = True
     events_ = get_events_for_ride(id_ride)
     located_events = []
     if events_:
@@ -368,12 +249,14 @@ def display(id_ride: int):
         located_events=located_events,
         form=form,
         show_track_add_from=show_track_add_from,
+        show_track_enhance_from=show_track_enhance_from,
+        id_raw_track=id_raw_track,
         has_note=has_note,
     )
 
 
 @bp.route("add_note/<int:id_ride>/", methods=("GET", "POST"))
-def add_note(id_ride: int):
+def add_note(id_ride: int) -> str | Response:
     current_note_value = get_note(id_ride)
 
     if request.method == "POST":
