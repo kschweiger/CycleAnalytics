@@ -12,14 +12,14 @@ from track_analyzer.track import ByteTrack
 
 from cycle_analytics.cache import cache
 from cycle_analytics.db import get_db
-from cycle_analytics.goals import Goal, initialize_goals
-from cycle_analytics.model import (
+from cycle_analytics.model.base import (
     Bike,
     LastRide,
     LatLngBounds,
     SegmentData,
     bike_from_dict,
 )
+from cycle_analytics.model.goal import Goal, initialize_goals
 from cycle_analytics.plotting import convert_fig_to_base64, get_track_thumbnails
 from cycle_analytics.rest_models import SegmentForMap
 from cycle_analytics.utils import (

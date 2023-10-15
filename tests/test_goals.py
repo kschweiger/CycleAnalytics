@@ -3,7 +3,7 @@ from datetime import date
 import pandas as pd
 import pytest
 
-from cycle_analytics.goals import MonthlyGoal, YearlyGoal, initialize_goals
+from cycle_analytics.model.goal import MonthlyGoal, YearlyGoal, initialize_goals
 
 
 def test_initialize_goals():

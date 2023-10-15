@@ -5,7 +5,7 @@ from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import current_app, render_template, request
 
 from cycle_analytics.forms import YearAndRideTypeForm
-from cycle_analytics.goals import YearlyGoal, format_goals_concise
+from cycle_analytics.model.goal import YearlyGoal, format_goals_concise
 from cycle_analytics.queries import (
     get_goal_years,
     get_last_ride,

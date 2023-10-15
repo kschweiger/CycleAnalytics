@@ -1,0 +1,205 @@
+import logging
+
+from flask import current_app, flash
+from track_analyzer.enhancer import get_enhancer
+from track_analyzer.exceptions import APIHealthCheckFailedError, APIResponseError
+from track_analyzer.track import ByteTrack, Track
+
+from cycle_analytics.db import get_db
+from cycle_analytics.queries import (
+    get_last_track_id,
+    ride_track_id,
+    update_track,
+    update_track_overview,
+)
+
+numeric = int | float
+logger = logging.getLogger(__name__)
+
+
+def add_track_to_db(data: bytes, replace: bool, id_ride: int):
+    raw_table_name = current_app.config.tables_as_settings[
+        current_app.config.defaults.raw_track_table
+    ].name
+    enhanced_table_name = current_app.config.tables_as_settings[
+        current_app.config.defaults.track_table
+    ].name
+
+    db = get_db()
+
+    enhanced_id = None
+
+    if replace:
+        insert_raw_id = ride_track_id(
+            id_ride,
+            raw_table_name,
+        )
+        enhanced_id = ride_track_id(
+            id_ride,
+            enhanced_table_name,
+        )
+        if insert_raw_id is None:
+            raise RuntimeError(
+                "Can not update track because ride has no track yet. Use the "
+                "regular adder instead"
+            )
+
+        logger.debug("Updating raw track at track_id: %s", insert_raw_id)
+        insert_succ_track = update_track(
+            raw_table_name, insert_raw_id, id_ride, data  # type: ignore
+        )
+        err = ("Could not update track",)
+    else:
+        insert_succ_track, err = db.insert(
+            current_app.config.tables_as_settings[
+                current_app.config.defaults.raw_track_table
+            ],
+            [[id_ride, data]],
+        )
+
+    if insert_succ_track:
+        flash("Track updated" if replace else "Track added", "alert-success")
+        enhance_and_insert_track(data=data, id_ride=id_ride, enhance_id=enhanced_id)
+    else:
+        flash(
+            f"Track could not be {'updated' if replace else 'added'}: {err[0:250]}",
+            "alert-danger",
+        )
+
+
+def enhance_track(
+    track: Track,
+) -> tuple[None, None] | tuple[bytes, list[list[numeric]]]:
+    track_data = None
+    track_overview_data = None
+
+    enhancer = None
+    try:
+        enhancer = get_enhancer(current_app.config.external.track_enhancer.name)(
+            url=current_app.config.external.track_enhancer.url,
+            **current_app.config.external.track_enhancer.kwargs.to_dict(),
+        )
+    except APIHealthCheckFailedError:
+        logger.warning("Enhancer not available. Skipping elevation profile")
+        flash("Track could not be enhanced - API not available")
+        return None, None
+
+    try:
+        enhancer.enhance_track(track.track, True)
+    except APIResponseError:
+        logger.error("Could not enhance track with elevation")
+        return None, None
+
+    track_data = track.get_xml().encode()
+
+    track_overview_data = []
+
+    for i_segment in range(track.n_segments):
+        this_track_overview = track.get_segment_overview(i_segment)
+        bounds = track.track.get_bounds()
+        track_overview_data.append(
+            [
+                i_segment,
+                this_track_overview.moving_time_seconds,
+                this_track_overview.total_time_seconds,
+                this_track_overview.moving_distance,
+                this_track_overview.total_distance,
+                this_track_overview.max_velocity,
+                this_track_overview.avg_velocity,
+                this_track_overview.max_elevation,
+                this_track_overview.min_elevation,
+                this_track_overview.uphill_elevation,
+                this_track_overview.downhill_elevation,
+                this_track_overview.moving_distance_km,
+                this_track_overview.total_distance_km,
+                this_track_overview.max_velocity_kmh,
+                this_track_overview.avg_velocity_kmh,
+                bounds.min_latitude,
+                bounds.max_latitude,
+                bounds.min_longitude,
+                bounds.max_longitude,
+            ]
+        )
+
+    return track_data, track_overview_data
+
+
+def enhance_and_insert_track(data: bytes, id_ride: int, enhance_id: None | int) -> None:
+    db = get_db()
+    enhanced_table_name = current_app.config.tables_as_settings[
+        current_app.config.defaults.track_table
+    ].name
+
+    track = ByteTrack(data)
+    enhanced_track_data, track_overview_data = enhance_track(track)
+
+    if enhanced_track_data is None:
+        return None
+
+    if enhance_id is not None:
+        logger.debug("Updating enhanced track at track_id: %s", enhance_id)
+        enhance_insert_succ_track = update_track(
+            enhanced_table_name, enhance_id, id_ride, enhanced_track_data
+        )
+        err = ("Could not update enhanced track",)
+    else:
+        enhance_insert_succ_track, err = db.insert(
+            current_app.config.tables_as_settings[
+                current_app.config.defaults.track_table
+            ],
+            [[id_ride, enhanced_track_data]],
+        )
+    if not enhance_insert_succ_track:
+        flash(
+            "Enhanced Track could not be inserted: " f"{err[0:250]}",  # type: ignore
+            "alert-danger",
+        )
+        return None
+
+    flash("Enhanced Track added", "alert-success")
+
+    if track_overview_data is None:
+        raise RuntimeError
+
+    id_track = get_last_track_id(
+        current_app.config.defaults.track_table, "id_track", True
+    )
+    track_overview_data = [[id_track] + seg_data for seg_data in track_overview_data]
+    if enhance_id is not None:
+        overview_table = current_app.config.tables_as_settings[
+            current_app.config.defaults.track_overview_table
+        ]
+        cols = [c.name for c in overview_table.columns][2:]
+        overview_insert_succ_track = False
+        for this_segment_overview in track_overview_data:
+            logger.debug(
+                "Updating overview for segment %s",
+                this_segment_overview[1],
+            )
+            overview_insert_succ_track = update_track_overview(
+                table_name=overview_table.name,
+                id_track=enhance_id,
+                id_segment=this_segment_overview[1],
+                cols=cols,
+                data=this_segment_overview[2:],
+            )
+            err = f"Segment {this_segment_overview[1]} could not " "be updated "
+            if not overview_insert_succ_track:
+                break
+    else:
+        overview_insert_succ_track, err = db.insert(
+            current_app.config.tables_as_settings[
+                current_app.config.defaults.track_overview_table
+            ],
+            track_overview_data,
+        )
+    if overview_insert_succ_track:
+        flash(
+            f"Overview inserted for track {id_track}",
+            "alert-success",
+        )
+    else:
+        flash(
+            "Overview could not be generated: " f"{err[0:250]}",  # type: ignore
+            "alert-danger",
+        )
