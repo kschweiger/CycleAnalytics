@@ -9,6 +9,7 @@ from cycle_analytics.db import get_db
 from cycle_analytics.queries import (
     get_last_track_id,
     ride_track_id,
+    track_has_overview,
     update_track,
     update_track_overview,
 )
@@ -70,7 +71,7 @@ def add_track_to_db(data: bytes, replace: bool, id_ride: int) -> None:
 
 def enhance_track(
     track: Track,
-) -> tuple[None, None] | tuple[bytes, list[list[numeric]]]:
+) -> tuple[None, None] | tuple[bytes, list[numeric | None]]:
     track_data = None
     track_overview_data = None
 
@@ -93,34 +94,28 @@ def enhance_track(
 
     track_data = track.get_xml().encode()
 
-    track_overview_data = []
-
-    for i_segment in range(track.n_segments):
-        this_track_overview = track.get_segment_overview(i_segment)
-        bounds = track.track.get_bounds()
-        track_overview_data.append(
-            [
-                i_segment,
-                this_track_overview.moving_time_seconds,
-                this_track_overview.total_time_seconds,
-                this_track_overview.moving_distance,
-                this_track_overview.total_distance,
-                this_track_overview.max_velocity,
-                this_track_overview.avg_velocity,
-                this_track_overview.max_elevation,
-                this_track_overview.min_elevation,
-                this_track_overview.uphill_elevation,
-                this_track_overview.downhill_elevation,
-                this_track_overview.moving_distance_km,
-                this_track_overview.total_distance_km,
-                this_track_overview.max_velocity_kmh,
-                this_track_overview.avg_velocity_kmh,
-                bounds.min_latitude,
-                bounds.max_latitude,
-                bounds.min_longitude,
-                bounds.max_longitude,
-            ]
-        )
+    this_track_overview = track.get_track_overview()
+    bounds = track.track.get_bounds()
+    track_overview_data = [
+        this_track_overview.moving_time_seconds,
+        this_track_overview.total_time_seconds,
+        this_track_overview.moving_distance,
+        this_track_overview.total_distance,
+        this_track_overview.max_velocity,
+        this_track_overview.avg_velocity,
+        this_track_overview.max_elevation,
+        this_track_overview.min_elevation,
+        this_track_overview.uphill_elevation,
+        this_track_overview.downhill_elevation,
+        this_track_overview.moving_distance_km,
+        this_track_overview.total_distance_km,
+        this_track_overview.max_velocity_kmh,
+        this_track_overview.avg_velocity_kmh,
+        bounds.min_latitude,
+        bounds.max_latitude,
+        bounds.min_longitude,
+        bounds.max_longitude,
+    ]
 
     return track_data, track_overview_data
 
@@ -133,7 +128,7 @@ def enhance_and_insert_track(data: bytes, id_ride: int, enhance_id: None | int) 
     ].name
 
     track = ByteTrack(data)
-    enhanced_track_data, track_overview_data = enhance_track(track)
+    enhanced_track_data, _track_overview_data = enhance_track(track)
 
     if enhanced_track_data is None:
         return
@@ -160,41 +155,47 @@ def enhance_and_insert_track(data: bytes, id_ride: int, enhance_id: None | int) 
 
     flash("Enhanced Track added", "alert-success")
 
-    if track_overview_data is None:
+    if _track_overview_data is None:
         raise RuntimeError
 
     id_track = get_last_track_id(
         current_app.config.defaults.track_table, "id_track", True
     )
-    track_overview_data = [[id_track] + seg_data for seg_data in track_overview_data]
+    track_overview_data = [id_track] + _track_overview_data
     err: str | None
     if enhance_id is not None:
-        overview_table = current_app.config.tables_as_settings[
-            current_app.config.defaults.track_overview_table
-        ]
-        cols = [c.name for c in overview_table.columns][2:]
-        overview_insert_succ_track = False
-        for this_segment_overview in track_overview_data:
-            logger.debug(
-                "Updating overview for segment %s",
-                this_segment_overview[1],
-            )
+        if track_has_overview(
+            enhance_id,
+            current_app.config.tables_as_settings[
+                current_app.config.defaults.track_overview_table
+            ].name,
+        ):
+            overview_table = current_app.config.tables_as_settings[
+                current_app.config.defaults.track_overview_table
+            ]
+            cols = [c.name for c in overview_table.columns][1:]
+            overview_insert_succ_track = False
             overview_insert_succ_track = update_track_overview(
                 table_name=overview_table.name,
                 id_track=enhance_id,
-                id_segment=this_segment_overview[1],
                 cols=cols,
-                data=this_segment_overview[2:],
+                data=track_overview_data[1:],
             )
-            err = f"Segment {this_segment_overview[1]} could not be updated "
-            if not overview_insert_succ_track:
-                break
+            err = "Track overview data could not be updated "
+        else:
+            overview_insert_succ_track, err = db.insert(
+                current_app.config.tables_as_settings[
+                    current_app.config.defaults.track_overview_table
+                ],
+                [[enhance_id] + _track_overview_data],
+            )
+
     else:
         overview_insert_succ_track, err = db.insert(
             current_app.config.tables_as_settings[
                 current_app.config.defaults.track_overview_table
             ],
-            track_overview_data,
+            [track_overview_data],
         )
     if overview_insert_succ_track:
         flash(

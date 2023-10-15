@@ -69,9 +69,6 @@ name = "tracks_v1_overview"
 ctype = "INT"
 is_primary = true
 is_unique = true
-[tracks_v1_overview.id_segment]
-ctype = "INT"
-is_primary = true
 [tracks_v1_overview.moving_time_seconds]
 ctype = "FLOAT"
 [tracks_v1_overview.total_time_seconds]

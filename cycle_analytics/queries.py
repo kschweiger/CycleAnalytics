@@ -562,10 +562,21 @@ def update_track(table_name: str, id_track: int, id_ride: int, track: bytes) -> 
     return db.exec_arbitrary(query)
 
 
+def track_has_overview(id_track: int, table_name: str = "tracks_v1_overview") -> bool:
+    db = get_db()
+    table = Table(table_name)
+    query = db.pypika_query.from_(table).select("*").where(table.id_track == id_track)
+    try:
+        db.query(query)
+    except QueryReturnedNoData:
+        return False
+
+    return True
+
+
 def update_track_overview(
     table_name: str,
     id_track: int,
-    id_segment: int,
     cols: list[str],
     data: list[int | float],
 ) -> bool:
@@ -576,10 +587,7 @@ def update_track_overview(
     query = db.pypika_query.update(table)
     for icol, col in enumerate(cols):
         query = query.set(table[col], data[icol])
-    query = query.where(table.id_track == id_track).where(
-        table.id_segment == id_segment
-    )
-
+    query = query.where(table.id_track == id_track)
     return db.exec_arbitrary(query)
 
 
