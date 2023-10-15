@@ -160,9 +160,7 @@ def get_full_ride_data(id_ride: int) -> pd.DataFrame:
         .select(main.star, track_data.star, notes.note)
         .where(main.id_ride == id_ride)
     )
-    data = db.query_to_df(query).iloc[0]
-
-    return data
+    return db.query_to_df(query).iloc[0]
 
 
 @cache.memoize(timeout=86400)

@@ -42,7 +42,7 @@ class GoalType(str, Enum):
 
 
 class Goal(ABC):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         self.name: str = kwargs["goal_name"]
         self.id: int = kwargs["id_goal"]
         self.description: None | str = kwargs["description"]
@@ -136,7 +136,7 @@ class Goal(ABC):
 
 
 class YearlyGoal(Goal):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
     def _get_relevant_data(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -151,7 +151,7 @@ class YearlyGoal(Goal):
 
 
 class MonthlyGoal(Goal):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.month: int = kwargs["month"]
 
@@ -173,7 +173,7 @@ class MonthlyGoal(Goal):
 
 
 class LocationGoal(YearlyGoal):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         # Location is defined in the constraints database field so wee
         # we need it to be present
         if kwargs["constraints"] is None:

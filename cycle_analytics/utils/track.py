@@ -135,7 +135,7 @@ def enhance_and_insert_track(data: bytes, id_ride: int, enhance_id: None | int) 
     enhanced_track_data, track_overview_data = enhance_track(track)
 
     if enhanced_track_data is None:
-        return None
+        return
 
     if enhance_id is not None:
         logger.debug("Updating enhanced track at track_id: %s", enhance_id)
@@ -155,7 +155,7 @@ def enhance_and_insert_track(data: bytes, id_ride: int, enhance_id: None | int) 
             "Enhanced Track could not be inserted: " f"{err[0:250]}",  # type: ignore
             "alert-danger",
         )
-        return None
+        return
 
     flash("Enhanced Track added", "alert-success")
 

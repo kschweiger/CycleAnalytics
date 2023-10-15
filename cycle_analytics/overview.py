@@ -78,7 +78,7 @@ class JournalWeek:
     summary: None | JournalWeekSummary = None
 
     def get_date_range(self) -> tuple[date, date]:
-        return list(self.days)[0].date, list(self.days)[-1].date
+        return next(iter(self.days)).date, list(self.days)[-1].date
 
 
 weekday_map = {
