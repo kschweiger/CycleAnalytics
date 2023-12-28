@@ -260,3 +260,73 @@ def convert_data(database: SQLAlchemy):
             )
         )
         database.session.commit()
+
+
+def convert_rides_to_df(rides: list[Ride]) -> pd.DataFrame:
+    data = {
+        "id_ride": [],
+        "ride_type": [],
+        "date": [],
+        "distance": [],
+        "total_time": [],
+        "moving_time_seconds": [],
+        "total_time_seconds": [],
+        "moving_distance": [],
+        "total_distance": [],
+        "max_velocity": [],
+        "avg_velocity": [],
+        "max_elevation": [],
+        "min_elevation": [],
+        "uphill_elevation": [],
+        "downhill_elevation": [],
+        "moving_distance_km": [],
+        "total_distance_km": [],
+        "max_velocity_kmh": [],
+        "avg_velocity_kmh": [],
+        "bounds_min_lat": [],
+        "bounds_max_lat": [],
+        "bounds_min_lng": [],
+        "bounds_max_lng": [],
+    }
+    month_labels = {
+        1: "Jan",
+        2: "Feb",
+        3: "Mar",
+        4: "Apr",
+        5: "Mai",
+        6: "Jun",
+        7: "Jul",
+        8: "Aug",
+        9: "Sep",
+        10: "Oct",
+        11: "Nov",
+        12: "Dec",
+    }
+
+    for ride in rides:
+        data["id_ride"].append(ride.id)
+        data["date"].append(ride.ride_date)
+        data["distance"].append(ride.distance)
+        data["ride_type"].append(ride.terrain_type.text)
+        data["total_time"].append(ride.total_duration)
+        try:
+            overview = ride.track_overview
+        except RuntimeError:
+            overview = None
+
+        for key in [
+            key
+            for key in data.keys()
+            if key not in ["distance", "date", "id_ride", "ride_type", "total_time"]
+        ]:
+            if overview is None:
+                data[key].append(None)
+            else:
+                data[key].append(getattr(overview, key))
+
+    data_df = pd.DataFrame(data)
+    if not data_df.empty:
+        data_df["year"] = data_df.apply(lambda r: r.date.year, axis=1)
+        data_df["month"] = data_df.apply(lambda r: month_labels[r.date.month], axis=1)
+
+    return data_df

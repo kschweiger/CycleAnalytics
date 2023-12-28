@@ -7,6 +7,8 @@ import plotly.graph_objects as go
 from track_analyzer.track import Track
 from track_analyzer.visualize import plot_track_2d, plot_track_with_slope
 
+from cycle_analytics.database.model import Ride
+
 month_label_order = dict(
     month=[
         "Jan",
@@ -60,7 +62,7 @@ def simple_coordinate_plot(
 
 
 def per_month_overview_plots(
-    data: pd.DataFrame,
+    rides: list[Ride],
     plot_values: list[tuple[str, str, str, str, bool]],
     width: int = 1000,
     height: int = 600,
@@ -79,7 +81,9 @@ def per_month_overview_plots(
     :param height:
     :return: List of base64 encoded pngs for each passed plot_value element
     """
+    from cycle_analytics.database.converter import convert_rides_to_df
 
+    data = convert_rides_to_df(rides)
     plots = []
     years = list(data.year.unique())
     if not years:

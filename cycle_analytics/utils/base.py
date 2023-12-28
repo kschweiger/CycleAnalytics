@@ -22,6 +22,26 @@ def get_nice_timedelta_isoformat(time: str) -> str:
     return "{0:02d}:{1:02d}:{2:02d}".format(hours, mins, secs)
 
 
+def format_timedelta(td: timedelta) -> str:
+    """
+    Format a timedelta object as a string in HH:MM:SS format.
+
+    :param td: Timedelta object to be formatted.
+
+    :return: Formatted string representing the timedelta in HH:MM:SS format.
+    """
+    seconds = td.seconds
+    hours = int(seconds / 3600)
+    seconds -= hours * 3600
+    minutes = int(seconds / 60)
+    seconds -= minutes * 60
+
+    if td.days > 0:
+        hours += 24 * td.days
+
+    return "{0:02d}:{1:02d}:{2:02d}".format(hours, minutes, seconds)
+
+
 def compare_values(diff: float, simularity_threshold: float) -> Literal[-1, 0, 1]:
     if abs(diff) <= simularity_threshold:
         return 0
