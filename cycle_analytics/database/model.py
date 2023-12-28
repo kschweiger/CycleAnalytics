@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 
 from flask_sqlalchemy import SQLAlchemy
+from track_analyzer import ByteTrack, Track
 
 db = SQLAlchemy()
 
@@ -29,6 +30,9 @@ class CategoryModel(db.Model):
     __abstract__ = True
 
     text: str = db.Column(db.String, unique=True, nullable=False, name="text")
+
+    def __str__(self) -> str:
+        return self.text
 
 
 @dataclass
@@ -67,6 +71,12 @@ class Difficulty(CategoryModel):
 
 
 @dataclass
+class RideNote(db.Model):
+    id: int = db.Column(db.Integer, primary_key=True)
+    text: str = db.Column(db.TEXT, nullable=False)
+
+
+@dataclass
 class TrackOverview(db.Model):
     __table_args__ = (db.UniqueConstraint("id_track", "id_segment"),)
 
@@ -94,38 +104,25 @@ class TrackOverview(db.Model):
 
 
 @dataclass
-class Ride(db.Model):
-    id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    ride_date: date = db.Column(db.Date(), nullable=False)
-    start_time: time = db.Column(db.Time(), nullable=False)
-    ride_duration: None | timedelta = db.Column(db.Interval, nullable=True)
-    total_duration: timedelta = db.Column(db.Interval, nullable=False)
-    distance: float = db.Column(db.Float, nullable=False)
-    id_bike: None | int = db.Column(db.Integer, db.ForeignKey("bike.id"), nullable=True)
-    id_terrain_type: int = db.Column(
-        db.Integer, db.ForeignKey("terrain_type.id"), nullable=False
-    )
-    bike = db.relationship("Bike", backref="ride", lazy=True)
-    terrain_type = db.relationship("TerrainType", backref="ride", lazy=False)
-
-    tracks = db.relationship(
-        "DatabaseTrack", backref="ride", secondary=ride_track, lazy=True
-    )
-    notes = db.relationship("RideNote", secondary=ride_note, backref="ride", lazy=True)
-    events = db.relationship(
-        "DatabaseEvent", secondary=ride_event, backref="ride", lazy=True
-    )
-
-
-@dataclass
 class DatabaseTrack(db.Model):
     __tablename__: str = "track"
+    __allow_unmapped__ = True
 
     id: int = db.Column(db.Integer, primary_key=True)
     content: bytes = db.Column(db.LargeBinary)
     added: datetime = db.Column(db.DateTime(timezone=True))
+    is_enhanced: bool = db.Column(db.Boolean, nullable=False, default=False)
 
-    # overview = db.relationship("TrackOverview", backref="ride", lazy=False)
+    overviews: list[TrackOverview] = db.relationship(
+        "TrackOverview", backref="ride", lazy=False
+    )  # type: ignore
+
+    def __repr__(self) -> str:
+        return (
+            f"DatabaseTrack(id={self.id}, added={self.added.isoformat()}, "
+            f"is_enhanced={self.is_enhanced}, content={len(self.content)} elems, "
+            f"n_overviews={len(self.overviews)})"
+        )
 
 
 @dataclass
@@ -170,8 +167,69 @@ class DatabaseEvent(db.Model):
     longitude: None | float = db.Column(db.Float, nullable=True)
     id_bike: None | int = db.Column(db.Integer, db.ForeignKey("bike.id"), nullable=True)
 
+    event_type = db.relationship("EventType", backref="event", lazy=False)
     severity = db.relationship("Severity", backref="event", lazy=False)
     bike = db.relationship("Bike", backref="event", lazy=True)
+
+
+@dataclass
+class Ride(db.Model):
+    __allow_unmapped__ = True
+
+    id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    ride_date: date = db.Column(db.Date(), nullable=False)
+    start_time: time = db.Column(db.Time(), nullable=False)
+    ride_duration: None | timedelta = db.Column(db.Interval, nullable=True)
+    total_duration: timedelta = db.Column(db.Interval, nullable=False)
+    distance: float = db.Column(db.Float, nullable=False)
+    id_bike: None | int = db.Column(db.Integer, db.ForeignKey("bike.id"), nullable=True)
+    id_terrain_type: int = db.Column(
+        db.Integer, db.ForeignKey("terrain_type.id"), nullable=False
+    )
+    bike: Bike = db.relationship("Bike", backref="ride", lazy=True)  # type: ignore
+    terrain_type: TerrainType = db.relationship(
+        "TerrainType", backref="ride", lazy=False
+    )  # type: ignore
+
+    tracks: list[DatabaseTrack] = db.relationship(
+        "DatabaseTrack", backref="ride", secondary=ride_track, lazy=True
+    )  # type: ignore
+    notes: list[RideNote] = db.relationship(
+        "RideNote", secondary=ride_note, backref="ride", lazy=True
+    )  # type: ignore
+    events: list[DatabaseEvent] = db.relationship(
+        "DatabaseEvent", secondary=ride_event, backref="ride", lazy=True
+    )  # type: ignore
+
+    def get_latest_track(self) -> None | DatabaseTrack:
+        if not self.tracks:
+            return None
+
+        sorted_tracks = sorted(self.tracks, key=lambda t: t.added, reverse=True)
+        return sorted_tracks[0]
+
+    # TODO: Need some caching here
+    @property
+    def track(self) -> None | Track:
+        latest_track = self.get_latest_track()
+        if not latest_track:
+            return None
+
+        return ByteTrack(latest_track.content)
+
+    @property
+    def track_overview(self) -> None | TrackOverview:
+        latest_track = self.get_latest_track()
+        if not latest_track:
+            return None
+
+        overviews = latest_track.overviews
+        for overview in overviews:
+            if overview.id_segment is None:
+                return overview
+
+        # TODO: Other error
+        raise RuntimeError("No overview for full track available")
 
 
 @dataclass
@@ -189,12 +247,6 @@ class DatabaseGoal(db.Model):
     description: None | str = db.Column(db.TEXT)
     has_been_reached: bool = db.Column(db.Boolean, nullable=False, default=False)
     active: bool = db.Column(db.Boolean, nullable=False, default=True)
-
-
-@dataclass
-class RideNote(db.Model):
-    id: int = db.Column(db.Integer, primary_key=True)
-    text: str = db.Column(db.TEXT, nullable=False)
 
 
 @dataclass

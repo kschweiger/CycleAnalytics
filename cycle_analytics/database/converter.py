@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 
-import numpy as np
 import pandas as pd
 from flask import current_app
 from flask_sqlalchemy import SQLAlchemy
@@ -71,10 +70,11 @@ def convert_data(database: SQLAlchemy):
     overviews = {}
     added_track_ids = []
     added_tracks = {}
+    old_new_track_id_map = {}
     for rcrd in data.sort_values(by="id_ride", ascending=True).to_dict("records"):
         # print(rcrd)
-        if len(rides) > 10:
-            break
+        # if len(rides) > 10:
+        #     break
         this_ride = Ride(
             ride_date=rcrd["date"],
             start_time=rcrd["start_time"],
@@ -90,23 +90,50 @@ def convert_data(database: SQLAlchemy):
         )
         rides[rcrd["id_ride"]] = this_ride
 
+        this_overview = TrackOverview(
+            # id_track=-1,
+            id_segment=None,
+            moving_time_seconds=rcrd["moving_time_seconds"],
+            total_time_seconds=rcrd["total_time_seconds"],
+            moving_distance=rcrd["moving_distance"],
+            total_distance=rcrd["total_distance"],
+            max_velocity=rcrd["max_velocity"],
+            avg_velocity=rcrd["avg_velocity"],
+            max_elevation=rcrd["max_elevation"],
+            min_elevation=rcrd["min_elevation"],
+            uphill_elevation=rcrd["uphill_elevation"],
+            downhill_elevation=rcrd["downhill_elevation"],
+            moving_distance_km=rcrd["moving_distance_km"],
+            total_distance_km=rcrd["total_distance_km"],
+            max_velocity_kmh=rcrd["max_velocity_kmh"],
+            avg_velocity_kmh=rcrd["avg_velocity_kmh"],
+            bounds_min_lat=rcrd["bounds_min_lat"],
+            bounds_max_lat=rcrd["bounds_max_lat"],
+            bounds_min_lng=rcrd["bounds_min_lng"],
+            bounds_max_lng=rcrd["bounds_max_lng"],
+        )
+
         tracks_added = 0
+        overview_added = False
+
         if ride_has_track(rcrd["id_ride"], "tracks"):
             track_ids = ride_track_ids(rcrd["id_ride"], "tracks")
             if track_ids is None:
                 raise RuntimeError
             for id_track in track_ids:
                 data = get_track_data(id_track, "tracks")
-                this_ride.tracks.append(
-                    DatabaseTrack(
-                        content=data,
-                        added=datetime.combine(
-                            rcrd["date"],
-                            rcrd["start_time"],
-                        )
-                        + timedelta(seconds=360 * tracks_added),
+                data_dict = dict(
+                    content=data,
+                    added=datetime.combine(
+                        rcrd["date"],
+                        rcrd["start_time"],
                     )
+                    + timedelta(seconds=360 * tracks_added),
                 )
+                # if id_track == rcrd["id_track"] and not overview_added:
+                #     data_dict["overviews"] = [this_overview]
+
+                this_ride.tracks.append(DatabaseTrack(**data_dict))
                 tracks_added += 1
 
         if ride_has_track(rcrd["id_ride"], "tracks_enhanced_v1"):
@@ -115,16 +142,19 @@ def convert_data(database: SQLAlchemy):
                 raise RuntimeError
             for id_track in track_ids:
                 data = get_track_data(id_track, "tracks_enhanced_v1")
-                this_ride.tracks.append(
-                    DatabaseTrack(
-                        content=data,
-                        added=datetime.combine(
-                            rcrd["date"],
-                            rcrd["start_time"],
-                        )
-                        + timedelta(seconds=360 * tracks_added),
+                data_dict = dict(
+                    content=data,
+                    added=datetime.combine(
+                        rcrd["date"],
+                        rcrd["start_time"],
                     )
+                    + timedelta(seconds=360 * tracks_added),
+                    is_enhanced=True,
                 )
+                if id_track == rcrd["id_track"]:
+                    data_dict["overviews"] = [this_overview]
+                    overview_added = True
+                this_ride.tracks.append(DatabaseTrack(**data_dict))
                 added_track_ids.append(id_track)
                 tracks_added += 1
             added_tracks[rcrd["id_track"]] = this_ride
@@ -155,14 +185,14 @@ def convert_data(database: SQLAlchemy):
 
     # database.session.add_all(rides)
 
-    for id_track, overview in overviews.items():
-        if np.isnan(id_track):
-            continue
-        print(added_tracks[id_track].id)
-        overview.id_track = added_tracks[id_track].id
-        database.session.add(overview)
-        # database.session.add_all([o for i, o in overviews.items() if i in added_track_ids])
-        database.session.commit()
+    # for id_track, overview in overviews.items():
+    #     if np.isnan(id_track):
+    #         continue
+    #     print(added_tracks[id_track].id)
+    #     overview.id_track = added_tracks[id_track].id
+    #     database.session.add(overview)
+    #     # database.session.add_all([o for i, o in overviews.items() if i in added_track_ids])
+    #     database.session.commit()
 
     events = []
     for event in get_events(None, None, None):

@@ -3,7 +3,6 @@ import logging
 from datetime import datetime
 
 import plotly
-from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import (
     Blueprint,
     current_app,
@@ -22,6 +21,8 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired
 
+from cycle_analytics.database.model import Ride
+from cycle_analytics.database.model import db as orm_db
 from cycle_analytics.db import get_db
 from cycle_analytics.model.base import MapData, MapMarker, MapPathData
 from cycle_analytics.plotting import (
@@ -30,12 +31,8 @@ from cycle_analytics.plotting import (
     get_track_elevation_slope_plot,
 )
 from cycle_analytics.queries import (
-    get_events_for_ride,
-    get_full_ride_data,
     get_note,
-    get_track_for_id,
     modify_note,
-    ride_track_id,
 )
 from cycle_analytics.utils.forms import get_track_data_from_form
 from cycle_analytics.utils.track import add_track_to_db
@@ -56,11 +53,7 @@ def display(id_ride: int) -> str | Response:
 
     form = AddTrackForm()
 
-    try:
-        data = get_full_ride_data(id_ride)
-    except QueryReturnedNoData:
-        flash("Invalid value of id_ride. Redirecting to overview", "alert-danger")
-        return redirect(url_for("overview.main"))
+    ride = orm_db.get_or_404(Ride, id_ride)
 
     show_track_add_from = True
     if form.validate_on_submit():
@@ -72,46 +65,62 @@ def display(id_ride: int) -> str | Response:
 
     show_track_enhance_from = False
 
-    ride_date = data["date"]
-    ride_from = data["start_time"]
+    ride_date = ride.ride_date
+    ride_from = ride.start_time
     ride_to = (
-        datetime.combine(ride_date, data["start_time"]) + data["total_time"]
+        datetime.combine(ride_date, ride.start_time) + ride.total_duration
     ).time()
 
     ride_data = [
-        ("Duration", data["total_time"]),
-        ("Duration (ridden)", data["ride_time"]),
-        ("Distance [km]", data["distance"]),
-        ("Bike", (data["bike"], url_for("bike.show", bike_name=data["bike"]))),
-        ("Type", data["ride_type"]),
+        ("Duration", ride.total_duration),
+        ("Duration (ridden)", ride.ride_duration),
+        ("Distance [km]", ride.distance),
+        ("Bike", (ride.bike.name, url_for("bike.show", bike_name=ride.bike.name))),
+        ("Type", ride.terrain_type),
     ]
     has_note = False
-    if data["note"] is not None:
-        ride_data.append(("Note", data["note"]))
+    for note in ride.notes:
+        ride_data.append(("Note", note))
         has_note = True
-    id_raw_track = ride_track_id(
-        id_ride,
-        current_app.config.tables_as_settings[
-            current_app.config.defaults.raw_track_table
-        ].name,
-    )
-    if id_raw_track is not None:
+
+    if ride.tracks:
         logger.debug("Disabling form because ride has raw track")
         show_track_add_from = False
 
-    if data["id_track"] is not None:
-        show_track_add_from = False
-        id_track = data["id_track"]
+    has_enhanced_track = any([t.is_enhanced for t in ride.tracks])
+
+    track = ride.track
+
+    def none_or_round(value: None | float, digits: int = 2) -> None | float:
+        return None if value is None else round(value, digits)
+
+    track_data = None
+    track_overview = None
+    try:
+        track_overview = ride.track_overview
+    except RuntimeError:
+        pass
+
+    if track_overview:
         track_data = [
-            ("Distance (moving) [km]", round(data["moving_distance"] / 1000, 2)),
-            ("Max velocity [km/h]", round(data["max_velocity_kmh"], 2)),
-            ("Avg velocity [km/h]", round(data["avg_velocity_kmh"], 2)),
-            ("Max elevation [m]", round(data["max_elevation"], 2)),
-            ("Min elevation [m]", round(data["min_elevation"], 2)),
-            ("Uphill [m]", round(data["uphill_elevation"], 2)),
-            ("Downhill [m]", round(data["downhill_elevation"], 2)),
+            (
+                "Distance (moving) [km]",
+                round(track_overview.moving_distance / 1000, 2),
+            ),
+            ("Max velocity [km/h]", round(track_overview.max_velocity_kmh, 2)),
+            ("Avg velocity [km/h]", round(track_overview.avg_velocity_kmh, 2)),
+            ("Max elevation [m]", none_or_round(track_overview.max_elevation, 2)),
+            ("Min elevation [m]", none_or_round(track_overview.min_elevation, 2)),
+            ("Uphill [m]", none_or_round(track_overview.uphill_elevation, 2)),
+            ("Downhill [m]", none_or_round(track_overview.downhill_elevation, 2)),
         ]
-        track = get_track_for_id(id_ride)
+
+    if track:
+        show_track_add_from = False
+        if not has_enhanced_track:
+            logger.debug("Found raw track data but no enhanced track data")
+            show_track_enhance_from = True
+        id_track = -1  # FIXME
         track_segment_data = track.get_segment_data(0)
 
         colors = current_app.config.style.color_sequence
@@ -189,7 +198,6 @@ def display(id_ride: int) -> str | Response:
             pw_plot = json.dumps(pw_figure, cls=plotly.utils.PlotlyJSONEncoder)
 
     else:
-        track_data = None
         id_track = None  # type: ignore
         plot_elevation_and_velocity = None
         map_data = None
@@ -197,27 +205,19 @@ def display(id_ride: int) -> str | Response:
         hr_plot = None
         cad_plot = None
         pw_plot = None
-        if id_raw_track is not None:
-            logger.debug("Found raw track data but no enhanced track data")
-            show_track_enhance_from = True
-    events_ = get_events_for_ride(id_ride)
+
     located_events = []
-    if events_:
-        severity_mapping = config.mappings.severity.to_dict()
+    if ride.events:
         event_colors = config.mappings.event_colors.to_dict()
-        event_dataclass = config.tables_as_settings["events"].dataclass
-        events = [event_dataclass(**event_data) for event_data in events_]
-        for event in events:
+        for event in ride.events:
             if event.latitude is not None and event.longitude is not None:
                 color = "blue"
-                if event.event_type in event_colors.keys():
-                    color = event_colors[event.event_type]
+                if event.event_type.text in event_colors.keys():
+                    color = event_colors[event.event_type.text]
 
                 popup_text = f"<b>{event.short_description}</b>"
                 if event.severity is not None:
-                    popup_text += (
-                        f" - Severity: {severity_mapping[str(event.severity)]}"
-                    )
+                    popup_text += f" - Severity: {event.severity!s}"
                 if event.description is not None:
                     popup_text += f"<br>{event.description}"
                 located_events.append(
@@ -226,7 +226,7 @@ def display(id_ride: int) -> str | Response:
                         longitude=event.longitude,
                         popup_text=popup_text,
                         color=color,
-                        color_idx=0 if event.severity is None else event.severity,
+                        color_idx=0 if event.severity is None else event.severity.id,
                     )
                 )
 
@@ -250,7 +250,7 @@ def display(id_ride: int) -> str | Response:
         form=form,
         show_track_add_from=show_track_add_from,
         show_track_enhance_from=show_track_enhance_from,
-        id_raw_track=id_raw_track,
+        id_raw_track=-999,  # FIXME
         has_note=has_note,
     )
 

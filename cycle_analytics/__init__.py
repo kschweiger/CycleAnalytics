@@ -9,10 +9,9 @@ from werkzeug import Response
 
 from cycle_analytics.database.converter import convert_data
 from cycle_analytics.database.creator import (
-    generate_types_and_categories,
     sync_categorical_values,
 )
-from cycle_analytics.database.model import Bike, fill_data
+from cycle_analytics.database.model import Bike, Ride, fill_data
 from cycle_analytics.database.model import db as orm_db
 from cycle_analytics.landing_page import render_landing_page
 from cycle_analytics.serve import get_segment_download, get_track_download
@@ -94,13 +93,16 @@ def create_app(test_config: None | dict = None) -> Flask:
     orm_db.init_app(app)
 
     with app.app_context():
-        orm_db.drop_all()
+        # orm_db.drop_all()
         orm_db.create_all()
         sync_categorical_values(orm_db)
         # convert_data(orm_db)
-        # fill_data(orm_db)
 
-    exit()
+        r = orm_db.get_or_404(Ride, 1)
+        print(r.tracks)
+        print(r.track)
+        print("----")
+        # fill_data(orm_db)
 
     @app.route("/", methods=["GET", "POST"])
     def landing_page() -> str:
