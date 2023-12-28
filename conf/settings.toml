@@ -1,4 +1,38 @@
+#[default]
 ALLOWED_TRACK_EXTENSIONS = ["fit", "gpx"]
+SQLALCHEMY_DATABASE_URI = "@format {this.database_type}://{this.database_user}:{this.database_password}@{this.database_server}:{this.database_port}/{this.database_name}"
+database_type = "postgresql+psycopg2"
+database_schema = "cycle_analytics"
+database_user = "dev"
+database_server = "192.168.178.76"
+database_port = "5432"
+database_name = "development"
+database_password = "13480824"
+
+
+[categorized_values]
+terrain_types = ["MTB", "Road", "Gravel", "Testing/Setup"]
+event_types = [
+    "Mechanical",
+    "Crash",
+    "Service",
+    "Repair",
+    "Replacement",
+    "Purchase",
+    "Other",
+]
+segment_types = ["Single Trail", "Dirt Track", "Gravel track", "Road", "Track"]
+difficulties = ["No Difficulty", "Easy", "Moderate", "Difficult", "Break Neck"]
+severities = ["Minor", "Medium", "Major", "Critical"]
+materials = ["Aluminium", "Carbon", "Titanium"]
+type_secification = [
+    "Cross-Country",
+    "Trail",
+    "Enduro",
+    "Downhill",
+    "Race",
+    "Endurance",
+]
 
 [defaults]
 bike = "Nerve"

@@ -221,6 +221,22 @@ def ride_track_id(id_ride: int, table_name: str) -> None | int:
     return data[0][0]
 
 
+def ride_track_ids(id_ride: int, table_name: str) -> None | list[int]:
+    db = get_db()
+    tracks = Table(table_name)
+    query = (
+        db.pypika_query.from_(tracks)
+        .select(tracks.id_track)
+        .where(tracks.id_ride == id_ride)
+    )
+    try:
+        data = db.query(query)
+    except QueryReturnedNoData:
+        return None
+
+    return list(data[0])
+
+
 @cache.memoize(timeout=86400)
 def get_thumbnails_for_id(id_ride: int) -> list[str]:
     track = get_track_for_id(id_ride)
@@ -591,6 +607,19 @@ def update_track_overview(
     return db.exec_arbitrary(query)
 
 
+def get_all_segments(difficulty_mapping: Optional[Dict[int, str]]) -> list[SegmentData]:
+    db = get_db()
+    table = Table("segments")
+    query = db.pypika_query.from_(table).select(table.id_segment)
+    datas, _ = db.query_inc_keys(query)
+
+    segments = []
+    for data in datas:
+        segments.append(get_segment_data(next(iter(data)), difficulty_mapping))
+
+    return segments
+
+
 def get_segment_data(
     id_segment: int, difficulty_mapping: Optional[Dict[int, str]]
 ) -> SegmentData:
@@ -702,6 +731,15 @@ def modify_segment_visited_flag(id_segment: int, visited: bool = True) -> bool:
     )
 
     return db.exec_arbitrary(query)
+
+
+def get_all_notes() -> list[tuple[int, str]]:
+    db = get_db()
+    ride_notes = Table("ride_notes")
+    query = db.pypika_query.from_(ride_notes).select(
+        ride_notes.id_ride, ride_notes.note
+    )
+    return db.query(query)
 
 
 def get_note(id_ride: int) -> None | str:
