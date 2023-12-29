@@ -224,7 +224,9 @@ def display(id_ride: int) -> str | Response:
                         longitude=event.longitude,
                         popup_text=popup_text,
                         color=color,
-                        color_idx=0 if event.severity is None else event.severity.id,
+                        color_idx=0
+                        if event.severity is None
+                        else event.severity.id - 1,
                     )
                 )
 

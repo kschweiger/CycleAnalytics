@@ -5,8 +5,8 @@ from flask_wtf import FlaskForm
 from wtforms import SelectField
 from wtforms.validators import DataRequired
 
+from cycle_analytics.database.retriever import get_event_years_in_database, get_events
 from cycle_analytics.model.base import MapMarker
-from cycle_analytics.queries import get_event_years, get_events
 from cycle_analytics.utils import get_month_mapping
 
 
@@ -40,7 +40,7 @@ def overview() -> str:
     severity_mapping = config.mappings.severity.to_dict()
     event_colors = config.mappings.event_colors.to_dict()
 
-    avail_event_years = get_event_years()
+    avail_event_years = get_event_years_in_database()
 
     overview_form = OverviewForm()
     type_choices = ["All"] + config.adders.event.type_choices
@@ -70,35 +70,29 @@ def overview() -> str:
         load_type = [load_type]
 
     table_data = []
-    data = get_events(load_year, load_month, load_type)
+    events = get_events(load_year, load_month, load_type)
 
-    event_dataclass = config.tables_as_settings["events"].dataclass
     located_events = []
-    if not data:
+    if not events:
         flash("No data available considering constraints selected", "alert-warning")
     else:
-        events = [event_dataclass(**event_data) for event_data in data]
         for event in events:
             table_data.append(
                 (
                     event.short_description,
                     event.event_type,
-                    event.date,
-                    ""
-                    if event.severity is None
-                    else severity_mapping[str(event.severity)],
+                    event.event_date,
+                    "" if event.id_severity is None else event.severity.text,
                 )
             )
             if event.latitude is not None and event.longitude is not None:
                 color = "blue"
-                if event.event_type in event_colors.keys():
-                    color = event_colors[event.event_type]
+                if event.event_type.text in event_colors.keys():
+                    color = event_colors[event.event_type.text]
 
                 popup_text = f"<b>{event.short_description}</b>"
                 if event.severity is not None:
-                    popup_text += (
-                        f" - Severity: {severity_mapping[str(event.severity)]}"
-                    )
+                    popup_text += f" - Severity: {event.severity.text}"
                 if event.description is not None:
                     popup_text += f"<br>{event.description}"
                 located_events.append(
@@ -107,7 +101,9 @@ def overview() -> str:
                         longitude=event.longitude,
                         popup_text=popup_text,
                         color=color,
-                        color_idx=0 if event.severity is None else event.severity,
+                        color_idx=0
+                        if event.id_severity is None
+                        else event.id_severity - 1,
                     )
                 )
 

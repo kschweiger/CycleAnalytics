@@ -10,7 +10,11 @@ from cycle_analytics.database.converter import convert_database_goals
 from cycle_analytics.model.base import LastRide
 from cycle_analytics.model.goal import Goal
 from cycle_analytics.plotting import convert_fig_to_base64, get_track_thumbnails
-from cycle_analytics.utils.base import format_timedelta, none_or_round
+from cycle_analytics.utils.base import (
+    format_timedelta,
+    get_date_range_from_year_month,
+    none_or_round,
+)
 
 from .model import (
     CategoryModel,
@@ -36,8 +40,19 @@ def get_ride_years_in_database() -> list[int]:
 
 
 def get_goal_years_in_database() -> list[int]:
-    """Get a list of all years present in ride dates"""
+    """Get a list of all years present in goals"""
     distinct_years = db.session.query(DatabaseGoal.year).distinct().all()
+
+    return [year[0] for year in distinct_years]
+
+
+def get_event_years_in_database() -> list[int]:
+    """Get a list of all years present in events"""
+    distinct_years = (
+        db.session.query(func.extract("year", DatabaseEvent.event_date))
+        .distinct()
+        .all()
+    )
 
     return [year[0] for year in distinct_years]
 
@@ -207,6 +222,35 @@ def get_recent_events(limit: int, select_event_type: None | str) -> list[Databas
     if select_event_type:
         select_event_type_id = convert_to_indices([select_event_type], EventType)[0]
         sel = sel.filter(DatabaseEvent.id_event_type == select_event_type_id)
+
+    return list(db.session.execute(sel).scalars())
+
+
+@cache.memoize(timeout=86400)
+def get_events(
+    year: None | int, month: None | int, event_types: None | list[str]
+) -> list[DatabaseEvent]:
+    logger.debug("Got Year/Month/event_type - %s/%s/%s", year, month, event_types)
+
+    sel = select(DatabaseEvent).order_by(desc(DatabaseEvent.event_date))
+    if year is None and month is not None:
+        raise RuntimeError("Year can not be None if month is not None")
+
+    _filters = []
+    if year is not None:
+        query_date_start, query_date_end = get_date_range_from_year_month(year, month)
+        _filters.extend(
+            [
+                DatabaseEvent.event_date >= query_date_start,
+                DatabaseEvent.event_date <= query_date_end,
+            ]
+        )
+    if event_types is not None:
+        event_type_idx = convert_to_indices(event_types, EventType)
+        _filters.append(DatabaseEvent.id_event_type.in_(event_type_idx))
+
+    if _filters:
+        sel = sel.filter(and_(*_filters))
 
     return list(db.session.execute(sel).scalars())
 
