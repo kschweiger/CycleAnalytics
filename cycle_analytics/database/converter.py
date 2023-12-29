@@ -1,9 +1,12 @@
+import logging
+from dataclasses import asdict
 from datetime import datetime, timedelta
 
 import pandas as pd
 from flask import current_app
 from flask_sqlalchemy import SQLAlchemy
 
+from cycle_analytics.model.goal import Goal
 from cycle_analytics.queries import (
     get_all_notes,
     get_all_segments,
@@ -15,10 +18,12 @@ from cycle_analytics.queries import (
     ride_has_track,
     ride_track_ids,
 )
+from cycle_analytics.utils.base import compare_values
 
 from .model import (
     Bike,
     DatabaseEvent,
+    DatabaseGoal,
     DatabaseSegment,
     DatabaseTrack,
     Difficulty,
@@ -31,6 +36,8 @@ from .model import (
     TrackOverview,
     TypeSpecification,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def convert_data(database: SQLAlchemy):
@@ -269,6 +276,7 @@ def convert_rides_to_df(rides: list[Ride]) -> pd.DataFrame:
         "date": [],
         "distance": [],
         "total_time": [],
+        "ride_time": [],
         "moving_time_seconds": [],
         "total_time_seconds": [],
         "moving_distance": [],
@@ -309,6 +317,7 @@ def convert_rides_to_df(rides: list[Ride]) -> pd.DataFrame:
         data["distance"].append(ride.distance)
         data["ride_type"].append(ride.terrain_type.text)
         data["total_time"].append(ride.total_duration)
+        data["ride_time"].append(ride.ride_duration)
         try:
             overview = ride.track_overview
         except RuntimeError:
@@ -317,7 +326,15 @@ def convert_rides_to_df(rides: list[Ride]) -> pd.DataFrame:
         for key in [
             key
             for key in data.keys()
-            if key not in ["distance", "date", "id_ride", "ride_type", "total_time"]
+            if key
+            not in [
+                "distance",
+                "date",
+                "id_ride",
+                "ride_type",
+                "total_time",
+                "ride_time",
+            ]
         ]:
             if overview is None:
                 data[key].append(None)
@@ -330,3 +347,101 @@ def convert_rides_to_df(rides: list[Ride]) -> pd.DataFrame:
         data_df["month"] = data_df.apply(lambda r: month_labels[r.date.month], axis=1)
 
     return data_df
+
+
+def summarize_rides_in_year(rides: list[Ride]) -> list[tuple[str, str]]:
+    # FIXME
+    data = convert_rides_to_df(rides)
+    if data.empty:
+        summary_data_ = {
+            "tot_distance": 0,
+            "tot_time": "-",
+            "num_rides": 0,
+            "avg_distance": 0,
+            "avg_ride_duration": "-",
+        }
+    else:
+        summary_data_ = {
+            "tot_distance": str(round(data.distance.sum(), 2)),
+            "tot_time": str(data.ride_time.sum()).split(".")[0],
+            "num_rides": str(len(data)),
+            "avg_distance": str(round(data.distance.mean(), 2)),
+            "avg_ride_duration": str(data.ride_time.mean())
+            .split(".")[0]
+            .replace("0 days ", ""),
+        }
+
+    summary_data = [
+        ("Total Distance [km]", summary_data_["tot_distance"]),
+        ("Total Ride time ", summary_data_["tot_time"]),
+        ("Number of rides", summary_data_["num_rides"]),
+        ("Avg. distance [km]", summary_data_["avg_distance"]),
+        (
+            "Avg. ride duration",
+            summary_data_["avg_ride_duration"],
+        ),
+    ]
+
+    return summary_data
+
+
+def summarize_rides_in_month(
+    rides_curr_month: list[Ride], rides_prev_month: list[Ride]
+) -> list[tuple[str, str]]:
+    curr_month_data = convert_rides_to_df(rides_curr_month)
+    last_month_data = convert_rides_to_df(rides_prev_month)
+
+    curr_month_distance = curr_month_data.distance.sum()
+    last_month_distance = last_month_data.distance.sum()
+
+    curr_month_ride_time = curr_month_data.ride_time.sum()
+    last_month_ride_time = last_month_data.ride_time.sum()
+    if curr_month_ride_time == 0:
+        curr_month_ride_time = pd.Timedelta(seconds=0)
+    if last_month_ride_time == 0:
+        last_month_ride_time = pd.Timedelta(seconds=0)
+    curr_month_count = len(curr_month_data)
+    last_month_count = len(last_month_data)
+
+    summary_month = [
+        (
+            "Distance [km]",
+            round(curr_month_distance, 2),
+            compare_values(curr_month_distance - last_month_distance, 5),
+        ),
+        (
+            "Ride time",
+            curr_month_ride_time,
+            compare_values(
+                curr_month_ride_time - last_month_ride_time,
+                pd.Timedelta(minutes=15),
+            ),
+        ),
+        (
+            "Rides",
+            curr_month_count,
+            compare_values(curr_month_count - last_month_count, 1),
+        ),
+    ]
+
+    return summary_month
+
+
+def convert_database_goals(data: list[DatabaseGoal]) -> list[Goal]:
+    from cycle_analytics.model.goal import MonthlyGoal, YearlyGoal
+
+    goals: list[Goal] = []
+
+    for db_goal in data:
+        if db_goal.month is None:
+            goals.append(YearlyGoal(**asdict(db_goal)))
+        else:
+            if db_goal.month == 0:
+                for i in range(1, 13):
+                    goal_dict = asdict(db_goal)
+                    goal_dict["month"] = i
+                    goals.append(MonthlyGoal(**goal_dict))
+            else:
+                goals.append(MonthlyGoal(**asdict(db_goal)))
+
+    return goals

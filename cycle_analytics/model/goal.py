@@ -43,10 +43,10 @@ class GoalType(str, Enum):
 
 class Goal(ABC):
     def __init__(self, **kwargs) -> None:
-        self.name: str = kwargs["goal_name"]
-        self.id: int = kwargs["id_goal"]
+        self.name: str = kwargs["name"]
+        self.id: int = kwargs["id"]
         self.description: None | str = kwargs["description"]
-        self.type = GoalType(kwargs["type"])
+        self.type = GoalType(kwargs["goal_type"])
         self.threshold: float = kwargs["threshold"]
         self.is_upper_bound: bool = kwargs["is_upper_bound"]
         self.year: int = kwargs["year"]

@@ -4,6 +4,10 @@ from typing import Literal
 import pandas as pd
 
 
+def none_or_round(value: None | float, digits: int = 2) -> None | float:
+    return None if value is None else round(value, digits)
+
+
 def get_nice_timedelta_isoformat(time: str) -> str:
     time_ = time.split("T")
     days = time_[0].replace("P", "").replace("D", "")

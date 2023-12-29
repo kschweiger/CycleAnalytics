@@ -34,6 +34,7 @@ from cycle_analytics.queries import (
     get_note,
     modify_note,
 )
+from cycle_analytics.utils.base import none_or_round
 from cycle_analytics.utils.forms import get_track_data_from_form
 from cycle_analytics.utils.track import add_track_to_db
 
@@ -90,9 +91,6 @@ def display(id_ride: int) -> str | Response:
     has_enhanced_track = any([t.is_enhanced for t in ride.tracks])
 
     track = ride.track
-
-    def none_or_round(value: None | float, digits: int = 2) -> None | float:
-        return None if value is None else round(value, digits)
 
     track_data = None
     track_overview = None

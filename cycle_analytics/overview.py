@@ -16,8 +16,8 @@ from wtforms.validators import DataRequired
 
 from cycle_analytics.database.converter import convert_rides_to_df
 from cycle_analytics.database.retriever import (
+    get_ride_years_in_database,
     get_rides_in_timeframe,
-    get_years_in_database,
 )
 from cycle_analytics.forms import YearAndRideTypeForm
 from cycle_analytics.plotting import per_month_overview_plots
@@ -131,7 +131,7 @@ def main() -> str:
     curr_year = date.today().year
     overview_form.year.choices = (
         [(str(curr_year), str(curr_year))]
-        + [(str(y), str(y)) for y in get_years_in_database() if y != curr_year]
+        + [(str(y), str(y)) for y in get_ride_years_in_database() if y != curr_year]
         + [("All", "All")]
     )
     selected_year = overview_form.year.data
@@ -365,7 +365,7 @@ def journal() -> str:
 
     curr_year = date.today().year
     overview_form.year.choices = [(str(curr_year), str(curr_year))] + [
-        (str(y), str(y)) for y in get_years_in_database() if y != curr_year
+        (str(y), str(y)) for y in get_ride_years_in_database() if y != curr_year
     ]
 
     select_ride_types_ = overview_form.ride_type.data
