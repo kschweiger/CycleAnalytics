@@ -4,10 +4,8 @@ SQLALCHEMY_DATABASE_URI = "@format {this.database_type}://{this.database_user}:{
 database_type = "postgresql+psycopg2"
 database_schema = "cycle_analytics"
 database_user = "dev"
-database_server = "192.168.178.76"
 database_port = "5432"
 database_name = "development"
-database_password = "13480824"
 
 
 [categorized_values]

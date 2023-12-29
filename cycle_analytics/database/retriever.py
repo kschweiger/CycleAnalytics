@@ -230,3 +230,32 @@ def load_goals(year: int | str, load_active: bool, load_inactive: bool) -> list[
     sel = sel.filter(*_filters)
 
     return convert_database_goals(list(db.session.execute(sel).scalars()))
+
+
+@cache.memoize(timeout=86400)
+def get_rides_for_bike(id_bike: int) -> list[Ride]:
+    return list(
+        db.session.execute(select(Ride).filter_by(Ride.id_bike == id_bike)).scalars()
+    )
+
+
+def get_agg_data_for_bike(id_bike: int):
+    result = (
+        db.session.query(
+            func.count().label("Number of rides"),
+            func.sum(Ride.distance).label("Total distance [km]"),
+            func.sum(Ride.total_duration).label("Total time "),
+            func.min(Ride.ride_date).label("Date of first ride"),
+            func.max(Ride.ride_date).label("Date of last ride"),
+        )
+        .filter(Ride.id_bike == id_bike)
+        .first()
+    )
+
+    if result:
+        res_dict = result._asdict()
+        if res_dict["Total distance [km]"]:
+            res_dict["Total distance [km]"] = round(res_dict["Total distance [km]"], 2)
+        return res_dict
+
+    return None

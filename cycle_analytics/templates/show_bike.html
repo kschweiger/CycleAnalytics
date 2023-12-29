@@ -21,18 +21,16 @@
             </tr>
             <tr>
                 <th scope="row">Material</th>
-                <td>{{bike.material.name}}</td>
+                <td>{{bike.material.text}}</td>
             </tr>
             <tr>
                 <th scope="row">Type</th>
-                <td>{{bike.type.name}}</td>
+                <td>{{bike.terrain_type.text}}</td>
             </tr>
-            {% if bike.type_specification is not none%}
             <tr>
                 <th scope="row"></th>
-                <td>{{bike.type_specification}}</td>
+                <td>{{bike.specification.text}}</td>
             </tr>
-            {% endif %}
             {% if bike.weight is not none%}
             <tr>
                 <th scope="row"></th>
@@ -57,26 +55,12 @@
     <h5>Summary of data tracked for bike:</h5>
     <table class="table mt-3">
         <tbody>
+            {% for key, value in agg_data.items()%}
             <tr>
-                <th scope="row">No. Rides</th>
-                <td>{{agg_data["rides"]}}</td>
+                <th scope="row">{{key}}</th>
+                <td>{{value}}</td>
             </tr>
-            <tr>
-                <th scope="row">Total distance</th>
-                <td>{{agg_data["total_distance"]}}</td>
-            </tr>
-            <tr>
-                <th scope="row">Total time</th>
-                <td>{{agg_data["total_time"]}}</td>
-            </tr>
-            <tr>
-                <th scope="row">First ride</th>
-                <td>{{agg_data["first_ride"]}}</td>
-            </tr>
-            <tr>
-                <th scope="row">Last ride</th>
-                <td>{{agg_data["last_ride"]}}</td>
-            </tr>
+            {% endfor %}
         </tbody>
     </table>
     {%endif%}
