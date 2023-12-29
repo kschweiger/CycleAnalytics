@@ -10,6 +10,7 @@ from cycle_analytics.database.converter import convert_database_goals
 from cycle_analytics.model.base import LastRide
 from cycle_analytics.model.goal import Goal
 from cycle_analytics.plotting import convert_fig_to_base64, get_track_thumbnails
+from cycle_analytics.rest_models import SegmentForMap
 from cycle_analytics.utils.base import (
     format_timedelta,
     get_date_range_from_year_month,
@@ -20,6 +21,7 @@ from .model import (
     CategoryModel,
     DatabaseEvent,
     DatabaseGoal,
+    DatabaseSegment,
     DatabaseTrack,
     EventType,
     Ride,
@@ -303,3 +305,48 @@ def get_agg_data_for_bike(id_bike: int):
         return res_dict
 
     return None
+
+
+def get_segments_for_map_in_bounds(
+    ignore_ids: list[int],
+    ne_lat: float,
+    ne_lng: float,
+    sw_lat: float,
+    sw_lng: float,
+    color_typ_mappign: dict[str, str],
+    url_base: str,
+) -> list[SegmentForMap]:
+    ...
+    sel = select(DatabaseSegment)
+    _filter = [
+        DatabaseSegment.bounds_min_lat >= sw_lat,
+        DatabaseSegment.bounds_max_lat <= ne_lat,
+        DatabaseSegment.bounds_min_lng >= sw_lng,
+        DatabaseSegment.bounds_max_lng <= ne_lng,
+    ]
+    if ignore_ids:
+        _filter.append(DatabaseSegment.id.notin_(ignore_ids))
+
+    segments_for_map = []
+
+    segments = db.session.execute(sel.filter(and_(*_filter))).scalars()
+
+    for segment in segments:
+        segment: DatabaseSegment
+        track = ByteTrack(segment.gpx, 0)
+
+        segments_for_map.append(
+            SegmentForMap(
+                segment_id=segment.id,
+                name=segment.name,
+                points=[
+                    (p.latitude, p.longitude) for p in track.track.segments[0].points
+                ],
+                url=url_base + str(segment.id),
+                type=segment.segment_type.text,
+                difficulty=segment.difficulty.text,
+                color=color_typ_mappign[segment.segment_type.text],
+            )
+        )
+
+    return segments_for_map

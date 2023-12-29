@@ -17,6 +17,7 @@ from flask_wtf import FlaskForm
 from plotly.utils import PlotlyJSONEncoder
 from pydantic import ValidationError
 from pyroutelib3 import Router
+from track_analyzer import ByteTrack
 from track_analyzer.enhancer import get_enhancer
 from track_analyzer.exceptions import (
     APIHealthCheckFailedError,
@@ -27,17 +28,15 @@ from werkzeug import Response
 from wtforms import HiddenField, SelectField, StringField, TextAreaField
 from wtforms.validators import DataRequired, Optional
 
+from cycle_analytics.database.model import DatabaseSegment
+from cycle_analytics.database.modifier import modify_segment_visited_flag
+from cycle_analytics.database.retriever import get_segments_for_map_in_bounds
 from cycle_analytics.db import get_db
 from cycle_analytics.model.base import MapData, MapPathData
 from cycle_analytics.plotting import (
     convert_fig_to_base64,
     get_track_elevation_plot,
     get_track_elevation_slope_plot,
-)
-from cycle_analytics.queries import (
-    get_segment_data,
-    get_segments_for_map_in_bounds,
-    modify_segment_visited_flag,
 )
 from cycle_analytics.rest_models import (
     SegmentsInBoundsRequest,
@@ -91,19 +90,17 @@ def show_segment(id_segment: int) -> str | Response:
         )
         logger.info("Switch segmenet %s to %s", id_segment, switch_to)
 
-    try:
-        data = get_segment_data(
-            id_segment,
-            {
-                int(key): value
-                for key, value in config.mappings.difficulty.to_dict().items()
-            },
+    segment: None | DatabaseSegment = DatabaseSegment.query.get(id_segment)
+    if segment is None:
+        flash(
+            "Invalid value of id_segnebt. Redirecting to main segment view",
+            "alert-danger",
         )
-    except QueryReturnedNoData:
-        flash("Invalid value of id_ride. Redirecting to overview", "alert-danger")
         return redirect(url_for("segments.main"))
 
-    track_segment_data = data.track.get_segment_data(0)
+    segment_track = ByteTrack(segment.gpx, 0)
+
+    track_segment_data = segment_track.get_segment_data(0)
 
     lats = track_segment_data[track_segment_data.moving].latitude.to_list()
     lats = ",".join([str(l) for l in lats])  # noqa: E741
@@ -112,10 +109,15 @@ def show_segment(id_segment: int) -> str | Response:
 
     map_data = MapData(path=MapPathData(latitudes=lats, longitudes=longs))
 
-    if data.track.track.has_elevations():
+    if segment_track.track.has_elevations():
         slope_colors = current_app.config.style.slope_colors
         plot2d = get_track_elevation_slope_plot(
-            data.track, 0, slope_colors.neutral, slope_colors.min, slope_colors.max, 20
+            segment_track,
+            0,
+            slope_colors.neutral,
+            slope_colors.min,
+            slope_colors.max,
+            20,
         )
 
         plot_elevation = json.dumps(plot2d, cls=PlotlyJSONEncoder)
@@ -126,7 +128,7 @@ def show_segment(id_segment: int) -> str | Response:
     return render_template(
         "segments/show.html",
         active_page="segments",
-        data=data,
+        data=segment,
         map_data=map_data,
         plot_elevation=plot_elevation,
     )
@@ -134,6 +136,7 @@ def show_segment(id_segment: int) -> str | Response:
 
 @bp.route("/add", methods=("GET", "POST"))
 def add_segment() -> str | Response:
+    # TODO: Convert to new database
     config = current_app.config
 
     map_segment_form = AddMapSegmentForm()
@@ -378,7 +381,6 @@ def get_segments_in_bounds() -> tuple[dict, int] | str:
             received_request.ne_longitude,
             received_request.sw_latitude,
             received_request.sw_longitude,
-            {int(k): v for k, v in config.mappings.difficulty.items()},
             color_mapping,
             url_base,
         )
