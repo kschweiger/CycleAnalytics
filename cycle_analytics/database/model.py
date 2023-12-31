@@ -231,6 +231,10 @@ class Ride(db.Model):
         # TODO: Other error
         raise RuntimeError("No overview for full track available")
 
+    @property
+    def database_track(self) -> None | DatabaseTrack:
+        return self.get_latest_track()
+
 
 @dataclass
 class DatabaseGoal(db.Model):

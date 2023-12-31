@@ -14,6 +14,7 @@ from flask import (
 )
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
+from track_analyzer import ByteTrack
 from track_analyzer.exceptions import VisualizationSetupError
 from werkzeug import Response
 from wtforms import (
@@ -90,7 +91,10 @@ def display(id_ride: int) -> str | Response:
 
     has_enhanced_track = any([t.is_enhanced for t in ride.tracks])
 
-    track = ride.track
+    database_track = ride.database_track
+    track = None
+    if database_track:
+        track = ByteTrack(database_track.content)
 
     track_data = None
     track_overview = None
@@ -113,12 +117,12 @@ def display(id_ride: int) -> str | Response:
             ("Downhill [m]", none_or_round(track_overview.downhill_elevation, 2)),
         ]
 
-    if track:
+    if track and database_track:
         show_track_add_from = False
         if not has_enhanced_track:
             logger.debug("Found raw track data but no enhanced track data")
             show_track_enhance_from = True
-        id_track = -1  # FIXME
+        id_track = database_track.id
         track_segment_data = track.get_segment_data(0)
 
         colors = current_app.config.style.color_sequence
