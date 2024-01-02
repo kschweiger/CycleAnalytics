@@ -1,7 +1,6 @@
 import logging
 from datetime import date
 
-from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import current_app, render_template, request
 
 from cycle_analytics.database.converter import (
@@ -81,10 +80,7 @@ def render_landing_page() -> str:
     inv_month_mapping = {value: key for key, value in month_mapping.items()}
     goal_months = [month_mapping[i] for i in range(1, 13)]
 
-    try:
-        goals_ = load_goals(goal_year_selected, True, False)
-    except QueryReturnedNoData:
-        goals_ = []
+    goals_ = load_goals(goal_year_selected, True, False)
 
     display_goals = [
         goal

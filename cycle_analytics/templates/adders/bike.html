@@ -23,7 +23,7 @@
         <div class="row  mt-2">
             <div class="col">
                 {{form.material.label(class_="form-label") }}
-                {{form.material(class_="form-control", placeholder_=form.material.description)}}
+                {{form.material(class_="form-select")}}
             </div>
             <div class="col">
                 {{form.weight.label(class_="form-label") }}
@@ -38,12 +38,11 @@
         <div class="row  mt-2">
             <div class="col">
                 {{form.bike_type.label(class_="form-label") }}
-                {{form.bike_type(class_="form-select", placeholder_=form.bike_type.description)}}
+                {{form.bike_type(class_="form-select")}}
             </div>
             <div class="col">
                 {{form.bike_type_specification.label(class_="form-label") }}
-                {{form.bike_type_specification(class_="form-control",
-                placeholder_=form.bike_type_specification.description)}}
+                {{form.bike_type_specification(class_="form-select")}}
             </div>
             <div class="col">
             </div>

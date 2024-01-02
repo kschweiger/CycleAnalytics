@@ -2,7 +2,7 @@ import json
 import logging
 from collections import defaultdict
 
-from data_organizer.db.exceptions import QueryReturnedNoData
+# from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import (
     Blueprint,
     current_app,
@@ -31,7 +31,8 @@ from wtforms.validators import DataRequired, Optional
 from cycle_analytics.database.model import DatabaseSegment
 from cycle_analytics.database.modifier import modify_segment_visited_flag
 from cycle_analytics.database.retriever import get_segments_for_map_in_bounds
-from cycle_analytics.db import get_db
+
+# from cycle_analytics.db import get_db
 from cycle_analytics.model.base import MapData, MapPathData
 from cycle_analytics.plotting import (
     convert_fig_to_base64,
@@ -374,17 +375,15 @@ def get_segments_in_bounds() -> tuple[dict, int] | str:
         {k: v for k, v in color_mapping_.items() if k != "default"},
     )
     url_base = url_for("segments.show_segment", id_segment=0).replace("0", "")
-    try:
-        segments = get_segments_for_map_in_bounds(
-            received_request.ids_on_map,
-            received_request.ne_latitude,
-            received_request.ne_longitude,
-            received_request.sw_latitude,
-            received_request.sw_longitude,
-            color_mapping,
-            url_base,
-        )
-    except QueryReturnedNoData:
-        segments = []
+
+    segments = get_segments_for_map_in_bounds(
+        received_request.ids_on_map,
+        received_request.ne_latitude,
+        received_request.ne_longitude,
+        received_request.sw_latitude,
+        received_request.sw_longitude,
+        color_mapping,
+        url_base,
+    )
 
     return SegmentsInBoundsResponse(segments=segments).json()

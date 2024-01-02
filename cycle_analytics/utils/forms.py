@@ -1,6 +1,6 @@
 from flask import current_app
 from flask_wtf import FlaskForm
-from track_analyzer import FITTrack
+from track_analyzer import ByteTrack, FITTrack, Track
 from werkzeug.datastructures import FileStorage
 from wtforms import Field
 
@@ -13,7 +13,7 @@ def allowed_file(filename: str) -> bool:
     )
 
 
-def get_track_data_from_form(form: FlaskForm, field_name: str) -> bytes:
+def get_track_from_form(form: FlaskForm, field_name: str) -> Track:
     field: Field = getattr(form, field_name)
 
     if not isinstance(field.data, FileStorage):
@@ -32,7 +32,7 @@ def get_track_data_from_form(form: FlaskForm, field_name: str) -> bytes:
         )
 
     if filename.endswith(".fit"):
-        track = FITTrack(source=data.stream.read())
-        return track.get_xml().encode()
+        return FITTrack(source=data.stream.read())
+
     else:
-        return data.stream.read()
+        return ByteTrack(data.stream.read())

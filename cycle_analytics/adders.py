@@ -1,11 +1,11 @@
-import json
 import logging
 from datetime import date
 
-from data_organizer.db.exceptions import QueryReturnedNoData
+# from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import Blueprint, current_app, flash, redirect, render_template, request
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
+from sqlalchemy.exc import IntegrityError
 from werkzeug import Response
 from wtforms import (
     DateField,
@@ -20,17 +20,23 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired, NumberRange, Optional
 
-from cycle_analytics.db import get_db
+from cycle_analytics.database.model import (
+    Bike,
+    DatabaseEvent,
+    DatabaseGoal,
+    EventType,
+    Material,
+    Ride,
+    Severity,
+    TerrainType,
+    TypeSpecification,
+)
+from cycle_analytics.database.model import db as orm_db
 from cycle_analytics.model.base import MapData, MapPathData
 from cycle_analytics.model.goal import GoalType
-from cycle_analytics.queries import (
-    get_bike_names,
-    get_last_id,
-    get_track_for_id,
-)
 from cycle_analytics.utils import get_month_mapping
-from cycle_analytics.utils.forms import get_track_data_from_form
-from cycle_analytics.utils.track import add_track_to_db
+from cycle_analytics.utils.forms import get_track_from_form
+from cycle_analytics.utils.track import init_db_track_and_enhance
 
 logger = logging.getLogger(__name__)
 
@@ -61,13 +67,6 @@ class EventForm(FlaskForm):
     severity = SelectField(
         "Severity",
         validators=[DataRequired()],
-        choices=[
-            (-1, "None"),
-            (0, "Minor"),
-            (1, "Medium"),
-            (2, "Major"),
-            (3, "Critical"),
-        ],
     )
     latitude = DecimalField(
         "Latitude of event",
@@ -144,7 +143,7 @@ class BikeForm(FlaskForm):
     model = StringField(
         "Model", validators=[DataRequired()], description="Full name of the bike"
     )
-    material = StringField(
+    material = SelectField(
         "Frame material",
         validators=[DataRequired()],
         description="Material of the frame",
@@ -158,14 +157,11 @@ class BikeForm(FlaskForm):
 
     bike_type = SelectField(
         "Bike Type",
-        choices=[("mtb", "MTB"), ("road", "Road"), ("gravel", "Gravel")],
-        default="mtb",
     )
-    bike_type_specification = StringField(
+    bike_type_specification = SelectField(
         "Type specification",
         description="Optional specification of the bike type",
-        default=None,
-        validators=[Optional()],
+        validators=[DataRequired()],
     )
 
     purchase = DateField("Purchase Date", validators=[DataRequired()])
@@ -198,52 +194,55 @@ def add_ride() -> str | Response:
     form = RideForm()
     config = current_app.config
 
-    type_choices = [config.defaults.ride_type] + [
-        c for c in config.adders.ride.type_choices if c != config.defaults.ride_type
-    ]
-
-    form.ride_type.choices = [(c, c) for c in type_choices]
-    form.bike.choices = [(b, b) for b in get_bike_names()]
+    all_terrain_choices = TerrainType.query.all()
+    form.ride_type.choices = [
+        (tt.id, tt.text)
+        for tt in all_terrain_choices
+        if tt.text == config.defaults.ride_type
+    ] + [
+        (tt.id, tt.text)
+        for tt in all_terrain_choices
+        if tt.text != config.defaults.ride_type
+    ]  # type: ignore
+    form.bike.choices = [(b.id, b.name) for b in Bike.query.all()]
 
     if form.validate_on_submit():
-        db = get_db()
-        data_to_insert = [
-            [
-                form.date.data,
-                form.start_time.data.isoformat(),  # TEMP: Fix in DataOrganizer
-                form.ride_time.data.isoformat()
-                if form.ride_time.data
-                else None,  # TEMP: Fix in DataOrganizer
-                form.total_time.data.isoformat(),  # TEMP: Fix in DataOrganizer
-                form.distance.data,
-                form.bike.data,
-                form.ride_type.data,
-            ]
-        ]
-        insert_succ, err = db.insert(
-            current_app.config.tables_as_settings[
-                current_app.config.defaults.main_data_table
-            ],
-            data_to_insert,
+        ride = Ride(
+            ride_date=form.date.data,
+            start_time=form.start_time.data,
+            ride_duration=form.ride_time.data,
+            total_duration=form.total_time.data,
+            distance=form.distance.data,
+            id_bike=int(form.bike.data),
+            id_terrain_type=int(form.ride_type.data),
         )
-        if insert_succ:
-            flash("Ride added successfully", "alert-success")
+
+        orm_db.session.add(ride)
+        try:
+            orm_db.session.commit()
+        except IntegrityError as e:
+            flash("Error: %s" % e, "alert-danger")
+            insert_succ = False
         else:
-            flash(f"Ride could not be added: {err}", "alert-danger")
+            flash("Ride Added", "alert-success")
+            insert_succ = True
+
         if form.track.data is not None and insert_succ:
-            last_id = get_last_id(
-                current_app.config.tables_as_settings[
-                    current_app.config.defaults.main_data_table
-                ].name,
-                "id_ride",
-                True,
-                None,
-            )
-            add_track_to_db(
-                data=get_track_data_from_form(form, "track"),
-                replace=False,
-                id_ride=last_id,
-            )
+            try:
+                track = get_track_from_form(form, "track")
+            except RuntimeError as e:
+                flash("Error: %s" % e, "alert-danger")
+            else:
+                tracks_to_insert = init_db_track_and_enhance(
+                    track=track, is_enhanced=False
+                )
+                ride.tracks.extend(tracks_to_insert)
+                try:
+                    orm_db.session.commit()
+                except IntegrityError as e:
+                    flash("Error: %s" % e, "alert-danger")
+                else:
+                    flash(f"{len(tracks_to_insert)} tracks added", "alert-success")
 
         return redirect("/overview")
 
@@ -253,6 +252,7 @@ def add_ride() -> str | Response:
     return render_template("adders/ride.html", active_page="add_ride", form=form)
 
 
+# TODO: Bike can also be be passed
 @bp.route("/event", methods=("GET", "POST"))
 def add_event() -> str | Response:
     config = current_app.config
@@ -260,13 +260,18 @@ def add_event() -> str | Response:
     arg_ride_id = request.args.get("id_ride")
 
     form = EventForm()
-    type_choices = [config.defaults.event_type] + [
-        c for c in config.adders.event.type_choices if c != config.defaults.event_type
-    ]
 
-    form.event_type.choices = [(c, c) for c in type_choices]
+    all_event_times: list[EventType] = EventType.query.all()
+    type_choices = [
+        et for et in all_event_times if et.text == config.defaults.event_type
+    ] + [et for et in all_event_times if et.text != config.defaults.event_type]
+    form.event_type.choices = [(c.id, c.text) for c in type_choices]
     form.id_ride.data = None
-    form.bike.choices = [("None", "-")] + [(b, b) for b in get_bike_names()]
+    form.bike.choices = [(-1, "-")] + [(b.id, b.name) for b in Bike.query.all()]
+
+    form.severity.choices = [(-1, "None")] + [
+        (s.id, s.text) for s in Severity.query.all()
+    ]
 
     if arg_date is not None:
         try:
@@ -280,11 +285,9 @@ def add_event() -> str | Response:
     map_data = None
     if arg_ride_id is not None:
         form.id_ride.data = arg_ride_id
-        try:
-            track = get_track_for_id(arg_ride_id)
-        except QueryReturnedNoData:
-            map_data = None
-        else:
+        ride = orm_db.get_or_404(Ride, form.id_ride.data)
+        track = ride.track
+        if track:
             track_segment_data = track.get_segment_data(0)
             lats = track_segment_data[track_segment_data.moving].latitude.to_list()
             lats = ",".join([str(l) for l in lats])  # noqa: E741
@@ -292,30 +295,31 @@ def add_event() -> str | Response:
             longs = ",".join([str(l) for l in longs])  # noqa: E741
 
             map_data = MapData(path=MapPathData(latitudes=lats, longitudes=longs))
+        else:
+            map_data = None
 
     if form.validate_on_submit():
-        db = get_db()
-        data_to_insert = [
-            [
-                form.date.data,
-                form.event_type.data,
-                form.short_description.data,
-                None if form.description.data == "" else form.description.data,
-                None if int(form.severity.data) == -1 else form.severity.data,
-                form.latitude.data,
-                form.longitude.data,
-                form.id_ride.data,
-                None if form.bike.data == "None" else form.bike.data,
-            ]
-        ]
-        insert_succ, err = db.insert(
-            current_app.config.tables_as_settings["events"],
-            data_to_insert,
+        event = DatabaseEvent(
+            event_date=form.date.data,
+            id_event_type=int(form.event_type.data),
+            id_severity=None if form.severity.data == "-1" else int(form.severity.data),
+            id_bike=None if form.bike.data == "-1" else int(form.bike.data),
+            short_description=form.short_description.data,
+            description=None if form.description.data == "" else form.description.data,
+            latitude=form.latitude.data,
+            longitude=form.longitude.data,
         )
-        if insert_succ:
-            flash("Event Added", "alert-success")
+        if form.id_ride.data:
+            ride = orm_db.get_or_404(Ride, form.id_ride.data)
+            ride.events.append(event)
+
+        orm_db.session.add(event)
+        try:
+            orm_db.session.commit()
+        except IntegrityError as e:
+            flash("Error: %s" % e, "alert-danger")
         else:
-            flash(f"Event could not be added: {err}", "alert-danger")
+            flash("Event Added", "alert-success")
 
     elif request.method == "POST":
         flash_form_error(form)
@@ -336,45 +340,38 @@ def add_event() -> str | Response:
 @bp.route("/goal", methods=("GET", "POST"))
 def add_goal() -> str | Response:
     form = GoalForm()
-    config = current_app.config
 
-    form.ride_types.choices = config.adders.ride.type_choices
-    form.bike.choices = get_bike_names()
+    form.ride_types.choices = [(tt.text, tt.text) for tt in TerrainType.query.all()]
+    form.bike.choices = [(b.name, b.name) for b in Bike.query.all()]
 
     if form.validate_on_submit():
-        constraints_ = {}
+        constraints = {}
         if form.bike.data:
-            constraints_["bike"] = form.bike.data
+            constraints["bike"] = form.bike.data
         if form.ride_types.data:
-            constraints_["ride_type"] = form.ride_types.data
+            constraints["ride_type"] = form.ride_types.data
+        if not constraints:
+            constraints = None
 
-        constraints: None | str = None
-        if constraints_:
-            constraints = json.dumps(constraints_)
-        db = get_db()
-        data_to_insert = [
-            [
-                form.year.data,
-                None if int(form.month.data) == -1 else int(form.month.data),
-                form.name.data,
-                form.goal_type.data,
-                form.threshold.data,
-                bool(int(form.boundary.data)),
-                constraints,  # Constraints
-                None if form.description.data == "" else form.description.data,
-                False,  # has_been_reached
-                True,  # Active
-            ]
-        ]
-        insert_succ, err = db.insert(
-            current_app.config.tables_as_settings["goals"],
-            data_to_insert,
+        goal = DatabaseGoal(
+            year=int(form.year.data),
+            month=None if int(form.month.data) == -1 else int(form.month.data),
+            name=form.name.data,
+            goal_type=form.goal_type.data,
+            threshold=form.threshold.data,
+            is_upper_bound=bool(int(form.boundary.data)),
+            constraints=constraints,
+            description=None if form.description.data == "" else form.description.data,
         )
-        if insert_succ:
-            flash("Goal Added", "alert-success")
+        orm_db.session.add(goal)
+        try:
+            orm_db.session.commit()
+        except IntegrityError as e:
+            flash("Error: %s" % e, "alert-danger")
         else:
-            flash(f"Track could not be added: {err}", "alert-danger")
-
+            flash("Goal Added", "alert-success")
+    elif request.method == "POST":
+        flash_form_error(form)
     return render_template("adders/goal.html", active_page="add_goal", form=form)
 
 
@@ -382,31 +379,31 @@ def add_goal() -> str | Response:
 def add_bike() -> str | Response:
     form = BikeForm()
 
+    form.bike_type.choices = [(tt.id, tt.text) for tt in TerrainType.query.all()]
+    form.bike_type_specification.choices = [
+        (sp.id, sp.text) for sp in TypeSpecification.query.all()
+    ]
+    form.material.choices = [(fm.id, fm.text) for fm in Material.query.all()]
+
     if form.validate_on_submit():
-        data_to_insert = [
-            (
-                form.name.data,
-                form.brand.data,
-                form.model.data,
-                form.material.data,
-                form.bike_type.data,
-                None
-                if form.bike_type_specification.data == ""
-                else form.bike_type_specification.data,
-                form.weight.data,
-                form.purchase.data.isoformat(),
-                None,
-            )
-        ]
-        db = get_db()
-        insert_succ, err = db.insert(
-            current_app.config.tables_as_settings["bikes"],
-            data_to_insert,
+        bike = Bike(
+            name=form.name.data,
+            brand=form.brand.data,
+            model=form.model.data,
+            id_material=int(form.material.data),
+            id_terraintype=int(form.bike_type.data),
+            id_specification=int(form.bike_type_specification.data),
+            weight=form.weight.data,
+            commission_date=form.purchase.data,
         )
-        if insert_succ:
-            flash("Goal Added", "alert-success")
+        orm_db.session.add(bike)
+        try:
+            orm_db.session.commit()
+        except IntegrityError as e:
+            flash("Error: %s" % e, "alert-danger")
         else:
-            flash(f"Track could not be added: {err}", "alert-danger")
+            flash("Bike Added", "alert-success")
+
     elif request.method == "POST":
         flash_form_error(form)
     return render_template("adders/bike.html", active_page="settings", form=form)

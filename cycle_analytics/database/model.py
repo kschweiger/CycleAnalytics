@@ -114,7 +114,7 @@ class DatabaseTrack(db.Model):
     is_enhanced: bool = db.Column(db.Boolean, nullable=False, default=False)
 
     overviews: list[TrackOverview] = db.relationship(
-        "TrackOverview", backref="ride", lazy=False
+        "TrackOverview", backref="ride", lazy=False, cascade="all, delete"
     )  # type: ignore
 
     def __repr__(self) -> str:
@@ -263,7 +263,7 @@ class DatabaseSegment(db.Model):
     id_segment_type: int = db.Column(
         db.Integer, db.ForeignKey("segment_type.id"), nullable=False
     )
-    id_difficulty: None | int = db.Column(
+    id_difficulty: int = db.Column(
         db.Integer, db.ForeignKey("difficulty.id"), nullable=False
     )
     distance: float = db.Column(db.Float, nullable=False)

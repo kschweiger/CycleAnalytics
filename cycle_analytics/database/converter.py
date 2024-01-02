@@ -5,19 +5,10 @@ from datetime import datetime, timedelta
 import pandas as pd
 from flask import current_app
 from flask_sqlalchemy import SQLAlchemy
+from track_analyzer import Track
+from track_analyzer.model import SegmentOverview
 
 from cycle_analytics.model.goal import Goal
-from cycle_analytics.queries import (
-    get_all_notes,
-    get_all_segments,
-    get_bike_names,
-    get_events,
-    get_full_bike_date,
-    get_rides_in_timeframe,
-    get_track_data,
-    ride_has_track,
-    ride_track_ids,
-)
 from cycle_analytics.utils.base import compare_values
 
 from .model import (
@@ -41,6 +32,18 @@ logger = logging.getLogger(__name__)
 
 
 def convert_data(database: SQLAlchemy):
+    from cycle_analytics.queries import (
+        get_all_notes,
+        get_all_segments,
+        get_bike_names,
+        get_events,
+        get_full_bike_date,
+        get_rides_in_timeframe,
+        get_track_data,
+        ride_has_track,
+        ride_track_ids,
+    )
+
     bikes = {}
     for name in get_bike_names():
         data = get_full_bike_date(name)
@@ -277,6 +280,7 @@ def convert_rides_to_df(rides: list[Ride]) -> pd.DataFrame:
         "distance": [],
         "total_time": [],
         "ride_time": [],
+        "bike": [],
         "moving_time_seconds": [],
         "total_time_seconds": [],
         "moving_distance": [],
@@ -318,6 +322,7 @@ def convert_rides_to_df(rides: list[Ride]) -> pd.DataFrame:
         data["ride_type"].append(ride.terrain_type.text)
         data["total_time"].append(ride.total_duration)
         data["ride_time"].append(ride.ride_duration)
+        data["bike"].append(ride.bike.name)
         try:
             overview = ride.track_overview
         except RuntimeError:
@@ -334,6 +339,7 @@ def convert_rides_to_df(rides: list[Ride]) -> pd.DataFrame:
                 "ride_type",
                 "total_time",
                 "ride_time",
+                "bike",
             ]
         ]:
             if overview is None:
@@ -445,3 +451,61 @@ def convert_database_goals(data: list[DatabaseGoal]) -> list[Goal]:
                 goals.append(MonthlyGoal(**asdict(db_goal)))
 
     return goals
+
+
+def track_to_db_overview(
+    overview: SegmentOverview,
+    id_track: None | int,
+    id_segment: None | int,
+    bounds: tuple[float, float, float, float],
+) -> TrackOverview:
+    min_lat, max_lat, min_lng, max_lng = bounds
+    data = dict(
+        id_segment=id_segment,
+        moving_time_seconds=overview.moving_time_seconds,
+        total_time_seconds=overview.total_time_seconds,
+        moving_distance=overview.moving_distance,
+        total_distance=overview.total_distance,
+        max_velocity=overview.max_velocity,
+        avg_velocity=overview.avg_velocity,
+        max_elevation=overview.max_elevation,
+        min_elevation=overview.min_elevation,
+        uphill_elevation=overview.uphill_elevation,
+        downhill_elevation=overview.downhill_elevation,
+        moving_distance_km=overview.moving_distance_km,
+        total_distance_km=overview.total_distance_km,
+        max_velocity_kmh=overview.max_velocity_kmh,
+        avg_velocity_kmh=overview.avg_velocity_kmh,
+        bounds_min_lat=min_lat,
+        bounds_max_lat=max_lat,
+        bounds_min_lng=min_lng,
+        bounds_max_lng=max_lng,
+    )
+    if id_track:
+        data["id_track"] = id_track
+
+    return TrackOverview(**data)
+
+
+# TEMP: Update this with track_analyzer >=1.0
+# TODO: Should check if multipel segments. If yes, get track_overview and insert with
+# TODO: id_segment=None and then add segment overviews. If not, just inster with
+# TODO: id_segment = None
+def initialize_overviews(
+    track: Track,
+    id_track: None | int = None,
+) -> list[TrackOverview]:
+    bounds = track.track.segments[0].get_bounds()
+    return [
+        track_to_db_overview(
+            track.get_segment_overview(0),
+            id_track,
+            None,
+            (
+                bounds.min_latitude,
+                bounds.max_latitude,
+                bounds.min_longitude,
+                bounds.max_longitude,
+            ),  # type: ignore
+        )
+    ]

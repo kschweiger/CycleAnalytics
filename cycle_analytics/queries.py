@@ -3,8 +3,9 @@ from datetime import date, timedelta
 from typing import Any, Dict, Optional, Tuple
 
 import pandas as pd
-import psycopg2
-from data_organizer.db.exceptions import QueryReturnedNoData
+
+# import psycopg2
+# from data_organizer.db.exceptions import QueryReturnedNoData
 from pandas import Timedelta
 from pypika import Criterion, JoinType, Order, Table
 from pypika.functions import Count, Extract, Max, Min, Sum

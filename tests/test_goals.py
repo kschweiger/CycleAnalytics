@@ -8,11 +8,11 @@ from cycle_analytics.model.goal import MonthlyGoal, YearlyGoal, initialize_goals
 
 def test_initialize_goals():
     columns = [
-        "id_goal",
+        "id",
         "year",
         "month",
-        "goal_name",
-        "type",
+        "name",
+        "goal_type",
         "threshold",
         "is_upper_bound",
         "description",
@@ -79,11 +79,11 @@ def test_initialize_goals():
 )
 def test_goal_compute_value(goal_type, exp_value):
     kwargs = {
-        "id_goal": 1,
+        "id": 1,
         "year": 2022,
         "month": None,
-        "goal_name": "YearlyGoal",
-        "type": goal_type,
+        "name": "YearlyGoal",
+        "goal_type": goal_type,
         "threshold": 10,
         "is_upper_bound": True,
         "description": "Description YearlyGoal",
@@ -114,11 +114,11 @@ def test_goal_compute_value(goal_type, exp_value):
 )
 def test_yearly_goal(is_upper_bound, threshold, exp_result):
     kwargs = {
-        "id_goal": 1,
+        "id": 1,
         "year": 2022,
         "month": None,
-        "goal_name": "YearlyGoal",
-        "type": "count",
+        "name": "YearlyGoal",
+        "goal_type": "count",
         "threshold": threshold,
         "is_upper_bound": is_upper_bound,
         "description": "Description YearlyGoal",
@@ -144,11 +144,11 @@ def test_yearly_goal(is_upper_bound, threshold, exp_result):
 
 def test_monthly_goal():
     kwargs = {
-        "id_goal": 1,
+        "id": 1,
         "year": 2022,
         "month": 2,
-        "goal_name": "YearlyGoal",
-        "type": "count",
+        "name": "YearlyGoal",
+        "goal_type": "count",
         "threshold": 3,
         "is_upper_bound": True,
         "description": "Description YearlyGoal",
@@ -193,11 +193,11 @@ def test_monthly_goal():
 )
 def test_evaluate(goal_type, theshold, upper_bound, exp_check, exp_value, exp_progress):
     kwargs = {
-        "id_goal": 1,
+        "id": 1,
         "year": 2022,
         "month": None,
-        "goal_name": "YearlyGoal",
-        "type": goal_type,
+        "name": "YearlyGoal",
+        "goal_type": goal_type,
         "threshold": theshold,
         "is_upper_bound": upper_bound,
         "description": "Description YearlyGoal",
@@ -238,11 +238,11 @@ def test_evaluate(goal_type, theshold, upper_bound, exp_check, exp_value, exp_pr
 )
 def test_constraints(constraints, exp_len):
     kwargs = {
-        "id_goal": 1,
+        "id": 1,
         "year": 2022,
         "month": None,
-        "goal_name": "YearlyGoal",
-        "type": "count",
+        "name": "YearlyGoal",
+        "goal_type": "count",
         "threshold": 5,
         "is_upper_bound": True,
         "description": "Description YearlyGoal",

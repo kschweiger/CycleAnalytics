@@ -18,26 +18,22 @@ from track_analyzer import ByteTrack
 from track_analyzer.exceptions import VisualizationSetupError
 from werkzeug import Response
 from wtforms import (
+    RadioField,
     StringField,
 )
 from wtforms.validators import DataRequired
 
-from cycle_analytics.database.model import Ride
+from cycle_analytics.database.model import Ride, RideNote
 from cycle_analytics.database.model import db as orm_db
-from cycle_analytics.db import get_db
 from cycle_analytics.model.base import MapData, MapMarker, MapPathData
 from cycle_analytics.plotting import (
     get_track_elevation_extension_plot,
     get_track_elevation_plot,
     get_track_elevation_slope_plot,
 )
-from cycle_analytics.queries import (
-    get_note,
-    modify_note,
-)
 from cycle_analytics.utils.base import none_or_round
-from cycle_analytics.utils.forms import get_track_data_from_form
-from cycle_analytics.utils.track import add_track_to_db
+from cycle_analytics.utils.forms import get_track_from_form
+from cycle_analytics.utils.track import init_db_track_and_enhance
 
 bp = Blueprint("ride", __name__, url_prefix="/ride")
 
@@ -46,6 +42,12 @@ logger = logging.getLogger(__name__)
 
 class AddTrackForm(FlaskForm):
     track = FileField("GPX Track")
+    enhance_elevation = RadioField(
+        "Enhance Elevation",
+        choices=[(True, "Enhance Elevation")],
+        coerce=bool,
+        validate_choice=False,
+    )
     replace = StringField("Replace", default="0", validators=[DataRequired()])
 
 
@@ -54,16 +56,27 @@ def display(id_ride: int) -> str | Response:
     config = current_app.config
 
     form = AddTrackForm()
+    # TODO: This should be a setting
+    form.enhance_elevation.data = True
 
     ride = orm_db.get_or_404(Ride, id_ride)
 
     show_track_add_from = True
     if form.validate_on_submit():
-        add_track_to_db(
-            data=get_track_data_from_form(form, "track"),
-            replace=form.replace.data == "1",
-            id_ride=id_ride,
-        )
+        try:
+            track = get_track_from_form(form, "track")
+        except RuntimeError as e:
+            flash("Error: %s" % e, "alert-danger")
+        else:
+            tracks_to_insert = init_db_track_and_enhance(
+                track=track, is_enhanced=not bool(form.enhance_elevation.data)
+            )
+            if form.replace.data == "1":
+                for tr_ in ride.tracks:
+                    orm_db.session.delete(tr_)
+                    # orm_db.session.commit()
+            ride.tracks = tracks_to_insert
+            orm_db.session.commit()
 
     show_track_enhance_from = False
 
@@ -129,7 +142,7 @@ def display(id_ride: int) -> str | Response:
 
         plot2d = get_track_elevation_plot(
             track_segment_data,
-            True,
+            not track_segment_data.speed.isna().all(),
             color_elevation=colors[0],
             color_velocity=colors[1],
             slider=True,
@@ -196,7 +209,6 @@ def display(id_ride: int) -> str | Response:
         except VisualizationSetupError:
             pw_plot = None
         else:
-            pw_figure.show()
             pw_plot = json.dumps(pw_figure, cls=plotly.utils.PlotlyJSONEncoder)
 
     else:
@@ -254,34 +266,29 @@ def display(id_ride: int) -> str | Response:
         form=form,
         show_track_add_from=show_track_add_from,
         show_track_enhance_from=show_track_enhance_from,
-        id_raw_track=-999,  # FIXME
         has_note=has_note,
     )
 
 
+# TODO: Support multiple notes
 @bp.route("add_note/<int:id_ride>/", methods=("GET", "POST"))
 def add_note(id_ride: int) -> str | Response:
-    current_note_value = get_note(id_ride)
+    ride = orm_db.get_or_404(Ride, id_ride)
+    current_note_value = None
+    if ride.notes:
+        current_note_value = ride.notes[0].text
 
     if request.method == "POST":
-        print(request.form.get("note"))
         new_note_value = request.form.get("note")
-        db = get_db()
-        if current_note_value is None:
-            insert_succ, err = db.insert(
-                current_app.config.tables_as_settings["ride_notes"],
-                [[id_ride, new_note_value]],
-            )
-            succ_msg = "Note added"
+        if ride.notes:
+            ride.notes[0].text = new_note_value
+            orm_db.session.commit()
+            flash("Note updated", "alert-success")
         else:
-            insert_succ = modify_note(id_ride, new_note_value)
-            err = "Error on update. See log"
-            succ_msg = "Note updated"
-        if insert_succ:
-            flash(succ_msg, "alert-success")
-            return redirect(url_for("ride.display", id_ride=id_ride))
-        else:
-            flash(f"Note could not be inserted: {err}", "alert-danger")
+            ride.notes.append(RideNote(text=new_note_value))
+            orm_db.session.commit()
+            flash("Note added", "alert-success")
+        return redirect(url_for("ride.display", id_ride=id_ride))
 
     return render_template(
         "adders/ride_note.html",
