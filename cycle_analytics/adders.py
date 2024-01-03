@@ -35,7 +35,7 @@ from cycle_analytics.database.model import db as orm_db
 from cycle_analytics.model.base import MapData, MapPathData
 from cycle_analytics.model.goal import GoalType
 from cycle_analytics.utils import get_month_mapping
-from cycle_analytics.utils.forms import get_track_from_form
+from cycle_analytics.utils.forms import flash_form_error, get_track_from_form
 from cycle_analytics.utils.track import init_db_track_and_enhance
 
 logger = logging.getLogger(__name__)
@@ -165,28 +165,6 @@ class BikeForm(FlaskForm):
     )
 
     purchase = DateField("Purchase Date", validators=[DataRequired()])
-
-
-def allowed_file(filename: str) -> bool:
-    return (
-        "." in filename
-        and filename.rsplit(".", 1)[1].lower()
-        in current_app.config["ALLOWED_TRACKEXTENSIONS"]
-    )
-
-
-def flash_form_error(form: FlaskForm) -> None:
-    flash(
-        "\n".join(
-            ["<ul>"]
-            + [
-                f"<li>{field} - {','.join(error)} - Got **{form[field].data}**</li>"
-                for field, error in form.errors.items()
-            ]
-            + ["</ul>"]
-        ),
-        "alert-danger",
-    )
 
 
 @bp.route("/ride", methods=("GET", "POST"))

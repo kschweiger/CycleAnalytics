@@ -1,4 +1,4 @@
-from flask import current_app
+from flask import current_app, flash
 from flask_wtf import FlaskForm
 from track_analyzer import ByteTrack, FITTrack, Track
 from werkzeug.datastructures import FileStorage
@@ -36,3 +36,17 @@ def get_track_from_form(form: FlaskForm, field_name: str) -> Track:
 
     else:
         return ByteTrack(data.stream.read())
+
+
+def flash_form_error(form: FlaskForm) -> None:
+    flash(
+        "\n".join(
+            ["<ul>"]
+            + [
+                f"<li>{field} - {','.join(error)} - Got **{form[field].data}**</li>"
+                for field, error in form.errors.items()
+            ]
+            + ["</ul>"]
+        ),
+        "alert-danger",
+    )

@@ -37,7 +37,6 @@ def overview() -> str:
         "Severity",
     ]
 
-    severity_mapping = config.mappings.severity.to_dict()
     event_colors = config.mappings.event_colors.to_dict()
 
     avail_event_years = get_event_years_in_database()
