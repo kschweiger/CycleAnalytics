@@ -6,6 +6,7 @@ database_schema = "cycle_analytics_testing"
 EXTENSIONS = ["flask_debugtoolbar:DebugToolbarExtension"]
 SQLALCHEMY_RECORD_QUERIES = true
 DEBUG_TB_INTERCEPT_REDIRECTS = false
+DEBUG_TB_PROFILER_ENABLED = true
 
 [testing]
 database_schema = "cycle_analytics_testing"

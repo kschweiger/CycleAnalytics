@@ -2,6 +2,7 @@
 from datetime import date, datetime, time, timedelta
 from typing import Any
 
+import numpy as np
 from flask_sqlalchemy import SQLAlchemy
 from track_analyzer import PyTrack, Track
 
@@ -21,6 +22,7 @@ from cycle_analytics.database.model import (
 
 
 def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
+    rng = np.random.default_rng()
     this_year = datetime.now().year
     this_month = datetime.now().month
     last_year = this_year - 1
@@ -73,6 +75,16 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
 
     database.session.add_all([ride_last_year_1, ride_last_year_2])
     database.session.commit()
+
+    ride_0 = Ride(
+        ride_date=date(this_year, this_month, 1),
+        start_time=time(13, 00, 00),
+        ride_duration=timedelta(seconds=60 * 60 * 3),
+        total_duration=timedelta(seconds=(60 * 60 * 3) + 60),
+        distance=42.42,
+        id_terrain_type=2,
+        id_bike=bike_2.id,
+    )
 
     ride_1 = Ride(
         ride_date=date(this_year, 8, 1),
@@ -151,7 +163,54 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
         ]
     )
 
-    database.session.add_all([ride_1, ride_2])
+    ride_3 = Ride(
+        ride_date=date(this_year, 8, 2),
+        start_time=time(14, 00, 00),
+        ride_duration=None,
+        total_duration=timedelta(seconds=(60 * 10)),
+        distance=3.33,
+        id_terrain_type=2,
+        id_bike=bike_2.id,
+    )
+
+    points = []
+    times = []
+
+    for i in range(0, 60, 2):
+        points.extend(
+            [
+                (47.99609 + i * 0.0001, 7.849401 + i * 0.0001),
+                (47.99609 + (i + 1) * 0.0001, 7.849401 + (i + 2) * 0.0001),
+            ]
+        )
+        times.extend(
+            [
+                datetime(this_year, 8, 2, 14, 0, 00) + (i * timedelta(seconds=30)),
+                datetime(this_year, 8, 2, 14, 0, 00)
+                + ((i + 1) * timedelta(seconds=30)),
+            ]
+        )
+
+    track_with_extensions = PyTrack(
+        points=points,
+        times=times,
+        elevations=rng.integers(150, 200, size=len(points)).tolist(),
+        heartrate=rng.integers(100, 170, size=len(points)).tolist(),
+        cadence=rng.integers(40, 80, size=len(points)).tolist(),
+        power=rng.integers(200, 350, size=len(points)).tolist(),
+    )
+
+    ride_3.tracks.extend(
+        [
+            DatabaseTrack(
+                content=track_with_extensions.get_xml().encode(),
+                added=datetime(this_year, 8, 2, 18),
+                is_enhanced=True,
+            ),
+        ]
+    )
+
+    database.session.add_all([ride_0, ride_1, ride_2, ride_3])
     database.session.commit()
 
     # Generate some Events
