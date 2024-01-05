@@ -1,8 +1,12 @@
+import logging
+
 from flask import current_app, flash
 from flask_wtf import FlaskForm
 from track_analyzer import ByteTrack, FITTrack, Track
 from werkzeug.datastructures import FileStorage
 from wtforms import Field
+
+logger = logging.getLogger(__name__)
 
 
 def allowed_file(filename: str) -> bool:
@@ -39,6 +43,8 @@ def get_track_from_form(form: FlaskForm, field_name: str) -> Track:
 
 
 def flash_form_error(form: FlaskForm) -> None:
+    if not form.errors:
+        return
     flash(
         "\n".join(
             ["<ul>"]
@@ -50,3 +56,6 @@ def flash_form_error(form: FlaskForm) -> None:
         ),
         "alert-danger",
     )
+    logger.error("Form errors:")
+    for field, error in form.errors.items():
+        logger.error("  %s : %s", field, error)

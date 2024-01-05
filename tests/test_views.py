@@ -1,3 +1,4 @@
+import uuid
 from datetime import date, datetime, time, timedelta
 from unittest.mock import MagicMock
 
@@ -9,7 +10,7 @@ from pytest_mock import MockerFixture
 from track_analyzer import PyTrack
 from werkzeug.datastructures import MultiDict
 
-from cycle_analytics.database.model import Bike, DatabaseTrack, Ride
+from cycle_analytics.database.model import Bike, DatabaseSegment, DatabaseTrack, Ride
 from cycle_analytics.database.model import db as orm_db
 
 
@@ -48,12 +49,6 @@ def test_views_empty_database(
         ("/segments/add", 200),
         ("/segments/show/6", 200),
         ("/add/bike", 200),
-        # Track with Located events
-        ("/ride/1/", 200),
-        # No Track
-        ("/ride/3/", 200),
-        # Only elevation but not tiem
-        ("/ride/5/", 200),
     ],
 )
 def test_views(client: FlaskClient, route: str, exp_status_code: int) -> None:
@@ -161,3 +156,35 @@ def test_enhance_track(
         assert new_ride.tracks[-1].is_enhanced
 
         assert pre_enhance_track_ids != [t.id for t in new_ride.tracks]
+
+
+def test_view_bike_na(client: FlaskClient) -> None:
+    response = client.get(f"/bike/{uuid.uuid4()}/")
+    assert response.status_code == 302
+
+
+def test_view_all_rides(app: Flask, client: FlaskClient) -> None:
+    with app.app_context():
+        ride_ids = [r.id for r in Ride.query.all()]
+
+    for ride_id in ride_ids:
+        response = client.get(f"/ride/{ride_id}/")
+        assert response.status_code == 200
+
+
+def test_view_all_bikes(app: Flask, client: FlaskClient) -> None:
+    with app.app_context():
+        bike_names = [b.name for b in Bike.query.all()]
+
+    for name in bike_names:
+        response = client.get(f"/bike/{name}/")
+        assert response.status_code == 200
+
+
+def test_view_all_segments(app: Flask, client: FlaskClient) -> None:
+    with app.app_context():
+        segment_ids = [s.id for s in DatabaseSegment.query.all()]
+
+    for segment_id in segment_ids:
+        response = client.get(f"segments/show/{segment_id}")
+        assert response.status_code == 200
