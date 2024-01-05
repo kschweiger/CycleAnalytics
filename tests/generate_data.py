@@ -4,7 +4,7 @@ from typing import Any
 
 import numpy as np
 from flask_sqlalchemy import SQLAlchemy
-from track_analyzer import PyTrack, Track
+from geo_track_analyzer import PyTrack, Track
 
 from cycle_analytics.database.converter import initialize_overviews
 from cycle_analytics.database.model import (

@@ -24,7 +24,7 @@ def create_app(
 
     for logger_ in (
         app.logger,
-        logging.getLogger("track_analyzer"),
+        logging.getLogger("geo_track_analyzer"),
         logging.getLogger("data_organizer"),
     ):
         logger_.setLevel("DEBUG" if app.debug else "INFO")

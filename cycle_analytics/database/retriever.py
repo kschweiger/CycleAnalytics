@@ -2,8 +2,8 @@ import logging
 from datetime import date, timedelta
 from typing import Type
 
+from geo_track_analyzer import ByteTrack, Track
 from sqlalchemy import and_, desc, func, or_, select
-from track_analyzer import ByteTrack, Track
 
 from cycle_analytics.cache import cache
 from cycle_analytics.database.converter import convert_database_goals

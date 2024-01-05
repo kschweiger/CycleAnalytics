@@ -1,12 +1,13 @@
 from datetime import datetime
 from io import BytesIO
+from typing import Any
 from unittest.mock import MagicMock
 
 from flask import Flask
 from flask.testing import FlaskClient
+from geo_track_analyzer import ByteTrack, PyTrack
 from gpxpy.gpx import GPXTrack
 from pytest_mock import MockerFixture
-from track_analyzer import ByteTrack, PyTrack
 from werkzeug.datastructures import MultiDict
 
 from cycle_analytics import adders
@@ -96,9 +97,9 @@ def test_add_ride_with_track_and_enhancer(
     spy_get_track = mocker.spy(adders, "get_track_from_form")
     spy_init_db_track = mocker.spy(adders, "init_db_track_and_enhance")
 
-    mock_enhancer = MagicMock()
+    mock_enhancer = MagicMock
 
-    def update_elevation(track: GPXTrack, inplace: bool) -> None:
+    def update_elevation(aa: Any, track: GPXTrack, inplace: bool) -> None:
         assert len(track.segments) == 1
         for ptn in track.segments[0].points:
             ptn.elevation = ptn.elevation * 100
@@ -149,4 +150,6 @@ def test_add_ride_with_track_and_enhancer(
         assert not ride.tracks[0].is_enhanced
         assert ride.tracks[1].is_enhanced
         enhanced_track = ByteTrack(ride.tracks[1].content)
-        assert track.track.segments[0].points != enhanced_track.track.segments[0].points
+        assert [p.elevation for p in track.track.segments[0].points] != [
+            p.elevation for p in enhanced_track.track.segments[0].points
+        ]

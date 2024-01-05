@@ -1,13 +1,14 @@
 import uuid
 from datetime import date, datetime, time, timedelta
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
+from geo_track_analyzer import PyTrack
 from gpxpy.gpx import GPXTrack
 from pytest_mock import MockerFixture
-from track_analyzer import PyTrack
 from werkzeug.datastructures import MultiDict
 
 from cycle_analytics.database.model import Bike, DatabaseSegment, DatabaseTrack, Ride
@@ -137,9 +138,9 @@ def test_enhance_track(
     is_enhanced: bool,
     exp_tracks: int,
 ) -> None:
-    mock_enhancer = MagicMock()
+    mock_enhancer = MagicMock
 
-    def update_elevation(track: GPXTrack, inplace: bool) -> None:
+    def update_elevation(a: Any, track: GPXTrack, inplace: bool) -> None:
         assert len(track.segments) == 1
         for ptn in track.segments[0].points:
             ptn.elevation = ptn.elevation * 100

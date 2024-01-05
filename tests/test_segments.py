@@ -1,5 +1,6 @@
 import json
 import uuid
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -31,9 +32,9 @@ def test_calc_route(client: FlaskClient, waypoints: list[list[float]]) -> None:
 
 
 def test_calc_route_elevation(mocker: MockerFixture, client: FlaskClient) -> None:
-    mock_enhancer = MagicMock()
+    mock_enhancer = MagicMock
 
-    def update_elevation(track: GPXTrack, inplace: bool) -> None:
+    def update_elevation(aa: Any, track: GPXTrack, inplace: bool) -> None:
         assert len(track.segments) == 1
         for ptn in track.segments[0].points:
             ptn.elevation = 100

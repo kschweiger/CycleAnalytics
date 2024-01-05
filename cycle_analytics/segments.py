@@ -14,17 +14,17 @@ from flask import (
     url_for,
 )
 from flask_wtf import FlaskForm
+from geo_track_analyzer import ByteTrack
+from geo_track_analyzer.enhancer import get_enhancer
+from geo_track_analyzer.exceptions import (
+    APIHealthCheckFailedError,
+    APIResponseError,
+)
+from geo_track_analyzer.track import PyTrack
 from plotly.utils import PlotlyJSONEncoder
 from pydantic import ValidationError
 from pyroutelib3 import Router
 from sqlalchemy.exc import IntegrityError
-from track_analyzer import ByteTrack
-from track_analyzer.enhancer import get_enhancer
-from track_analyzer.exceptions import (
-    APIHealthCheckFailedError,
-    APIResponseError,
-)
-from track_analyzer.track import PyTrack
 from werkzeug import Response
 from wtforms import HiddenField, SelectField, StringField, TextAreaField
 from wtforms.validators import DataRequired, Optional
@@ -112,12 +112,11 @@ def show_segment(id_segment: int) -> str | Response:
     if segment_track.track.has_elevations():
         slope_colors = current_app.config.style.slope_colors
         plot2d = get_track_elevation_slope_plot(
-            segment_track,
-            0,
-            slope_colors.neutral,
-            slope_colors.min,
-            slope_colors.max,
-            20,
+            track=segment_track,
+            color_neutral=slope_colors.neutral,
+            color_min=slope_colors.min,
+            color_max=slope_colors.max,
+            intervals=20,
         )
 
         plot_elevation = json.dumps(plot2d, cls=PlotlyJSONEncoder)
@@ -136,9 +135,6 @@ def show_segment(id_segment: int) -> str | Response:
 
 @bp.route("/add", methods=("GET", "POST"))
 def add_segment() -> str | Response:
-    # TODO: Convert to new database
-    config = current_app.config
-
     map_segment_form = AddMapSegmentForm()
     map_segment_form.segment_type.choices = [
         (s.id, s.text) for s in SegmentType.query.all()
@@ -312,7 +308,7 @@ def calcualte_route() -> dict | tuple[dict, int]:
 
         colors = current_app.config.style.color_sequence
         profile_plot = get_track_elevation_plot(
-            track_segment_data,
+            track,
             False,
             color_elevation=colors[0],
             pois=pois,

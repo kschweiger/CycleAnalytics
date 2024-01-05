@@ -10,7 +10,6 @@ packages = [{ include = "cycle_analytics" }]
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
 Flask = "^2.3.3"
-track-analyzer = { git = "https://github.com/kschweiger/track_analyzer.git", rev = "0.4.1" }
 Flask-Caching = "^2.1.0"
 gunicorn = "^20.1.0"
 dynaconf = "^3.2.4"
@@ -25,6 +24,7 @@ plotly = "^5.18.0"
 sqlalchemy = "^2.0.24"
 flask-sqlalchemy = "^3.1.1"
 psycopg2 = "^2.9.9"
+geo-track-analyzer = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.12.0"

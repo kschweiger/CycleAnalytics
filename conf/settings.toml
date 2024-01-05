@@ -2,7 +2,7 @@
 database_schema = "cycle_analytics"
 
 [development]
-database_schema = "cycle_analytics_testing"
+database_schema = "cycle_analytics"
 EXTENSIONS = ["flask_debugtoolbar:DebugToolbarExtension"]
 SQLALCHEMY_RECORD_QUERIES = true
 DEBUG_TB_INTERCEPT_REDIRECTS = false

@@ -3,8 +3,8 @@ from dataclasses import asdict
 from typing import Literal
 
 import pandas as pd
-from track_analyzer import Track
-from track_analyzer.model import SegmentOverview
+from geo_track_analyzer import Track
+from geo_track_analyzer.model import SegmentOverview
 
 from cycle_analytics.model.goal import Goal
 from cycle_analytics.utils.base import compare_values
@@ -229,7 +229,7 @@ def track_to_db_overview(
     return TrackOverview(**data)
 
 
-# TEMP: Update this with track_analyzer >=1.0
+# TEMP: Update this with geo_track_analyzer >=1.0
 # TODO: Should check if multipel segments. If yes, get track_overview and insert with
 # TODO: id_segment=None and then add segment overviews. If not, just inster with
 # TODO: id_segment = None

@@ -572,6 +572,27 @@ wtforms = "*"
 email = ["email-validator"]
 
 [[package]]
+name = "geo-track-analyzer"
+version = "1.0.0"
+description = "Analyze geospacial data tracks"
+optional = false
+python-versions = ">=3.10,<3.13"
+files = [
+    {file = "geo_track_analyzer-1.0.0-py3-none-any.whl", hash = "sha256:cd4e8f22bbe3fc6ddd88848e5b205b8b36fee2af7e2f12f6be8a2516d67617ea"},
+    {file = "geo_track_analyzer-1.0.0.tar.gz", hash = "sha256:3abbde0a60ffc3c6b5af14d000019d9155f7be720b9218f5d4b3da5bc63ed536"},
+]
+
+[package.dependencies]
+click = ">=8.1.7,<9.0.0"
+coloredlogs = ">=15.0.1,<16.0.0"
+fitparse = ">=1.2.0,<2.0.0"
+gpxpy = ">=1.6.1,<2.0.0"
+numpy = ">=1.26.2,<2.0.0"
+pandas = ">=1.5.3,<2.0.0"
+plotly = ">=5.18.0"
+requests = ">=2.31.0,<3.0.0"
+
+[[package]]
 name = "gpxpy"
 version = "1.6.2"
 description = "GPX file parser and GPS track manipulation library"
@@ -1642,31 +1663,6 @@ files = [
 ]
 
 [[package]]
-name = "track-analyzer"
-version = "0.4.1"
-description = "Analyze geospacial data tracks"
-optional = false
-python-versions = ">=3.10,<3.13"
-files = []
-develop = false
-
-[package.dependencies]
-click = "^8.1.7"
-coloredlogs = "^15.0.1"
-fitparse = "^1.2.0"
-gpxpy = "^1.5.0"
-numpy = "^1.26.0"
-pandas = "^1.5.3"
-plotly = ">=5.17.0"
-requests = "^2.31.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/kschweiger/track_analyzer.git"
-reference = "0.4.1"
-resolved_reference = "132b526692fbefc5a354f7f9a1d589321baf7200"
-
-[[package]]
 name = "typing-extensions"
 version = "4.9.0"
 description = "Backported and Experimental Type Hints for Python 3.8+"
@@ -1761,4 +1757,4 @@ email = ["email-validator"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
-content-hash = "18a8078778a5e52cba243094b54aad46b27a89b57113d65a79eabe44e75560aa"
+content-hash = "3431d9117e5a3864dd5da0d7cf8497e6eb0f71716ef0c6180a76d523e054ca5b"

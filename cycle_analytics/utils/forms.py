@@ -2,7 +2,7 @@ import logging
 
 from flask import current_app, flash
 from flask_wtf import FlaskForm
-from track_analyzer import ByteTrack, FITTrack, Track
+from geo_track_analyzer import ByteTrack, FITTrack, Track
 from werkzeug.datastructures import FileStorage
 from wtforms import Field
 

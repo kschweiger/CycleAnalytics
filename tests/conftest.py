@@ -5,7 +5,7 @@ import tempfile
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
-from track_analyzer import ByteTrack, Track
+from geo_track_analyzer import ByteTrack, Track
 
 from cycle_analytics import create_app
 from cycle_analytics.database.creator import sync_categorical_values

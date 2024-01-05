@@ -2,9 +2,12 @@ import logging
 from datetime import datetime
 
 from flask import current_app, flash
-from track_analyzer.enhancer import get_enhancer
-from track_analyzer.exceptions import APIHealthCheckFailedError, APIResponseError
-from track_analyzer.track import Track
+from geo_track_analyzer.enhancer import get_enhancer
+from geo_track_analyzer.exceptions import (
+    APIHealthCheckFailedError,
+    APIResponseError,
+)
+from geo_track_analyzer.track import Track
 
 from cycle_analytics.database.converter import initialize_overviews
 from cycle_analytics.database.model import DatabaseTrack

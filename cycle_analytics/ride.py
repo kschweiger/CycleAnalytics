@@ -14,8 +14,8 @@ from flask import (
 )
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
-from track_analyzer import ByteTrack
-from track_analyzer.exceptions import VisualizationSetupError
+from geo_track_analyzer import ByteTrack
+from geo_track_analyzer.exceptions import VisualizationSetupError
 from werkzeug import Response
 from wtforms import (
     RadioField,
@@ -141,7 +141,7 @@ def display(id_ride: int) -> str | Response:
         colors = current_app.config.style.color_sequence
 
         plot2d = get_track_elevation_plot(
-            track_segment_data,
+            track,
             not track_segment_data.speed.isna().all(),
             color_elevation=colors[0],
             color_velocity=colors[1],
@@ -161,11 +161,10 @@ def display(id_ride: int) -> str | Response:
 
         slope_colors = current_app.config.style.slope_colors
         slope_figure = get_track_elevation_slope_plot(
-            track,
-            0,
-            slope_colors.neutral,
-            slope_colors.min,
-            slope_colors.max,
+            track=track,
+            color_neutral=slope_colors.neutral,
+            color_min=slope_colors.min,
+            color_max=slope_colors.max,
             slider=True,
         )
         slope_plot = json.dumps(slope_figure, cls=plotly.utils.PlotlyJSONEncoder)
@@ -173,7 +172,7 @@ def display(id_ride: int) -> str | Response:
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         try:
             hr_figure = get_track_elevation_extension_plot(
-                track_segment_data,
+                track,
                 "heartrate",
                 color_elevation=colors[0],
                 color_extention=colors[1],
@@ -186,7 +185,7 @@ def display(id_ride: int) -> str | Response:
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         try:
             cad_figure = get_track_elevation_extension_plot(
-                track_segment_data,
+                track,
                 "cadence",
                 color_elevation=colors[0],
                 color_extention=colors[1],
@@ -200,7 +199,7 @@ def display(id_ride: int) -> str | Response:
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         try:
             pw_figure = get_track_elevation_extension_plot(
-                track_segment_data,
+                track,
                 "power",
                 color_elevation=colors[0],
                 color_extention=colors[1],

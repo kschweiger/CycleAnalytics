@@ -2,7 +2,7 @@ import logging
 from io import BytesIO
 from typing import BinaryIO, Tuple
 
-from track_analyzer import ByteTrack
+from geo_track_analyzer import ByteTrack
 
 from cycle_analytics.database.model import DatabaseSegment, DatabaseTrack, db
 

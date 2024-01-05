@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 
 from flask_sqlalchemy import SQLAlchemy
-from track_analyzer import ByteTrack, Track
+from geo_track_analyzer import ByteTrack, Track
 
 db = SQLAlchemy()
 
