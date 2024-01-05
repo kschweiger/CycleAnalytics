@@ -211,6 +211,7 @@ def add_ride() -> str | Response:
             except RuntimeError as e:
                 flash("Error: %s" % e, "alert-danger")
             else:
+                # TODO: Implement is_enhanced
                 tracks_to_insert = init_db_track_and_enhance(
                     track=track, is_enhanced=False
                 )

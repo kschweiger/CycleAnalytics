@@ -1,12 +1,15 @@
-from datetime import datetime
-from typing import Any
+from datetime import date, datetime, time, timedelta
+from unittest.mock import MagicMock
 
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
+from gpxpy.gpx import GPXTrack
+from pytest_mock import MockerFixture
+from track_analyzer import PyTrack
 from werkzeug.datastructures import MultiDict
 
-from cycle_analytics.database.model import DatabaseEvent, Ride
+from cycle_analytics.database.model import Bike, DatabaseTrack, Ride
 from cycle_analytics.database.model import db as orm_db
 
 
@@ -59,125 +62,102 @@ def test_views(client: FlaskClient, route: str, exp_status_code: int) -> None:
     assert response.status_code == exp_status_code
 
 
-def test_add_ride_no_track(app: Flask, client: FlaskClient) -> None:
-    this_year = datetime.now().year
-    this_month = datetime.now().month
-    with app.app_context():
-        rides_pre = Ride.query.all()
-        id_max_pre = max([r.id for r in rides_pre])
-    post_data = MultiDict(
-        [
-            ("date", f"{this_year}-{this_month}-3"),
-            ("start_time", "13:22:02"),
-            ("total_time", "01:02:33"),
-            ("distance", "8.234"),
-            ("bike", "1"),
-            ("ride_type", "1"),
-        ]
-    )
-    response = client.post("/add/ride", data=post_data, follow_redirects=True)
-    assert response.status_code == 200
-    with app.app_context():
-        rides_post = Ride.query.all()
-        id_max_post = max([r.id for r in rides_post])
-        assert id_max_post > id_max_pre
-
-
-@pytest.mark.parametrize(
-    ("add_data", "check_data"),
-    [
-        (
-            [("severity", "-1"), ("bike", "-1"), ("description", "")],
-            {"id_severity": None, "id_bike": None, "description": None},
-        ),
-        (
-            [("severity", "-1"), ("bike", "-1"), ("description", "Some text")],
-            {"id_severity": None, "id_bike": None, "description": "Some text"},
-        ),
-        (
-            [("severity", "1"), ("bike", "1"), ("description", "")],
-            {"id_severity": 1, "id_bike": 1, "description": None},
-        ),
-        (
-            [
-                ("severity", "-1"),
-                ("bike", "-1"),
-                ("description", ""),
-                ("latitude", "22.22"),
-                ("longitude", "33.33"),
-            ],
-            {
-                "id_severity": None,
-                "id_bike": None,
-                "description": None,
-                "latitude": 22.22,
-                "longitude": 33.33,
-            },
-        ),
-    ],
-)
-def test_add_event(
-    app: Flask,
-    client: FlaskClient,
-    add_data: list[tuple[str, str]],
-    check_data: dict[str, Any],
-) -> None:
-    this_year = datetime.now().year
-    this_month = datetime.now().month
-    with app.app_context():
-        events_pre = DatabaseEvent.query.all()
-        id_max_pre = max([e.id for e in events_pre])
-
-    post_data = MultiDict(
-        [
-            ("date", f"{this_year}-{this_month}-3"),
-            ("event_type", "1"),
-            ("short_description", "Some text"),
-        ]
-        + add_data
-    )
-    response = client.post("/add/event", data=post_data, follow_redirects=True)
-    assert response.status_code == 200
-    with app.app_context():
-        events_post = DatabaseEvent.query.all()
-        id_max_post = max([e.id for e in events_post])
-        assert id_max_post > id_max_pre
-        new_event = events_post[-1]
-        for key, value in check_data.items():
-            assert getattr(new_event, key) == value
-
-
-def test_add_event_from_ride(
+def test_add_bike(
     app: Flask,
     client: FlaskClient,
 ) -> None:
     this_year = datetime.now().year
 
     with app.app_context():
-        events_pre = DatabaseEvent.query.all()
-        id_max_pre = max([e.id for e in events_pre])
-        ride_pre = orm_db.get_or_404(Ride, 4)
-        ride_pre.events
+        bikes_pre = Bike.query.all()
+        id_max_pre = max([b.id for b in bikes_pre])
 
     post_data = MultiDict(
         [
-            ("event_type", "1"),
-            ("short_description", "Some text"),
-            ("severity", "-1"),
-            ("bike", "-1"),
-            ("description", ""),
+            ("name", "New Bike Name"),
+            ("brand", "Some new brand"),
+            ("model", "More detailed model name"),
+            ("material", "1"),
+            ("bike_type", "1"),
+            ("bike_type_specification", "1"),
+            ("weight", "12.2"),
+            ("purchase", f"{this_year}-2-3"),
         ]
     )
-
     response = client.post(
-        f"/add/event?date={this_year}-08-01&id_ride=4",
+        "/add/bike",
         data=post_data,
         follow_redirects=True,
     )
     assert response.status_code == 200
     with app.app_context():
-        events_post = DatabaseEvent.query.all()
-        id_max_post = max([e.id for e in events_post])
+        bikes_post = Bike.query.all()
+        id_max_post = max([b.id for b in bikes_post])
+
         assert id_max_post > id_max_pre
-        ride_post = orm_db.get_or_404(Ride, 4)
-        assert len(ride_post.events) > len(ride_pre.events)
+
+
+@pytest.mark.parametrize(("is_enhanced", "exp_tracks"), [(True, 1), (False, 2)])
+def test_enhance_track(
+    mocker: MockerFixture,
+    app: Flask,
+    client: FlaskClient,
+    is_enhanced: bool,
+    exp_tracks: int,
+) -> None:
+    mock_enhancer = MagicMock()
+
+    def update_elevation(track: GPXTrack, inplace: bool) -> None:
+        assert len(track.segments) == 1
+        for ptn in track.segments[0].points:
+            ptn.elevation = ptn.elevation * 100
+
+    mock_enhancer.enhance_track = update_elevation
+
+    mocker.patch("cycle_analytics.utils.track.get_enhancer", return_value=mock_enhancer)
+
+    this_year = datetime.now().year
+    this_month = datetime.now().month
+    track = PyTrack(
+        points=[(10, 10), (10.001, 10.001), (10.002, 10.002)],
+        elevations=[1, 2, 3],
+        times=[
+            datetime(this_year, this_month, 3, 13, 22),
+            datetime(this_year, this_month, 3, 13, 22, 5),
+            datetime(this_year, this_month, 3, 13, 22, 10),
+        ],
+    )
+    with app.app_context():
+        new_ride = Ride(
+            ride_date=date(this_year, 2, 27),
+            start_time=time(8, 8, 8),
+            ride_duration=timedelta(seconds=60 * 20),
+            total_duration=timedelta(seconds=(60 * 20) + 60),
+            distance=1.234,
+            id_terrain_type=2,
+            id_bike=1,
+        )
+
+        new_ride.tracks.extend(
+            [
+                DatabaseTrack(
+                    content=track.get_xml().encode(),
+                    added=datetime(this_year, 2, 27, 18),
+                    is_enhanced=is_enhanced,
+                ),
+            ]
+        )
+
+        orm_db.session.add(new_ride)
+        orm_db.session.commit()
+
+        pre_enhance_track_ids = [t.id for t in new_ride.tracks]
+
+        response = client.get(f"/track/enhance/{new_ride.id}/")
+
+        assert response.status_code == 302
+        assert len(new_ride.tracks) == exp_tracks
+
+        assert new_ride.tracks[-1].is_enhanced
+
+        assert pre_enhance_track_ids != [t.id for t in new_ride.tracks]

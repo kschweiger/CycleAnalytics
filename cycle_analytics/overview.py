@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from typing import Dict
 
+import numpy as np
 import pandas as pd
 import plotly
 import plotly.express as px
@@ -468,13 +469,22 @@ def journal() -> str:
                             duration=format_timedelta(row["total_time"]),
                             distance=f"{row['distance']:0.2f} km",
                             uphill=None
-                            if row["uphill_elevation"] is None
+                            if (
+                                row["uphill_elevation"] is None
+                                or np.isnan(row["uphill_elevation"])
+                            )
                             else f"{int(row['uphill_elevation'])} m",
                             downhill=None
-                            if row["downhill_elevation"] is None
+                            if (
+                                row["downhill_elevation"] is None
+                                or np.isnan(row["downhill_elevation"])
+                            )
                             else f"{int(row['downhill_elevation'])} m",
                             avg_velocity=None
-                            if row["avg_velocity_kmh"] is None
+                            if (
+                                row["avg_velocity_kmh"] is None
+                                or np.isnan(row["avg_velocity_kmh"])
+                            )
                             else f"{int(row['avg_velocity_kmh']):0.2f} km/h",
                             btn_class=ride_cat_btn_class,
                         )

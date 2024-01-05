@@ -1,14 +1,11 @@
 import logging
-from datetime import datetime
 
-from flask import Blueprint, current_app, flash, redirect, url_for
-from track_analyzer import get_enhancer
-from track_analyzer.exceptions import APIHealthCheckFailedError, APIResponseError
+from flask import Blueprint, flash, redirect, url_for
 from werkzeug import Response
 
-from cycle_analytics.database.converter import initialize_overviews
-from cycle_analytics.database.model import DatabaseTrack, Ride
+from cycle_analytics.database.model import Ride
 from cycle_analytics.database.model import db as orm_db
+from cycle_analytics.utils.track import get_enhanced_db_track
 
 bp = Blueprint("track", __name__, url_prefix="/track")
 
@@ -25,28 +22,9 @@ def enhance_track(id_ride: int) -> Response:
         flash(f"Ride {id_ride} has no track", "alert-warning")
         return redirect(url_for("ride.display", id_ride=id_ride))
 
-    try:
-        enhancer = get_enhancer(current_app.config.external.track_enhancer.name)(
-            url=current_app.config.external.track_enhancer.url,
-            **current_app.config.external.track_enhancer.kwargs.to_dict(),
-        )  # type: ignore
-    except APIHealthCheckFailedError:
-        logger.warning("Enhancer not available. Skipping elevation profile")
-        flash("Track could not be enhanced - API not available", "alert-danger")
+    new_db_track = get_enhanced_db_track(current_track)
+    if new_db_track is None:
         return redirect(url_for("ride.display", id_ride=id_ride))
-    try:
-        enhancer.enhance_track(current_track.track, True)
-    except APIResponseError:
-        flash("Could not enhance track with elevation", "alert-danger")
-        logger.error("Could not enhance track with elevation")
-        return redirect(url_for("ride.display", id_ride=id_ride))
-
-    new_db_track = DatabaseTrack(
-        content=current_track.get_xml().encode(),
-        added=datetime.now(),
-        is_enhanced=True,
-        overviews=initialize_overviews(current_track, None),
-    )
 
     if current_db_track.is_enhanced:
         orm_db.session.delete(current_db_track)
