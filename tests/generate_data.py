@@ -135,6 +135,8 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
                 event_date=date(this_year, 8, 1),
                 id_event_type=2,
                 short_description="Some located event for ride 1",
+                description="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, "
+                "sed diam nonumy eirmod tempor invidunt.",
                 latitude=47.931671,
                 longitude=7.88191,
                 id_bike=bike_2.id,

@@ -271,7 +271,7 @@ def display(id_ride: int) -> str | Response:
 
 
 # TODO: Support multiple notes
-@bp.route("add_note/<int:id_ride>/", methods=("GET", "POST"))
+@bp.route("add_note/<int:id_ride>", methods=("GET", "POST"))
 def add_note(id_ride: int) -> str | Response:
     ride = orm_db.get_or_404(Ride, id_ride)
     current_note_value = None

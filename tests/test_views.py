@@ -49,12 +49,49 @@ def test_views_empty_database(
         ("/segments/add", 200),
         ("/segments/show/6", 200),
         ("/add/bike", 200),
+        ("ride/add_note/1", 200),
     ],
 )
 def test_views(client: FlaskClient, route: str, exp_status_code: int) -> None:
     response = client.get(route)
 
     assert response.status_code == exp_status_code
+
+
+@pytest.mark.parametrize(
+    "post_data",
+    [
+        [
+            ("next_month", "next_month"),
+            ("curr_year", f"{datetime.now().year}"),
+            ("curr_month", f"{datetime.now().month}"),
+        ],
+        [
+            ("next_month", "next_month"),
+            ("curr_year", f"{datetime.now().year}"),
+            ("curr_month", "12"),
+        ],
+        [
+            ("prev_month", "prev_month"),
+            ("curr_year", f"{datetime.now().year}"),
+            ("curr_month", f"{datetime.now().month}"),
+        ],
+        [
+            ("prev_month", "prev_month"),
+            ("curr_year", f"{datetime.now().year}"),
+            ("curr_month", "1"),
+        ],
+        [
+            ("today", "today"),
+        ],
+    ],
+)
+def test_journal_nav(client: FlaskClient, post_data: list[tuple[str, str]]) -> None:
+    response = client.post(
+        "/overview/journal",
+        data=MultiDict(post_data),
+    )
+    assert response.status_code == 200
 
 
 def test_add_bike(
