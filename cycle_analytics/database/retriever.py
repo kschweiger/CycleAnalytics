@@ -285,7 +285,7 @@ def get_rides_for_bike(id_bike: int) -> list[Ride]:
     )
 
 
-def get_agg_data_for_bike(id_bike: int):
+def get_agg_data_for_bike(id_bike: int) -> None | dict[str, int | float]:
     result = (
         db.session.query(
             func.count().label("Number of rides"),
@@ -316,7 +316,6 @@ def get_segments_for_map_in_bounds(
     color_typ_mappign: dict[str, str],
     url_base: str,
 ) -> list[SegmentForMap]:
-    ...
     sel = select(DatabaseSegment)
     _filter = [
         DatabaseSegment.bounds_min_lat >= sw_lat,

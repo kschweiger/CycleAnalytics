@@ -2,11 +2,15 @@ from datetime import date
 
 import pandas as pd
 import pytest
+from flask import Flask
+from flask.testing import FlaskClient
 
+from cycle_analytics.database.model import DatabaseGoal
+from cycle_analytics.database.model import db as orm_db
 from cycle_analytics.model.goal import MonthlyGoal, YearlyGoal, initialize_goals
 
 
-def test_initialize_goals():
+def test_initialize_goals() -> None:
     columns = [
         "id",
         "year",
@@ -77,7 +81,7 @@ def test_initialize_goals():
         ("max_distance", 17),
     ],
 )
-def test_goal_compute_value(goal_type, exp_value):
+def test_goal_compute_value(goal_type: str, exp_value: int | float) -> None:
     kwargs = {
         "id": 1,
         "year": 2022,
@@ -112,7 +116,7 @@ def test_goal_compute_value(goal_type, exp_value):
     ("is_upper_bound", "threshold", "exp_result"),
     [(True, 2, True), (True, 4, False), (False, 4, True)],
 )
-def test_yearly_goal(is_upper_bound, threshold, exp_result):
+def test_yearly_goal(is_upper_bound: bool, threshold: float, exp_result: bool) -> None:
     kwargs = {
         "id": 1,
         "year": 2022,
@@ -142,7 +146,7 @@ def test_yearly_goal(is_upper_bound, threshold, exp_result):
     assert goal.has_been_reached(data) == exp_result
 
 
-def test_monthly_goal():
+def test_monthly_goal() -> None:
     kwargs = {
         "id": 1,
         "year": 2022,
@@ -191,7 +195,14 @@ def test_monthly_goal():
         ("avg_distance", 10, True, True, (67 / 5), (67 / 5) / 10),
     ],
 )
-def test_evaluate(goal_type, theshold, upper_bound, exp_check, exp_value, exp_progress):
+def test_evaluate(
+    goal_type: str,
+    theshold: float,
+    upper_bound: bool,
+    exp_check: bool,
+    exp_value: float,
+    exp_progress: float,
+) -> None:
     kwargs = {
         "id": 1,
         "year": 2022,
@@ -236,7 +247,7 @@ def test_evaluate(goal_type, theshold, upper_bound, exp_check, exp_value, exp_pr
         ({"bike": ["Bike2"], "ride_type": ["MTB"]}, 1),
     ],
 )
-def test_constraints(constraints, exp_len):
+def test_constraints(constraints: dict[str, list[str]], exp_len: int) -> None:
     kwargs = {
         "id": 1,
         "year": 2022,
@@ -268,3 +279,21 @@ def test_constraints(constraints, exp_len):
     )
 
     assert len(goal._apply_constraints(data)) == exp_len
+
+
+def test_goal_change_state(app: Flask, client: FlaskClient) -> None:
+    with app.app_context():
+        test_goal = orm_db.get_or_404(DatabaseGoal, 1)
+        assert test_goal.active
+
+    response = client.post(
+        "/goals/", data=dict(change_state_value="Deactivate", change_state_goal_id=1)
+    )
+
+    assert response.status_code == 200
+
+    with app.app_context():
+        test_goal = orm_db.get_or_404(DatabaseGoal, 1)
+        assert not test_goal.active
+        test_goal.active = True
+        orm_db.session.commit()
