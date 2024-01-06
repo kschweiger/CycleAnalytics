@@ -192,7 +192,11 @@ class Ride(db.Model):
     )  # type: ignore
 
     tracks: list[DatabaseTrack] = db.relationship(
-        "DatabaseTrack", backref="ride", secondary=ride_track, lazy=False
+        "DatabaseTrack",
+        backref="ride",
+        secondary=ride_track,
+        lazy=False,
+        order_by="DatabaseTrack.added",
     )  # type: ignore
     notes: list[RideNote] = db.relationship(
         "RideNote", secondary=ride_note, backref="ride", lazy=True
@@ -228,7 +232,6 @@ class Ride(db.Model):
             if overview.id_segment is None:
                 return overview
 
-        # TODO: Other error
         raise RuntimeError("No overview for full track available")
 
     @property

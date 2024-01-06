@@ -56,7 +56,6 @@ def display(id_ride: int) -> str | Response:
     config = current_app.config
 
     form = AddTrackForm()
-    # TODO: This should be a setting
     form.enhance_elevation.data = True
 
     ride = orm_db.get_or_404(Ride, id_ride)

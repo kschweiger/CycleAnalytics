@@ -3,6 +3,7 @@ from io import BytesIO
 from typing import Any
 from unittest.mock import MagicMock
 
+import pytest
 from flask import Flask
 from flask.testing import FlaskClient
 from geo_track_analyzer import ByteTrack, PyTrack
@@ -40,9 +41,9 @@ def test_add_ride_no_track(app: Flask, client: FlaskClient) -> None:
         assert id_max_post > id_max_pre
 
 
-# TODO: Add parametrization is_enhanced once added
+@pytest.mark.parametrize("is_enhanced", [True, False])
 def test_add_ride_with_track(
-    mocker: MockerFixture, app: Flask, client: FlaskClient
+    mocker: MockerFixture, app: Flask, client: FlaskClient, is_enhanced: bool
 ) -> None:
     spy_get_track = mocker.spy(adders, "get_track_from_form")
     spy_init_db_track = mocker.spy(adders, "init_db_track_and_enhance")
@@ -71,6 +72,7 @@ def test_add_ride_with_track(
             ("ride_type", "1"),
             ("track", (BytesIO(track.get_xml().encode()), "track.gpx")),
         ]
+        + ([("enhance_elevation", True)] if not is_enhanced else [])
     )
 
     response = client.post(
@@ -89,6 +91,7 @@ def test_add_ride_with_track(
         id_max_post = max([r.id for r in rides_post])
         ride = orm_db.get_or_404(Ride, id_max_post)
         assert len(ride.tracks) == 1
+        assert ride.tracks[0].is_enhanced is is_enhanced
 
 
 def test_add_ride_with_track_and_enhancer(
@@ -128,6 +131,7 @@ def test_add_ride_with_track_and_enhancer(
             ("bike", "1"),
             ("ride_type", "1"),
             ("track", (BytesIO(track.get_xml().encode()), "track.gpx")),
+            ("enhance_elevation", True),
         ]
     )
 

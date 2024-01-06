@@ -12,6 +12,7 @@ from wtforms import (
     DecimalField,
     HiddenField,
     IntegerField,
+    RadioField,
     SelectField,
     SelectMultipleField,
     StringField,
@@ -53,6 +54,12 @@ class RideForm(FlaskForm):
     bike = SelectField("Bike", validators=[DataRequired()])
     ride_type = SelectField("Ride Type")
     track = FileField("GPX Track")
+    enhance_elevation = RadioField(
+        "Enhance Elevation",
+        choices=[(True, "Enhance Elevation")],
+        coerce=bool,
+        validate_choice=False,
+    )
 
 
 class EventForm(FlaskForm):
@@ -211,9 +218,11 @@ def add_ride() -> str | Response:
             except RuntimeError as e:
                 flash("Error: %s" % e, "alert-danger")
             else:
-                # TODO: Implement is_enhanced
                 tracks_to_insert = init_db_track_and_enhance(
-                    track=track, is_enhanced=False
+                    track=track,
+                    # NOTE: If enhance_elevation is switched of the track should be
+                    # NOTE: considered as already enhanced
+                    is_enhanced=form.enhance_elevation.data is None,
                 )
                 ride.tracks.extend(tracks_to_insert)
                 try:
@@ -227,6 +236,8 @@ def add_ride() -> str | Response:
 
     elif request.method == "POST":
         flash_form_error(form)
+
+    form.enhance_elevation.data = True
 
     return render_template("adders/ride.html", active_page="add_ride", form=form)
 

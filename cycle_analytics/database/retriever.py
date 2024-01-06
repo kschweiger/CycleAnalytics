@@ -76,7 +76,7 @@ def convert_to_indices(
     ).scalars()
 
     if not relevant_elements:
-        raise RuntimeError  # FIXME
+        raise RuntimeError
 
     return [e.id for e in relevant_elements]
 

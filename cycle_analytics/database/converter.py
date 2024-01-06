@@ -102,7 +102,6 @@ def convert_rides_to_df(rides: list[Ride]) -> pd.DataFrame:
 
 
 def summarize_rides_in_year(rides: list[Ride]) -> list[tuple[str, str]]:
-    # FIXME
     data = convert_rides_to_df(rides)
     if data.empty:
         summary_data_ = {

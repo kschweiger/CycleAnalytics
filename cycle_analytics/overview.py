@@ -167,7 +167,7 @@ def main() -> str:
         ]
         try:
             overview = ride.track_overview
-        except RuntimeError:  # FIXME
+        except RuntimeError:
             overview = None
 
         if overview is not None:

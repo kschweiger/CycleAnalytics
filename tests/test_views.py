@@ -175,7 +175,7 @@ def test_enhance_track(
             [
                 DatabaseTrack(
                     content=track.get_xml().encode(),
-                    added=datetime(this_year, 2, 27, 18),
+                    added=datetime.now(),
                     is_enhanced=is_enhanced,
                 ),
             ]
