@@ -241,7 +241,7 @@ def heatmap() -> str:
     for ride in rides:
         this_track = ride.track
         if this_track:
-            data = this_track.get_segment_data()  # TODO: Use get_track_data
+            data = this_track.get_track_data()
             datas.append(data[data.moving])
 
     data = pd.concat(datas)

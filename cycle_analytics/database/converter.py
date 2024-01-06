@@ -229,18 +229,14 @@ def track_to_db_overview(
     return TrackOverview(**data)
 
 
-# TEMP: Update this with geo_track_analyzer >=1.0
-# TODO: Should check if multipel segments. If yes, get track_overview and insert with
-# TODO: id_segment=None and then add segment overviews. If not, just inster with
-# TODO: id_segment = None
 def initialize_overviews(
     track: Track,
     id_track: None | int = None,
 ) -> list[TrackOverview]:
-    bounds = track.track.segments[0].get_bounds()
-    return [
+    bounds = track.track.get_bounds()
+    overviews = [
         track_to_db_overview(
-            track.get_segment_overview(0),
+            track.get_track_overview(),
             id_track,
             None,
             (
@@ -251,3 +247,21 @@ def initialize_overviews(
             ),  # type: ignore
         )
     ]
+    if track.n_segments > 1:
+        for i in range(track.n_segments):
+            bounds = track.track.segments[i].get_bounds()
+            overviews.append(
+                track_to_db_overview(
+                    track.get_segment_overview(i),
+                    id_track,
+                    i,
+                    (
+                        bounds.min_latitude,
+                        bounds.max_latitude,
+                        bounds.min_longitude,
+                        bounds.max_longitude,
+                    ),  # type: ignore
+                )
+            )
+
+    return overviews
