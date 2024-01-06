@@ -50,4 +50,5 @@ jobs:
                 poetry install --with test
             - name: pytest
               run: |
-                  python -m pytest  --cov=cycle_analytics tests --cov-report xml:cov.xml --cov-report term --disable-warnings
+                source .venv/bin/activate
+                python -m pytest  --cov=cycle_analytics tests --cov-report xml:cov.xml --cov-report term --disable-warnings
