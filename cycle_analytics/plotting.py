@@ -4,8 +4,9 @@ from typing import Literal, Optional
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from track_analyzer.track import Track
-from track_analyzer.visualize import plot_track_2d, plot_track_with_slope
+from geo_track_analyzer.track import Track
+
+from cycle_analytics.database.model import Ride
 
 month_label_order = dict(
     month=[
@@ -60,7 +61,7 @@ def simple_coordinate_plot(
 
 
 def per_month_overview_plots(
-    data: pd.DataFrame,
+    rides: list[Ride],
     plot_values: list[tuple[str, str, str, str, bool]],
     width: int = 1000,
     height: int = 600,
@@ -79,7 +80,9 @@ def per_month_overview_plots(
     :param height:
     :return: List of base64 encoded pngs for each passed plot_value element
     """
+    from cycle_analytics.database.converter import convert_rides_to_df
 
+    data = convert_rides_to_df(rides)
     plots = []
     years = list(data.year.unique())
     if not years:
@@ -129,16 +132,18 @@ def per_month_overview_plots(
 
 
 def get_track_elevation_plot(
-    segment_data: pd.DataFrame,
+    track: Track,
     include_velocity: bool,
+    segment: None | int = None,
     pois: Optional[list[tuple[float, float]]] = None,
     color_elevation: Optional[str] = None,
     color_velocity: Optional[str] = None,
     color_poi: Optional[str] = None,
     slider: bool = False,
 ) -> go.Figure:
-    elevation_plot = plot_track_2d(
-        segment_data,
+    elevation_plot = track.plot(
+        kind="profile",
+        segment=segment,
         height=None,
         width=None,
         include_velocity=include_velocity,
@@ -163,14 +168,16 @@ def get_track_elevation_plot(
 
 
 def get_track_elevation_extension_plot(
-    segment_data: pd.DataFrame,
+    track: Track,
     plot_extension: Literal["heartrate", "cadence", "power"],
+    segment: None | int = None,
     color_elevation: Optional[str] = None,
     color_extention: Optional[str] = None,
     slider: bool = False,
 ) -> go.Figure:
-    elevation_plot = plot_track_2d(
-        segment_data,
+    elevation_plot = track.plot(
+        kind="profile",
+        segment=segment,
         height=None,
         width=None,
         color_elevation=color_elevation,
@@ -180,6 +187,7 @@ def get_track_elevation_extension_plot(
         include_cadence=plot_extension == "cadence",
         include_power=plot_extension == "power",
     )
+
     elevation_plot.update_layout(
         autosize=True,
         paper_bgcolor="rgba(0,0,0,0)",
@@ -195,18 +203,18 @@ def get_track_elevation_extension_plot(
 
 def get_track_elevation_slope_plot(
     track: Track,
-    n_segment: int,
     color_neutral: str,
     color_min: str,
     color_max: str,
-    intervals: float = 200,
+    intervals: int = 200,
     slider: bool = False,
+    segment: None | int = None,
 ) -> go.Figure:
-    fig = plot_track_with_slope(
-        track,
-        n_segment,
-        intervals,
-        (color_min, color_neutral, color_max),
+    fig = track.plot(
+        kind="profile-slope",
+        segment=segment,
+        reduce_pp_intervals=intervals,
+        slope_gradient_color=(color_min, color_neutral, color_max),
         height=None,
         width=None,
         slider=slider,

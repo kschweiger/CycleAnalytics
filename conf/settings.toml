@@ -1,6 +1,54 @@
-ALLOWED_TRACK_EXTENSIONS = ["fit", "gpx"]
+[production]
+database_schema = "cycle_analytics"
 
-[defaults]
+[development]
+database_schema = "cycle_analytics"
+EXTENSIONS = ["flask_debugtoolbar:DebugToolbarExtension"]
+SQLALCHEMY_RECORD_QUERIES = true
+DEBUG_TB_INTERCEPT_REDIRECTS = false
+DEBUG_TB_PROFILER_ENABLED = true
+
+[testing]
+database_schema = "cycle_analytics_testing"
+
+[default]
+cache_type = "SimpleCache"
+cache_default_timeout = 300
+ALLOWED_TRACK_EXTENSIONS = ["fit", "gpx"]
+EXTENSIONS = []
+SQLALCHEMY_DATABASE_URI = "@format {this.database_type}://{this.database_user}:{this.database_password}@{this.database_server}:{this.database_port}/{this.database_name}"
+database_type = "postgresql+psycopg2"
+database_schema = "cycle_analytics"
+database_user = "dev"
+database_port = "5432"
+database_name = "development"
+
+
+[default.categorized_values]
+terrain_types = ["MTB", "Road", "Gravel", "Testing/Setup"]
+event_types = [
+    "Mechanical",
+    "Crash",
+    "Service",
+    "Repair",
+    "Replacement",
+    "Purchase",
+    "Other",
+]
+segment_types = ["Single Trail", "Dirt Track", "Gravel track", "Road", "Track"]
+difficulties = ["No Difficulty", "Easy", "Moderate", "Difficult", "Break Neck"]
+severities = ["Minor", "Medium", "Major", "Critical"]
+materials = ["Aluminium", "Carbon", "Titanium"]
+type_secification = [
+    "Cross-Country",
+    "Trail",
+    "Enduro",
+    "Downhill",
+    "Race",
+    "Endurance",
+]
+
+[default.defaults]
 bike = "Nerve"
 ride_type = "MTB"
 event_type = "Mechanical"
@@ -9,26 +57,8 @@ raw_track_table = "tracks"
 track_table = "tracks_enhanced_v1"
 track_overview_table = "tracks_v1_overview"
 
-[db]
-name = "CycleAnalytics"
-user = "dev"
-database = "development"
-port = 5432
-prefix = "postgresql+psycopg2"
-schema = "bike_tracker"
 
-[table_settings]
-mandatory_columns = ["ctype"]
-optional_columns = ["is_primary", "is_unique", "is_nullable", "default"]
-auto_fill_ctypes = ["SERIAL"]
-[table_settings.key_types]
-ctype = "str"
-is_primary = "bool"
-is_unique = "bool"
-is_nullable = "bool"
-default = "any"
-
-[style]
+[default.style]
 color_sequence = [
     "#20c997",
     "#dc3545",
@@ -38,16 +68,16 @@ color_sequence = [
     "#6f42c1",
 ]
 color_marker = "#198754"
-[style.slope_colors]
+[default.style.slope_colors]
 neutral = "#198754"
 min = "#0d6efd"
 max = "#dc3545"
 
 
-[adders]
-[adders.ride]
+[default.adders]
+[default.adders.ride]
 type_choices = ["MTB", "Road", "Gravel", "Testing/Setup"]
-[adders.event]
+[default.adders.event]
 type_choices = [
     "Mechanical",
     "Crash",
@@ -60,25 +90,25 @@ type_choices = [
 init_map_view_lat = 48.02
 init_map_view_long = 10.2
 init_map_zoom = 8
-[adders.segments]
+[default.adders.segments]
 type_choices = ["Single Trail", "Dirt Track", "Gravel track", "Road", "Track"]
 
-[mappings]
-[mappings.severity]
+[default.mappings]
+[default.mappings.severity]
 0 = "Minor"
 1 = "Medium"
 2 = "Major"
 3 = "Critical"
-[mappings.event_colors]
+[default.mappings.event_colors]
 "Mechanical" = "green"
 "Crash" = "red"
-[mappings.difficulty]
+[default.mappings.difficulty]
 0 = "No Difficulty"
 1 = "Easy"
 2 = "Moderate"
 3 = "Difficult"
 4 = "Break Neck"
-[mappings.segment_types]
+[default.mappings.segment_types]
 "default" = "#20c997"
 "Single Trail" = "#dc3545"
 "Dirt Track" = "#fd7e14"
@@ -86,21 +116,21 @@ type_choices = ["Single Trail", "Dirt Track", "Gravel track", "Road", "Track"]
 "Road" = "#000000"
 "Track" = "#0dcaf0"
 
-[overview]
+[default.overview]
 default_types = ["MTB", "Road", "Gravel"]
 
 
-[landing_page]
-[landing_page.events]
+[default.landing_page]
+[default.landing_page.events]
 n_max_recent = 3
-[landing_page.last_ride]
+[default.landing_page.last_ride]
 default_type = "MTB"
-[landing_page.summary]
+[default.landing_page.summary]
 default_type = "Any"
 
-[external]
-[external.track_enhancer]
+[default.external]
+[default.external.track_enhancer]
 name = "OpenTopoElevation"
 url = "http://localhost:1409/"
-[external.track_enhancer.kwargs]
+[default.external.track_enhancer.kwargs]
 dataset = "eudem25m"

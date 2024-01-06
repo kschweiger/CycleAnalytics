@@ -1,50 +1,54 @@
 import logging
 
-from data_organizer.config import OrganizerConfig
-from dynaconf import FlaskDynaconf
+from dynaconf import FlaskDynaconf, Validator
 from flask import Flask, request, send_file
 from flask.logging import default_handler
 from flask_wtf.csrf import CSRFProtect
 from werkzeug import Response
 
+from cycle_analytics.database.creator import (
+    sync_categorical_values,
+)
+from cycle_analytics.database.model import db as orm_db
 from cycle_analytics.landing_page import render_landing_page
 from cycle_analytics.serve import get_segment_download, get_track_download
 
 logger = logging.getLogger(__name__)
 
 
-def create_app(test_config: None | dict = None) -> Flask:
+def create_app(
+    dynaconf_kwargs: None | dict = None, test_config: None | dict = None
+) -> Flask:
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_mapping(
-        CACHE_TYPE="SimpleCache",
-        CACHE_DEFAULT_TIMEOUT=300,
-        SECRET_KEY="dev",
-    )
-
-    if test_config is None:
-        # load the instance config, if it exists, when not testing
-        app.config.from_pyfile("config.py", silent=True)
-    else:
-        # load the test config if passed in
-        app.config.from_mapping(test_config)
 
     for logger_ in (
         app.logger,
-        logging.getLogger("track_analyzer"),
+        logging.getLogger("geo_track_analyzer"),
         logging.getLogger("data_organizer"),
     ):
         logger_.setLevel("DEBUG" if app.debug else "INFO")
         logger_.addHandler(default_handler)
 
-    organizer_config = OrganizerConfig(
-        name="CycleAnalytics",
-        config_dir_base="conf/",
-        additional_configs=["tables.toml"],
-    )
+    if dynaconf_kwargs is None:
+        dynaconf_kwargs = {}
 
     logger.debug("Initializing FlaskDynaconf")
-    FlaskDynaconf(app=app, dynaconf_instance=organizer_config.settings)
+    cfg = FlaskDynaconf(
+        app=app,
+        settings_files=["conf/settings.toml", "conf/.secrets.toml"],
+        validators=[
+            Validator("secret_key", must_exist=True),
+            Validator("database_schema", default=None),
+            Validator("SQLALCHEMY_ENGINE_OPTIONS", default={}),
+        ],
+        **dynaconf_kwargs,
+    )
+
+    logger.info("Using dynaconf environment %s", cfg.settings.env_for_dynaconf)
+
+    if test_config is not None:
+        cfg.settings.update(test_config)
 
     from cycle_analytics.cache import cache
 
@@ -53,13 +57,26 @@ def create_app(test_config: None | dict = None) -> Flask:
 
     logger.debug("Running cache: %s", type(cache.cache).__name__)
 
-    from cycle_analytics import db
-
-    logger.debug("Initializing DB")
-    db.init_app(app)
-
     logger.debug("Initializing CSRF protection from FLASK-WTF")
     CSRFProtect(app)
+
+    if app.config.database_schema is not None:
+        app.config.SQLALCHEMY_ENGINE_OPTIONS.update(
+            {
+                "connect_args": {
+                    "options": f"-csearch_path={app.config.database_schema},public"
+                }
+            }
+        )
+
+    orm_db.init_app(app)
+
+    if cfg.settings.EXTENSIONS:
+        app.config.load_extensions()
+
+    with app.app_context():
+        orm_db.create_all()
+        sync_categorical_values(orm_db)
 
     @app.route("/", methods=["GET", "POST"])
     def landing_page() -> str:

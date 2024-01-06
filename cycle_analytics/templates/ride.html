@@ -104,8 +104,7 @@
                             </button>
                         </div>
                         <div class="col-auto">
-                            <a href="{{url_for('track.enhance_track', id_ride=id_ride, id_track=id_raw_track)}}"
-                                class="btn btn-info">
+                            <a href="{{url_for('track.enhance_track', id_ride=id_ride)}}" class="btn btn-info">
                                 <span>Rerun track enhancement</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                                     class="bi bi-rocket-takeoff" viewBox="0 0 16 16">
@@ -157,7 +156,7 @@
                 </div>
             </div>
         </div>
-        {% elif track_add_from %} <div class="accordion-item">
+        {% elif show_track_add_from %} <div class="accordion-item">
             <h2 class="accordion-header" id="track_data_heading">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                     data-bs-target="#collapse_track_data" aria-expanded="false" aria-controls="collapse_track_data">

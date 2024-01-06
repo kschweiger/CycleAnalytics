@@ -2,7 +2,7 @@ import json
 import logging
 from collections import defaultdict
 
-from data_organizer.db.exceptions import QueryReturnedNoData
+# from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import (
     Blueprint,
     current_app,
@@ -14,36 +14,37 @@ from flask import (
     url_for,
 )
 from flask_wtf import FlaskForm
-from plotly.utils import PlotlyJSONEncoder
-from pydantic import ValidationError
-from pyroutelib3 import Router
-from track_analyzer.enhancer import get_enhancer
-from track_analyzer.exceptions import (
+from geo_track_analyzer import ByteTrack
+from geo_track_analyzer.enhancer import get_enhancer
+from geo_track_analyzer.exceptions import (
     APIHealthCheckFailedError,
     APIResponseError,
 )
-from track_analyzer.track import PyTrack
+from geo_track_analyzer.track import PyTrack
+from plotly.utils import PlotlyJSONEncoder
+from pydantic import ValidationError
+from pyroutelib3 import Router
+from sqlalchemy.exc import IntegrityError
 from werkzeug import Response
 from wtforms import HiddenField, SelectField, StringField, TextAreaField
 from wtforms.validators import DataRequired, Optional
 
-from cycle_analytics.db import get_db
+from cycle_analytics.database.model import DatabaseSegment, Difficulty, SegmentType
+from cycle_analytics.database.model import db as orm_db
+from cycle_analytics.database.modifier import modify_segment_visited_flag
+from cycle_analytics.database.retriever import get_segments_for_map_in_bounds
 from cycle_analytics.model.base import MapData, MapPathData
 from cycle_analytics.plotting import (
     convert_fig_to_base64,
     get_track_elevation_plot,
     get_track_elevation_slope_plot,
 )
-from cycle_analytics.queries import (
-    get_segment_data,
-    get_segments_for_map_in_bounds,
-    modify_segment_visited_flag,
-)
 from cycle_analytics.rest_models import (
     SegmentsInBoundsRequest,
     SegmentsInBoundsResponse,
 )
 from cycle_analytics.utils import find_closest_elem_to_poi
+from cycle_analytics.utils.forms import flash_form_error
 
 logger = logging.getLogger(__name__)
 
@@ -81,8 +82,6 @@ def main() -> str | Response:
 
 @bp.route("/show/<int:id_segment>", methods=("GET", "POST"))
 def show_segment(id_segment: int) -> str | Response:
-    config = current_app.config
-
     if request.form.get("change_visited_flag") is not None:
         switch_to = request.form.get("change_visited_flag") == "visited"
         modify_segment_visited_flag(
@@ -91,19 +90,17 @@ def show_segment(id_segment: int) -> str | Response:
         )
         logger.info("Switch segmenet %s to %s", id_segment, switch_to)
 
-    try:
-        data = get_segment_data(
-            id_segment,
-            {
-                int(key): value
-                for key, value in config.mappings.difficulty.to_dict().items()
-            },
+    segment: None | DatabaseSegment = DatabaseSegment.query.get(id_segment)
+    if segment is None:
+        flash(
+            "Invalid value of id_segnebt. Redirecting to main segment view",
+            "alert-danger",
         )
-    except QueryReturnedNoData:
-        flash("Invalid value of id_ride. Redirecting to overview", "alert-danger")
         return redirect(url_for("segments.main"))
 
-    track_segment_data = data.track.get_segment_data(0)
+    segment_track = ByteTrack(segment.gpx, 0)
+
+    track_segment_data = segment_track.get_segment_data(0)
 
     lats = track_segment_data[track_segment_data.moving].latitude.to_list()
     lats = ",".join([str(l) for l in lats])  # noqa: E741
@@ -112,10 +109,14 @@ def show_segment(id_segment: int) -> str | Response:
 
     map_data = MapData(path=MapPathData(latitudes=lats, longitudes=longs))
 
-    if data.track.track.has_elevations():
+    if segment_track.track.has_elevations():
         slope_colors = current_app.config.style.slope_colors
         plot2d = get_track_elevation_slope_plot(
-            data.track, 0, slope_colors.neutral, slope_colors.min, slope_colors.max, 20
+            track=segment_track,
+            color_neutral=slope_colors.neutral,
+            color_min=slope_colors.min,
+            color_max=slope_colors.max,
+            intervals=20,
         )
 
         plot_elevation = json.dumps(plot2d, cls=PlotlyJSONEncoder)
@@ -126,7 +127,7 @@ def show_segment(id_segment: int) -> str | Response:
     return render_template(
         "segments/show.html",
         active_page="segments",
-        data=data,
+        data=segment,
         map_data=map_data,
         plot_elevation=plot_elevation,
     )
@@ -134,14 +135,12 @@ def show_segment(id_segment: int) -> str | Response:
 
 @bp.route("/add", methods=("GET", "POST"))
 def add_segment() -> str | Response:
-    config = current_app.config
-
     map_segment_form = AddMapSegmentForm()
     map_segment_form.segment_type.choices = [
-        (c, c) for c in config.adders.segments.type_choices
+        (s.id, s.text) for s in SegmentType.query.all()
     ]
     map_segment_form.segment_difficulty.choices = [
-        (key, value) for key, value in config.mappings.difficulty.items()
+        (d.id, d.text) for d in Difficulty.query.all()
     ]
 
     if map_segment_form.validate_on_submit():
@@ -171,41 +170,41 @@ def add_segment() -> str | Response:
         if bounds is None:
             flash("Cound not determine bounds", "alert-danger")
         else:
-            db = get_db()
-
             name = map_segment_form.segment_name.data
             description = None
-            if map_segment_form.segment_description.data != "":
+            if (
+                map_segment_form.segment_description.data != ""
+                and map_segment_form.segment_description.data is not None
+            ):
                 description = map_segment_form.segment_description.data
-            insert_succ, err = db.insert(
-                current_app.config.tables_as_settings["segments"],
-                [
-                    [
-                        name,
-                        description,
-                        map_segment_form.segment_type.data,
-                        map_segment_form.segment_difficulty.data,
-                        track_overview.total_distance,
-                        track_overview.min_elevation,
-                        track_overview.max_elevation,
-                        track_overview.uphill_elevation,
-                        track_overview.downhill_elevation,
-                        bounds.min_latitude,
-                        bounds.max_latitude,
-                        bounds.min_longitude,
-                        bounds.max_longitude,
-                        track_for_segment.get_xml().encode(),
-                        False,
-                    ]
-                ],
+            segment = DatabaseSegment(
+                name=name,
+                id_segment_type=int(map_segment_form.segment_type.data),
+                id_difficulty=int(map_segment_form.segment_difficulty.data),
+                description=description,
+                distance=track_overview.total_distance,
+                min_elevation=track_overview.min_elevation,
+                max_elevation=track_overview.max_elevation,
+                uphill_elevation=track_overview.uphill_elevation,
+                downhill_elevation=track_overview.downhill_elevation,
+                bounds_min_lat=bounds.min_latitude,
+                bounds_max_lat=bounds.max_latitude,
+                bounds_min_lng=bounds.min_longitude,
+                bounds_max_lng=bounds.max_longitude,
+                gpx=track_for_segment.get_xml().encode(),
             )
 
-            if insert_succ:
-                flash("Segment added to database", "alert-success")
-
-                return redirect("/segments")
+            orm_db.session.add(segment)
+            try:
+                orm_db.session.commit()
+            except IntegrityError as e:
+                flash("Error: %s" % e, "alert-danger")
             else:
-                flash(f"Segment could not be added: {err}", "alert-danger")
+                flash("Segment Added", "alert-success")
+                return redirect("/segments")
+
+    elif request.method == "POST":
+        flash_form_error(map_segment_form)
 
     return render_template(
         "segments/add_from_map.html",
@@ -309,7 +308,7 @@ def calcualte_route() -> dict | tuple[dict, int]:
 
         colors = current_app.config.style.color_sequence
         profile_plot = get_track_elevation_plot(
-            track_segment_data,
+            track,
             False,
             color_elevation=colors[0],
             pois=pois,
@@ -371,18 +370,15 @@ def get_segments_in_bounds() -> tuple[dict, int] | str:
         {k: v for k, v in color_mapping_.items() if k != "default"},
     )
     url_base = url_for("segments.show_segment", id_segment=0).replace("0", "")
-    try:
-        segments = get_segments_for_map_in_bounds(
-            received_request.ids_on_map,
-            received_request.ne_latitude,
-            received_request.ne_longitude,
-            received_request.sw_latitude,
-            received_request.sw_longitude,
-            {int(k): v for k, v in config.mappings.difficulty.items()},
-            color_mapping,
-            url_base,
-        )
-    except QueryReturnedNoData:
-        segments = []
+
+    segments = get_segments_for_map_in_bounds(
+        received_request.ids_on_map,
+        received_request.ne_latitude,
+        received_request.ne_longitude,
+        received_request.sw_latitude,
+        received_request.sw_longitude,
+        color_mapping,
+        url_base,
+    )
 
     return SegmentsInBoundsResponse(segments=segments).json()

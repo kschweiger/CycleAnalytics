@@ -1,8 +1,12 @@
-from flask import current_app
+import logging
+
+from flask import current_app, flash
 from flask_wtf import FlaskForm
-from track_analyzer import FITTrack
+from geo_track_analyzer import ByteTrack, FITTrack, Track
 from werkzeug.datastructures import FileStorage
 from wtforms import Field
+
+logger = logging.getLogger(__name__)
 
 
 def allowed_file(filename: str) -> bool:
@@ -13,7 +17,7 @@ def allowed_file(filename: str) -> bool:
     )
 
 
-def get_track_data_from_form(form: FlaskForm, field_name: str) -> bytes:
+def get_track_from_form(form: FlaskForm, field_name: str) -> Track:
     field: Field = getattr(form, field_name)
 
     if not isinstance(field.data, FileStorage):
@@ -32,7 +36,26 @@ def get_track_data_from_form(form: FlaskForm, field_name: str) -> bytes:
         )
 
     if filename.endswith(".fit"):
-        track = FITTrack(source=data.stream.read())
-        return track.get_xml().encode()
+        return FITTrack(source=data.stream.read())
+
     else:
-        return data.stream.read()
+        return ByteTrack(data.stream.read())
+
+
+def flash_form_error(form: FlaskForm) -> None:
+    if not form.errors:
+        return
+    flash(
+        "\n".join(
+            ["<ul>"]
+            + [
+                f"<li>{field} - {','.join(error)} - Got **{form[field].data}**</li>"
+                for field, error in form.errors.items()
+            ]
+            + ["</ul>"]
+        ),
+        "alert-danger",
+    )
+    logger.error("Form errors:")
+    for field, error in form.errors.items():
+        logger.error("  %s : %s", field, error)

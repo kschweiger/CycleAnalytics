@@ -5,24 +5,25 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from typing import Dict
 
+import numpy as np
 import pandas as pd
 import plotly
 import plotly.express as px
-from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import Blueprint, current_app, render_template, request, url_for
 from flask_wtf import FlaskForm
-from track_analyzer.utils import center_geolocation
+from geo_track_analyzer.utils.base import center_geolocation
 from wtforms import SelectField
 from wtforms.validators import DataRequired
 
+from cycle_analytics.database.converter import convert_rides_to_df
+from cycle_analytics.database.retriever import (
+    get_ride_years_in_database,
+    get_rides_in_timeframe,
+)
 from cycle_analytics.forms import YearAndRideTypeForm
 from cycle_analytics.plotting import per_month_overview_plots
-from cycle_analytics.queries import (
-    get_rides_in_timeframe,
-    get_track_for_id,
-    get_years_in_database,
-)
 from cycle_analytics.utils import get_month_mapping, get_nice_timedelta_isoformat
+from cycle_analytics.utils.base import format_timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +132,7 @@ def main() -> str:
     curr_year = date.today().year
     overview_form.year.choices = (
         [(str(curr_year), str(curr_year))]
-        + [(str(y), str(y)) for y in get_years_in_database() if y != curr_year]
+        + [(str(y), str(y)) for y in get_ride_years_in_database() if y != curr_year]
         + [("All", "All")]
     )
     selected_year = overview_form.year.data
@@ -146,44 +147,48 @@ def main() -> str:
         "Downhill [m]",
     ]
     table_data = []
-    try:
-        select_ride_types_ = overview_form.ride_type.data
-        if select_ride_types_ == "Default":
-            select_ride_types = config.overview.default_types
-        else:
-            select_ride_types = select_ride_types_
+    select_ride_types_ = overview_form.ride_type.data
+    if select_ride_types_ == "Default":
+        select_ride_types = config.overview.default_types
+    else:
+        select_ride_types = select_ride_types_
 
-        rides = get_rides_in_timeframe(selected_year, ride_type=select_ride_types)
-    except QueryReturnedNoData:
-        rides = pd.DataFrame()
+    rides = get_rides_in_timeframe(selected_year, ride_type=select_ride_types)
 
-    for rcrd in rides.to_dict("records"):
-        # thumbnails = get_thumbnails_for_id(rcrd["id_ride"])
-        table_data.append(
+    for ride in rides:
+        this_ride_data = [
             (
-                (
-                    rcrd["date"].isoformat(),
-                    url_for("ride.display", id_ride=rcrd["id_ride"]),
-                ),
-                ""
-                if pd.isna(rcrd["ride_time"])
-                else get_nice_timedelta_isoformat(rcrd["ride_time"].isoformat()),
-                get_nice_timedelta_isoformat(rcrd["total_time"].isoformat()),
-                rcrd["distance"],
-                ""
-                if pd.isna(rcrd["avg_velocity_kmh"])
-                else round(rcrd["avg_velocity_kmh"], 2),
-                ""
-                if pd.isna(rcrd["uphill_elevation"])
-                else round(rcrd["uphill_elevation"], 2),
-                ""
-                if pd.isna(rcrd["downhill_elevation"])
-                else round(rcrd["downhill_elevation"], 2),
+                ride.ride_date.isoformat(),
+                url_for("ride.display", id_ride=ride.id),
+            ),
+            "" if ride.ride_duration is None else format_timedelta(ride.ride_duration),
+            format_timedelta(ride.total_duration),
+            ride.distance,
+        ]
+        try:
+            overview = ride.track_overview
+        except RuntimeError:
+            overview = None
+
+        if overview is not None:
+            this_ride_data.extend(
+                [
+                    round(overview.avg_velocity_kmh, 2),
+                    ""
+                    if overview.uphill_elevation is None
+                    else round(overview.uphill_elevation, 2),
+                    ""
+                    if overview.downhill_elevation is None
+                    else round(overview.downhill_elevation, 2),
+                ]
             )
-        )
+        else:
+            this_ride_data.extend(["", "", ""])
+        # thumbnails = get_thumbnails_for_id(rcrd["id_ride"])
+        table_data.append(tuple(this_ride_data))
 
     plots_ = []
-    if not rides.empty:
+    if rides:
         plots_ = per_month_overview_plots(
             rides,
             [
@@ -226,16 +231,18 @@ def main() -> str:
 @bp.route("/heatmap", methods=("GET", "POST"))
 def heatmap() -> str:
     heatmap_plot = None
-    year_selected = request.args.get("year_selected")
+    year_selected = int(request.args.get("year_selected", date.today().year))
 
     rides = get_rides_in_timeframe(year_selected)
 
-    rides_w_track = rides[rides.id_track.notna()].id_ride.to_list()
     # TODO: Do this multithreaded?
     datas = []
-    for ride_id in rides_w_track:
-        data = get_track_for_id(ride_id).get_segment_data()
-        datas.append(data[data.moving])
+
+    for ride in rides:
+        this_track = ride.track
+        if this_track:
+            data = this_track.get_track_data()
+            datas.append(data[data.moving])
 
     data = pd.concat(datas)
 
@@ -359,7 +366,7 @@ def journal() -> str:
 
     curr_year = date.today().year
     overview_form.year.choices = [(str(curr_year), str(curr_year))] + [
-        (str(y), str(y)) for y in get_years_in_database() if y != curr_year
+        (str(y), str(y)) for y in get_ride_years_in_database() if y != curr_year
     ]
 
     select_ride_types_ = overview_form.ride_type.data
@@ -411,12 +418,9 @@ def journal() -> str:
     ride_type_btn_class_map = {}
     last_btn_class_add = None
     for week in weeks:
-        try:
-            rides = get_rides_in_timeframe(
-                week.get_date_range(), ride_type=select_ride_types
-            )
-        except QueryReturnedNoData:
-            rides = pd.DataFrame()
+        rides = convert_rides_to_df(
+            get_rides_in_timeframe(week.get_date_range(), ride_type=select_ride_types)
+        )
 
         total_distance = 0
         total_duration = pd.Timedelta(seconds=0)
@@ -462,18 +466,25 @@ def journal() -> str:
                     day.rides.append(
                         JournalRide(
                             id_ride=row["id_ride"],
-                            duration=get_nice_timedelta_isoformat(
-                                row["total_time"].isoformat()
-                            ),
+                            duration=format_timedelta(row["total_time"]),
                             distance=f"{row['distance']:0.2f} km",
                             uphill=None
-                            if row["uphill_elevation"] is None
+                            if (
+                                row["uphill_elevation"] is None
+                                or np.isnan(row["uphill_elevation"])
+                            )
                             else f"{int(row['uphill_elevation'])} m",
                             downhill=None
-                            if row["downhill_elevation"] is None
+                            if (
+                                row["downhill_elevation"] is None
+                                or np.isnan(row["downhill_elevation"])
+                            )
                             else f"{int(row['downhill_elevation'])} m",
                             avg_velocity=None
-                            if row["avg_velocity_kmh"] is None
+                            if (
+                                row["avg_velocity_kmh"] is None
+                                or np.isnan(row["avg_velocity_kmh"])
+                            )
                             else f"{int(row['avg_velocity_kmh']):0.2f} km/h",
                             btn_class=ride_cat_btn_class,
                         )

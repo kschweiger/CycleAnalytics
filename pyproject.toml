@@ -10,8 +10,6 @@ packages = [{ include = "cycle_analytics" }]
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
 Flask = "^2.3.3"
-data-organizer = { git = "https://github.com/kschweiger/data_organizer.git", rev = "1.4.0" }
-track-analyzer = {git = "https://github.com/kschweiger/track_analyzer.git", rev = "0.4.1"}
 Flask-Caching = "^2.1.0"
 gunicorn = "^20.1.0"
 dynaconf = "^3.2.4"
@@ -23,20 +21,26 @@ pydantic = "^1.10.13"
 redis = "^4.6.0"
 wtforms = "^3.1.1"
 plotly = "^5.18.0"
+sqlalchemy = "^2.0.24"
+flask-sqlalchemy = "^3.1.1"
+psycopg2 = "^2.9.9"
+geo-track-analyzer = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.12.0"
 mypy = "^0.991"
-pre-commit = "^2.21.0"
-ruff = "^0.0.292"
+pre-commit = "^3.6.0"
+ruff = "^0.1.9"
 bpython = "^0.24"
+flask-debugtoolbar = "^0.14.1"
 
 
 [tool.poetry.group.test.dependencies]
-pytest = "^7.4.3"
+pytest = "^7.4.4"
 pytest-mock = "^3.12.0"
 pytest-cov = "^4.1.0"
 pytest-sugar = "^0.9.6"
+pytest-dependency = "^0.6.0"
 
 [tool.isort]
 profile = "black"
@@ -69,8 +73,8 @@ exclude = ["tests/*"]
 
 [tool.ruff]
 select = ["E", "F", "I", "PD", "PT", "NPY", "N", "W", "RET", "ANN", "RUF"]
-unfixable = ["F841", "RUF005"]
-ignore = ["ANN101", "RUF009", "E731", "RET505", "RUF005"]
+unfixable = ["F841", "RUF005", "RUF015"]
+ignore = ["ANN101", "RUF009", "E731", "RET505", "ANN002", "ANN003", "RUF005"]
 ignore-init-module-imports = true
 target-version = "py310"
 

@@ -19,6 +19,7 @@
     </div>
     {% if last_ride is not none %}
     <div class="row mt-3">
+        {% if last_ride.thumbnails is not none%}
         <div class="col-3">
             {% for thumbnail in last_ride.thumbnails %}
             <a href="{{url_for('ride.display', id_ride=last_ride.id)}}">
@@ -26,6 +27,7 @@
             </a>
             {% endfor %}
         </div>
+        {%endif%}
         <div class="col">
             <table class="table">
                 <tbody>

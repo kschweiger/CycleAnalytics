@@ -1,20 +1,24 @@
 import logging
 from datetime import date
 
-from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import current_app, render_template, request
 
-from cycle_analytics.forms import YearAndRideTypeForm
-from cycle_analytics.model.goal import YearlyGoal, format_goals_concise
-from cycle_analytics.queries import (
-    get_goal_years,
+from cycle_analytics.database.converter import (
+    convert_rides_to_df,
+    summarize_rides_in_month,
+    summarize_rides_in_year,
+)
+from cycle_analytics.database.retriever import (
+    get_curr_and_prev_month_rides,
+    get_goal_years_in_database,
     get_last_ride,
     get_recent_events,
+    get_ride_years_in_database,
     get_rides_in_timeframe,
-    get_summary_data,
-    get_years_in_database,
     load_goals,
 )
+from cycle_analytics.forms import YearAndRideTypeForm
+from cycle_analytics.model.goal import YearlyGoal, format_goals_concise
 from cycle_analytics.utils import get_month_mapping
 
 logger = logging.getLogger(__name__)
@@ -54,15 +58,16 @@ def render_landing_page() -> str:
     for event in events:
         recent_events.append(
             (
-                event["short_description"],
-                event["event_type"],
-                event["date"],
+                event.short_description,
+                event.event_type,
+                event.event_date,
             )
         )
 
     # --------------------- GOALS ---------------------
     goal_years = [
-        str(g) for g in sorted(get_goal_years() + [date_today.year], reverse=True)
+        str(g)
+        for g in sorted(get_goal_years_in_database() + [date_today.year], reverse=True)
     ]
     month_mapping = get_month_mapping()
     goal_year_selected = str(date_today.year)
@@ -75,10 +80,7 @@ def render_landing_page() -> str:
     inv_month_mapping = {value: key for key, value in month_mapping.items()}
     goal_months = [month_mapping[i] for i in range(1, 13)]
 
-    try:
-        goals_ = load_goals(goal_year_selected, True, False)
-    except QueryReturnedNoData:
-        goals_ = []
+    goals_ = load_goals(goal_year_selected, True, False)
 
     display_goals = [
         goal
@@ -91,8 +93,10 @@ def render_landing_page() -> str:
 
     # -----------------------------------------------------------------------------
     # TODO: Check if this takes too long with more data. Maybe add an update button
-    data = get_rides_in_timeframe(goal_year_selected)
+    data = convert_rides_to_df(get_rides_in_timeframe(goal_year_selected))
     for goal in display_goals:
+        # TODO: This should really work with a list of rides instead of the
+        # TODO: dataframe
         reached, _, _ = goal.evaluate(data)
         goal.reached = reached
     # -----------------------------------------------------------------------------
@@ -110,7 +114,7 @@ def render_landing_page() -> str:
     curr_year = date.today().year
     summary_form.year.choices = (
         [(str(curr_year), str(curr_year))]
-        + [(str(y), str(y)) for y in get_years_in_database() if y != curr_year]
+        + [(str(y), str(y)) for y in get_ride_years_in_database() if y != curr_year]
         + [("All", "All")]
     )
     summary_year_selected = summary_form.year.data
@@ -120,12 +124,14 @@ def render_landing_page() -> str:
     else:
         summary_ride_type_selected = select_ride_types_
 
-    summary_data, summary_month = get_summary_data(
-        summary_year_selected,
-        date_today.year,
-        date_today.month,
-        summary_ride_type_selected,
+    summary_data = summarize_rides_in_year(
+        get_rides_in_timeframe(summary_year_selected, summary_ride_type_selected)
     )
+
+    summary_month = summarize_rides_in_month(
+        *get_curr_and_prev_month_rides(date_today.year, date_today.month)
+    )
+
     return render_template(
         "landing_page.html",
         active_page="home",

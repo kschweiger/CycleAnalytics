@@ -10,6 +10,15 @@
             {{form.track.label(class_="form-label") }}
             {{form.track(class_="form-control")}}
         </div>
+        <div class="col mt-auto">
+            {% for subfield in form.enhance_elevation %}
+            <div class="form-check form-switch form-switch-lg">
+                {{ subfield(type_="checkbox", role_="switch", class_="form-check-input",
+                checked=subfield==form.enhance_elevation) }}
+                {{ subfield.label(class_="form-check-label") }}
+            </div>
+            {% endfor %}
+        </div>
         <div class="col mt-auto text-end">
             <input type="submit" value="Submit" class="btn btn-success">
         </div>

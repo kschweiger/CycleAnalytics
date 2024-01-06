@@ -2,7 +2,9 @@ import logging
 from io import BytesIO
 from typing import BinaryIO, Tuple
 
-from cycle_analytics.queries import get_segment_track, get_track
+from geo_track_analyzer import ByteTrack
+
+from cycle_analytics.database.model import DatabaseSegment, DatabaseTrack, db
 
 logger = logging.getLogger(__name__)
 
@@ -14,9 +16,9 @@ def get_track_download(track_id: int) -> Tuple[BinaryIO, str]:
     :return: GPX file as BytesIO object and file name
     """
     logger.info("Serving gpx track for id %s", track_id)
-    track = get_track(track_id)
+    track = db.get_or_404(DatabaseTrack, track_id)
 
-    binary_data = BytesIO(track.get_xml().encode())
+    binary_data = BytesIO(ByteTrack(track.content).get_xml().encode())
     file_name = f"track_{track_id}.gpx"
 
     return binary_data, file_name
@@ -30,9 +32,9 @@ def get_segment_download(segment_id: int) -> tuple[BytesIO, str]:
     """
     logger.info("Serving gpx track for segment with id %s", segment_id)
 
-    track, name = get_segment_track(segment_id)
+    segment = db.get_or_404(DatabaseSegment, segment_id)
 
-    binary_data = BytesIO(track.get_xml().encode())
-    file_name = f"segment_{segment_id}_{name.replace(' ', '_')}.gpx"
+    binary_data = BytesIO(ByteTrack(segment.gpx).get_xml().encode())
+    file_name = f"segment_{segment_id}_{segment.name.replace(' ', '_')}.gpx"
 
     return binary_data, file_name

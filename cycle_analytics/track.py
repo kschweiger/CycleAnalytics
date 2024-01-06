@@ -1,34 +1,36 @@
 import logging
 
-from flask import Blueprint, current_app, redirect, url_for
+from flask import Blueprint, flash, redirect, url_for
 from werkzeug import Response
 
-from cycle_analytics.queries import get_track_data, ride_track_id
-from cycle_analytics.utils.track import enhance_and_insert_track
+from cycle_analytics.database.model import Ride
+from cycle_analytics.database.model import db as orm_db
+from cycle_analytics.utils.track import get_enhanced_db_track
 
 bp = Blueprint("track", __name__, url_prefix="/track")
 
 logger = logging.getLogger(__name__)
 
 
-@bp.route("enhance/<int:id_ride>/<int:id_track>/", methods=("GET", "POST"))
-def enhance_track(id_ride: int, id_track: int) -> Response:
-    logger.info("Running enhancement for raw track %s of id_ride", id_track, id_ride)
-    # Load data of raw track
-    data = get_track_data(
-        id_track,
-        current_app.config.tables_as_settings[
-            current_app.config.defaults.raw_track_table
-        ].name,
-    )
-    # Check if there is an enhanced track for id_ride. If yes, replace
-    enhance_id = ride_track_id(
-        id_ride,
-        current_app.config.tables_as_settings[
-            current_app.config.defaults.track_table
-        ].name,
-    )
+@bp.route("enhance/<int:id_ride>/", methods=("GET", "POST"))
+def enhance_track(id_ride: int) -> Response:
+    logger.info("Running enhancement for latest track in id_ride %s", id_ride)
+    ride = orm_db.get_or_404(Ride, id_ride)
+    current_db_track = ride.database_track
+    current_track = ride.track
+    if current_track is None or current_db_track is None:
+        flash(f"Ride {id_ride} has no track", "alert-warning")
+        return redirect(url_for("ride.display", id_ride=id_ride))
 
-    enhance_and_insert_track(data=data, id_ride=id_ride, enhance_id=enhance_id)
+    new_db_track = get_enhanced_db_track(current_track)
+    if new_db_track is None:
+        return redirect(url_for("ride.display", id_ride=id_ride))
 
+    if current_db_track.is_enhanced:
+        orm_db.session.delete(current_db_track)
+        flash("Previous enhanced track deleted", "alert-warning")
+
+    ride.tracks.append(new_db_track)
+    orm_db.session.commit()
+    flash("Track enhanced", "alert-success")
     return redirect(url_for("ride.display", id_ride=id_ride))
