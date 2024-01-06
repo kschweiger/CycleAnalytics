@@ -192,7 +192,7 @@ class Ride(db.Model):
     )  # type: ignore
 
     tracks: list[DatabaseTrack] = db.relationship(
-        "DatabaseTrack", backref="ride", secondary=ride_track, lazy=True
+        "DatabaseTrack", backref="ride", secondary=ride_track, lazy=False
     )  # type: ignore
     notes: list[RideNote] = db.relationship(
         "RideNote", secondary=ride_note, backref="ride", lazy=True
