@@ -1,0 +1,1753 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1" creator="gpx.py -- https://github.com/tkrajina/gpxpy">
+  <trk>
+    <trkseg>
+      <trkpt lat="47.940462" lon="7.867938">
+        <ele>448.75</ele>
+        <time>2023-08-01T13:00:00</time>
+        <extensions>
+          <heartrate>169</heartrate>
+          <cadence>76</cadence>
+          <power>339</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.940279" lon="7.868005">
+        <ele>449.5</ele>
+        <time>2023-08-01T13:00:04</time>
+        <extensions>
+          <heartrate>152</heartrate>
+          <cadence>71</cadence>
+          <power>281</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.940079" lon="7.868167">
+        <ele>450.0</ele>
+        <time>2023-08-01T13:00:10</time>
+        <extensions>
+          <heartrate>158</heartrate>
+          <cadence>82</cadence>
+          <power>314</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939956" lon="7.868315">
+        <ele>451.75</ele>
+        <time>2023-08-01T13:00:15</time>
+        <extensions>
+          <heartrate>165</heartrate>
+          <cadence>88</cadence>
+          <power>316</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939832" lon="7.868495">
+        <ele>456.5</ele>
+        <time>2023-08-01T13:00:21</time>
+        <extensions>
+          <heartrate>165</heartrate>
+          <cadence>87</cadence>
+          <power>338</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939691" lon="7.868806">
+        <ele>463.0</ele>
+        <time>2023-08-01T13:00:30</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>77</cadence>
+          <power>315</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939584" lon="7.869113">
+        <ele>467.75</ele>
+        <time>2023-08-01T13:00:38</time>
+        <extensions>
+          <heartrate>159</heartrate>
+          <cadence>72</cadence>
+          <power>313</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939291" lon="7.870007">
+        <ele>473.25</ele>
+        <time>2023-08-01T13:00:57</time>
+        <extensions>
+          <heartrate>158</heartrate>
+          <cadence>87</cadence>
+          <power>283</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939191" lon="7.870412">
+        <ele>473.75</ele>
+        <time>2023-08-01T13:01:04</time>
+        <extensions>
+          <heartrate>154</heartrate>
+          <cadence>79</cadence>
+          <power>311</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939141" lon="7.870703">
+        <ele>474.5</ele>
+        <time>2023-08-01T13:01:09</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>75</cadence>
+          <power>330</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.93912" lon="7.871046">
+        <ele>477.25</ele>
+        <time>2023-08-01T13:01:16</time>
+        <extensions>
+          <heartrate>165</heartrate>
+          <cadence>78</cadence>
+          <power>303</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939122" lon="7.871309">
+        <ele>479.5</ele>
+        <time>2023-08-01T13:01:21</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>78</cadence>
+          <power>298</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939143" lon="7.871604">
+        <ele>481.75</ele>
+        <time>2023-08-01T13:01:27</time>
+        <extensions>
+          <heartrate>164</heartrate>
+          <cadence>80</cadence>
+          <power>305</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939182" lon="7.871873">
+        <ele>486.25</ele>
+        <time>2023-08-01T13:01:33</time>
+        <extensions>
+          <heartrate>160</heartrate>
+          <cadence>82</cadence>
+          <power>296</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939262" lon="7.872158">
+        <ele>492.75</ele>
+        <time>2023-08-01T13:01:40</time>
+        <extensions>
+          <heartrate>161</heartrate>
+          <cadence>88</cadence>
+          <power>293</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939369" lon="7.872436">
+        <ele>498.5</ele>
+        <time>2023-08-01T13:01:47</time>
+        <extensions>
+          <heartrate>162</heartrate>
+          <cadence>85</cadence>
+          <power>295</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939644" lon="7.873085">
+        <ele>504.75</ele>
+        <time>2023-08-01T13:02:02</time>
+        <extensions>
+          <heartrate>155</heartrate>
+          <cadence>72</cadence>
+          <power>311</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939826" lon="7.873578">
+        <ele>504.5</ele>
+        <time>2023-08-01T13:02:08</time>
+        <extensions>
+          <heartrate>160</heartrate>
+          <cadence>89</cadence>
+          <power>299</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.940005" lon="7.874124">
+        <ele>502.0</ele>
+        <time>2023-08-01T13:02:14</time>
+        <extensions>
+          <heartrate>151</heartrate>
+          <cadence>87</cadence>
+          <power>300</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.940084" lon="7.874427">
+        <ele>506.0</ele>
+        <time>2023-08-01T13:02:21</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>79</cadence>
+          <power>324</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.940137" lon="7.874875">
+        <ele>510.0</ele>
+        <time>2023-08-01T13:02:30</time>
+        <extensions>
+          <heartrate>163</heartrate>
+          <cadence>82</cadence>
+          <power>309</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.940118" lon="7.875441">
+        <ele>515.0</ele>
+        <time>2023-08-01T13:02:41</time>
+        <extensions>
+          <heartrate>161</heartrate>
+          <cadence>88</cadence>
+          <power>321</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939883" lon="7.877177">
+        <ele>531.25</ele>
+        <time>2023-08-01T13:03:17</time>
+        <extensions>
+          <heartrate>156</heartrate>
+          <cadence>72</cadence>
+          <power>324</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939835" lon="7.877913">
+        <ele>541.0</ele>
+        <time>2023-08-01T13:03:33</time>
+        <extensions>
+          <heartrate>159</heartrate>
+          <cadence>88</cadence>
+          <power>291</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939769" lon="7.878073">
+        <ele>544.0</ele>
+        <time>2023-08-01T13:03:37</time>
+        <extensions>
+          <heartrate>163</heartrate>
+          <cadence>89</cadence>
+          <power>321</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939645" lon="7.878159">
+        <ele>547.5</ele>
+        <time>2023-08-01T13:03:42</time>
+        <extensions>
+          <heartrate>163</heartrate>
+          <cadence>85</cadence>
+          <power>318</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939544" lon="7.878171">
+        <ele>549.75</ele>
+        <time>2023-08-01T13:03:45</time>
+        <extensions>
+          <heartrate>164</heartrate>
+          <cadence>85</cadence>
+          <power>297</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939427" lon="7.878088">
+        <ele>551.25</ele>
+        <time>2023-08-01T13:03:49</time>
+        <extensions>
+          <heartrate>160</heartrate>
+          <cadence>77</cadence>
+          <power>284</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939353" lon="7.877894">
+        <ele>551.25</ele>
+        <time>2023-08-01T13:03:52</time>
+        <extensions>
+          <heartrate>156</heartrate>
+          <cadence>77</cadence>
+          <power>329</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.93935" lon="7.877807">
+        <ele>550.5</ele>
+        <time>2023-08-01T13:03:53</time>
+        <extensions>
+          <heartrate>154</heartrate>
+          <cadence>78</cadence>
+          <power>336</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.93938" lon="7.877226">
+        <ele>546.5</ele>
+        <time>2023-08-01T13:03:59</time>
+        <extensions>
+          <heartrate>160</heartrate>
+          <cadence>85</cadence>
+          <power>329</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939424" lon="7.876932">
+        <ele>544.25</ele>
+        <time>2023-08-01T13:04:02</time>
+        <extensions>
+          <heartrate>150</heartrate>
+          <cadence>73</cadence>
+          <power>282</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939458" lon="7.876601">
+        <ele>542.0</ele>
+        <time>2023-08-01T13:04:05</time>
+        <extensions>
+          <heartrate>166</heartrate>
+          <cadence>71</cadence>
+          <power>311</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939433" lon="7.876361">
+        <ele>542.5</ele>
+        <time>2023-08-01T13:04:09</time>
+        <extensions>
+          <heartrate>160</heartrate>
+          <cadence>84</cadence>
+          <power>314</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939376" lon="7.876052">
+        <ele>544.5</ele>
+        <time>2023-08-01T13:04:15</time>
+        <extensions>
+          <heartrate>161</heartrate>
+          <cadence>74</cadence>
+          <power>287</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.939245" lon="7.875691">
+        <ele>548.25</ele>
+        <time>2023-08-01T13:04:23</time>
+        <extensions>
+          <heartrate>167</heartrate>
+          <cadence>87</cadence>
+          <power>304</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.938667" lon="7.874674">
+        <ele>553.5</ele>
+        <time>2023-08-01T13:04:47</time>
+        <extensions>
+          <heartrate>162</heartrate>
+          <cadence>71</cadence>
+          <power>310</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.938222" lon="7.874231">
+        <ele>554.0</ele>
+        <time>2023-08-01T13:05:01</time>
+        <extensions>
+          <heartrate>170</heartrate>
+          <cadence>72</cadence>
+          <power>290</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.938059" lon="7.874183">
+        <ele>554.0</ele>
+        <time>2023-08-01T13:05:04</time>
+        <extensions>
+          <heartrate>154</heartrate>
+          <cadence>75</cadence>
+          <power>282</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.937911" lon="7.874218">
+        <ele>555.75</ele>
+        <time>2023-08-01T13:05:08</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>76</cadence>
+          <power>314</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.937603" lon="7.874337">
+        <ele>561.25</ele>
+        <time>2023-08-01T13:05:18</time>
+        <extensions>
+          <heartrate>151</heartrate>
+          <cadence>84</cadence>
+          <power>306</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.937457" lon="7.874357">
+        <ele>564.0</ele>
+        <time>2023-08-01T13:05:23</time>
+        <extensions>
+          <heartrate>152</heartrate>
+          <cadence>87</cadence>
+          <power>318</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.937348" lon="7.874319">
+        <ele>566.25</ele>
+        <time>2023-08-01T13:05:27</time>
+        <extensions>
+          <heartrate>156</heartrate>
+          <cadence>80</cadence>
+          <power>317</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.937244" lon="7.87422">
+        <ele>567.0</ele>
+        <time>2023-08-01T13:05:30</time>
+        <extensions>
+          <heartrate>151</heartrate>
+          <cadence>71</cadence>
+          <power>314</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.93711" lon="7.873994">
+        <ele>567.0</ele>
+        <time>2023-08-01T13:05:34</time>
+        <extensions>
+          <heartrate>151</heartrate>
+          <cadence>86</cadence>
+          <power>311</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.93685" lon="7.873342">
+        <ele>563.25</ele>
+        <time>2023-08-01T13:05:42</time>
+        <extensions>
+          <heartrate>163</heartrate>
+          <cadence>83</cadence>
+          <power>324</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.936627" lon="7.872931">
+        <ele>564.5</ele>
+        <time>2023-08-01T13:05:51</time>
+        <extensions>
+          <heartrate>154</heartrate>
+          <cadence>72</cadence>
+          <power>286</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.936224" lon="7.872401">
+        <ele>567.5</ele>
+        <time>2023-08-01T13:06:05</time>
+        <extensions>
+          <heartrate>170</heartrate>
+          <cadence>83</cadence>
+          <power>287</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.935973" lon="7.872145">
+        <ele>570.25</ele>
+        <time>2023-08-01T13:06:14</time>
+        <extensions>
+          <heartrate>152</heartrate>
+          <cadence>71</cadence>
+          <power>282</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.935845" lon="7.872085">
+        <ele>572.5</ele>
+        <time>2023-08-01T13:06:18</time>
+        <extensions>
+          <heartrate>163</heartrate>
+          <cadence>87</cadence>
+          <power>337</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.935723" lon="7.872047">
+        <ele>570.5</ele>
+        <time>2023-08-01T13:06:20</time>
+        <extensions>
+          <heartrate>155</heartrate>
+          <cadence>71</cadence>
+          <power>311</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.935548" lon="7.872067">
+        <ele>568.5</ele>
+        <time>2023-08-01T13:06:23</time>
+        <extensions>
+          <heartrate>161</heartrate>
+          <cadence>80</cadence>
+          <power>291</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.935374" lon="7.872163">
+        <ele>568.0</ele>
+        <time>2023-08-01T13:06:26</time>
+        <extensions>
+          <heartrate>167</heartrate>
+          <cadence>83</cadence>
+          <power>297</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.935223" lon="7.872328">
+        <ele>569.75</ele>
+        <time>2023-08-01T13:06:31</time>
+        <extensions>
+          <heartrate>166</heartrate>
+          <cadence>71</cadence>
+          <power>281</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.935073" lon="7.872584">
+        <ele>574.5</ele>
+        <time>2023-08-01T13:06:39</time>
+        <extensions>
+          <heartrate>170</heartrate>
+          <cadence>78</cadence>
+          <power>293</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.934991" lon="7.872906">
+        <ele>585.0</ele>
+        <time>2023-08-01T13:06:47</time>
+        <extensions>
+          <heartrate>162</heartrate>
+          <cadence>81</cadence>
+          <power>318</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.934912" lon="7.873116">
+        <ele>591.25</ele>
+        <time>2023-08-01T13:06:53</time>
+        <extensions>
+          <heartrate>163</heartrate>
+          <cadence>76</cadence>
+          <power>288</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.934856" lon="7.873241">
+        <ele>595.0</ele>
+        <time>2023-08-01T13:06:57</time>
+        <extensions>
+          <heartrate>155</heartrate>
+          <cadence>76</cadence>
+          <power>339</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.934732" lon="7.873376">
+        <ele>598.5</ele>
+        <time>2023-08-01T13:07:02</time>
+        <extensions>
+          <heartrate>170</heartrate>
+          <cadence>84</cadence>
+          <power>325</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.934415" lon="7.873456">
+        <ele>597.75</ele>
+        <time>2023-08-01T13:07:07</time>
+        <extensions>
+          <heartrate>168</heartrate>
+          <cadence>84</cadence>
+          <power>289</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.934068" lon="7.873494">
+        <ele>595.5</ele>
+        <time>2023-08-01T13:07:13</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>89</cadence>
+          <power>292</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.933524" lon="7.873782">
+        <ele>600.25</ele>
+        <time>2023-08-01T13:07:29</time>
+        <extensions>
+          <heartrate>151</heartrate>
+          <cadence>78</cadence>
+          <power>335</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.933122" lon="7.873881">
+        <ele>596.0</ele>
+        <time>2023-08-01T13:07:35</time>
+        <extensions>
+          <heartrate>150</heartrate>
+          <cadence>79</cadence>
+          <power>305</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932975" lon="7.873976">
+        <ele>595.0</ele>
+        <time>2023-08-01T13:07:38</time>
+        <extensions>
+          <heartrate>165</heartrate>
+          <cadence>84</cadence>
+          <power>340</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932785" lon="7.874173">
+        <ele>595.25</ele>
+        <time>2023-08-01T13:07:44</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>75</cadence>
+          <power>335</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932644" lon="7.874436">
+        <ele>596.75</ele>
+        <time>2023-08-01T13:07:50</time>
+        <extensions>
+          <heartrate>166</heartrate>
+          <cadence>83</cadence>
+          <power>285</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932528" lon="7.874694">
+        <ele>598.5</ele>
+        <time>2023-08-01T13:07:56</time>
+        <extensions>
+          <heartrate>163</heartrate>
+          <cadence>82</cadence>
+          <power>318</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932476" lon="7.874852">
+        <ele>600.25</ele>
+        <time>2023-08-01T13:08:00</time>
+        <extensions>
+          <heartrate>156</heartrate>
+          <cadence>79</cadence>
+          <power>315</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932462" lon="7.874972">
+        <ele>602.25</ele>
+        <time>2023-08-01T13:08:03</time>
+        <extensions>
+          <heartrate>161</heartrate>
+          <cadence>75</cadence>
+          <power>334</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932456" lon="7.875021">
+        <ele>603.0</ele>
+        <time>2023-08-01T13:08:04</time>
+        <extensions>
+          <heartrate>151</heartrate>
+          <cadence>71</cadence>
+          <power>333</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932466" lon="7.875192">
+        <ele>605.5</ele>
+        <time>2023-08-01T13:08:08</time>
+        <extensions>
+          <heartrate>155</heartrate>
+          <cadence>85</cadence>
+          <power>318</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932523" lon="7.875331">
+        <ele>609.0</ele>
+        <time>2023-08-01T13:08:12</time>
+        <extensions>
+          <heartrate>168</heartrate>
+          <cadence>80</cadence>
+          <power>294</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932691" lon="7.875616">
+        <ele>618.25</ele>
+        <time>2023-08-01T13:08:21</time>
+        <extensions>
+          <heartrate>161</heartrate>
+          <cadence>87</cadence>
+          <power>280</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932709" lon="7.875685">
+        <ele>619.75</ele>
+        <time>2023-08-01T13:08:23</time>
+        <extensions>
+          <heartrate>165</heartrate>
+          <cadence>83</cadence>
+          <power>305</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932718" lon="7.87575">
+        <ele>620.75</ele>
+        <time>2023-08-01T13:08:25</time>
+        <extensions>
+          <heartrate>151</heartrate>
+          <cadence>84</cadence>
+          <power>297</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.93271" lon="7.875815">
+        <ele>621.5</ele>
+        <time>2023-08-01T13:08:26</time>
+        <extensions>
+          <heartrate>169</heartrate>
+          <cadence>74</cadence>
+          <power>281</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932685" lon="7.875913">
+        <ele>622.5</ele>
+        <time>2023-08-01T13:08:28</time>
+        <extensions>
+          <heartrate>156</heartrate>
+          <cadence>79</cadence>
+          <power>284</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932637" lon="7.875991">
+        <ele>622.5</ele>
+        <time>2023-08-01T13:08:29</time>
+        <extensions>
+          <heartrate>162</heartrate>
+          <cadence>89</cadence>
+          <power>285</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932422" lon="7.876195">
+        <ele>620.25</ele>
+        <time>2023-08-01T13:08:33</time>
+        <extensions>
+          <heartrate>156</heartrate>
+          <cadence>73</cadence>
+          <power>289</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.93235" lon="7.876312">
+        <ele>620.5</ele>
+        <time>2023-08-01T13:08:36</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>90</cadence>
+          <power>281</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932278" lon="7.876486">
+        <ele>621.75</ele>
+        <time>2023-08-01T13:08:40</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>77</cadence>
+          <power>334</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932161" lon="7.87688">
+        <ele>624.5</ele>
+        <time>2023-08-01T13:08:48</time>
+        <extensions>
+          <heartrate>158</heartrate>
+          <cadence>76</cadence>
+          <power>313</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932046" lon="7.877356">
+        <ele>627.0</ele>
+        <time>2023-08-01T13:08:57</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>83</cadence>
+          <power>330</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932035" lon="7.877547">
+        <ele>628.75</ele>
+        <time>2023-08-01T13:09:01</time>
+        <extensions>
+          <heartrate>165</heartrate>
+          <cadence>71</cadence>
+          <power>293</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932056" lon="7.877705">
+        <ele>631.0</ele>
+        <time>2023-08-01T13:09:05</time>
+        <extensions>
+          <heartrate>158</heartrate>
+          <cadence>87</cadence>
+          <power>305</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932137" lon="7.878016">
+        <ele>637.0</ele>
+        <time>2023-08-01T13:09:13</time>
+        <extensions>
+          <heartrate>166</heartrate>
+          <cadence>89</cadence>
+          <power>310</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.93214" lon="7.87816">
+        <ele>638.5</ele>
+        <time>2023-08-01T13:09:16</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>75</cadence>
+          <power>297</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932128" lon="7.878269">
+        <ele>639.25</ele>
+        <time>2023-08-01T13:09:18</time>
+        <extensions>
+          <heartrate>151</heartrate>
+          <cadence>72</cadence>
+          <power>301</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932083" lon="7.878385">
+        <ele>639.25</ele>
+        <time>2023-08-01T13:09:20</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>72</cadence>
+          <power>317</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.932015" lon="7.878462">
+        <ele>638.0</ele>
+        <time>2023-08-01T13:09:21</time>
+        <extensions>
+          <heartrate>159</heartrate>
+          <cadence>73</cadence>
+          <power>297</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931947" lon="7.878572">
+        <ele>637.25</ele>
+        <time>2023-08-01T13:09:23</time>
+        <extensions>
+          <heartrate>156</heartrate>
+          <cadence>75</cadence>
+          <power>306</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931787" lon="7.879015">
+        <ele>637.75</ele>
+        <time>2023-08-01T13:09:32</time>
+        <extensions>
+          <heartrate>161</heartrate>
+          <cadence>85</cadence>
+          <power>281</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931718" lon="7.879254">
+        <ele>638.25</ele>
+        <time>2023-08-01T13:09:37</time>
+        <extensions>
+          <heartrate>166</heartrate>
+          <cadence>72</cadence>
+          <power>332</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.93165" lon="7.879531">
+        <ele>640.0</ele>
+        <time>2023-08-01T13:09:43</time>
+        <extensions>
+          <heartrate>163</heartrate>
+          <cadence>86</cadence>
+          <power>328</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.93161" lon="7.879795">
+        <ele>643.75</ele>
+        <time>2023-08-01T13:09:49</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>73</cadence>
+          <power>330</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931596" lon="7.880131">
+        <ele>647.5</ele>
+        <time>2023-08-01T13:09:56</time>
+        <extensions>
+          <heartrate>161</heartrate>
+          <cadence>76</cadence>
+          <power>305</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931611" lon="7.880356">
+        <ele>649.25</ele>
+        <time>2023-08-01T13:10:00</time>
+        <extensions>
+          <heartrate>158</heartrate>
+          <cadence>73</cadence>
+          <power>319</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.93165" lon="7.880694">
+        <ele>651.75</ele>
+        <time>2023-08-01T13:10:07</time>
+        <extensions>
+          <heartrate>155</heartrate>
+          <cadence>88</cadence>
+          <power>301</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931704" lon="7.881076">
+        <ele>655.75</ele>
+        <time>2023-08-01T13:10:15</time>
+        <extensions>
+          <heartrate>161</heartrate>
+          <cadence>87</cadence>
+          <power>303</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931748" lon="7.881472">
+        <ele>660.0</ele>
+        <time>2023-08-01T13:10:23</time>
+        <extensions>
+          <heartrate>151</heartrate>
+          <cadence>76</cadence>
+          <power>332</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931752" lon="7.881621">
+        <ele>661.0</ele>
+        <time>2023-08-01T13:10:26</time>
+        <extensions>
+          <heartrate>152</heartrate>
+          <cadence>85</cadence>
+          <power>315</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931742" lon="7.881762">
+        <ele>661.75</ele>
+        <time>2023-08-01T13:10:29</time>
+        <extensions>
+          <heartrate>162</heartrate>
+          <cadence>79</cadence>
+          <power>319</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931719" lon="7.881874">
+        <ele>662.25</ele>
+        <time>2023-08-01T13:10:31</time>
+        <extensions>
+          <heartrate>161</heartrate>
+          <cadence>74</cadence>
+          <power>338</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931644" lon="7.881957">
+        <ele>660.75</ele>
+        <time>2023-08-01T13:10:32</time>
+        <extensions>
+          <heartrate>159</heartrate>
+          <cadence>81</cadence>
+          <power>285</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931616" lon="7.881961">
+        <ele>660.75</ele>
+        <time>2023-08-01T13:10:33</time>
+        <extensions>
+          <heartrate>165</heartrate>
+          <cadence>75</cadence>
+          <power>310</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931557" lon="7.881949">
+        <ele>660.75</ele>
+        <time>2023-08-01T13:10:34</time>
+        <extensions>
+          <heartrate>162</heartrate>
+          <cadence>75</cadence>
+          <power>293</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931446" lon="7.881907">
+        <ele>660.5</ele>
+        <time>2023-08-01T13:10:36</time>
+        <extensions>
+          <heartrate>151</heartrate>
+          <cadence>78</cadence>
+          <power>319</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931335" lon="7.881848">
+        <ele>660.0</ele>
+        <time>2023-08-01T13:10:38</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>75</cadence>
+          <power>310</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931262" lon="7.88186">
+        <ele>660.25</ele>
+        <time>2023-08-01T13:10:40</time>
+        <extensions>
+          <heartrate>151</heartrate>
+          <cadence>86</cadence>
+          <power>283</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931195" lon="7.88191">
+        <ele>661.0</ele>
+        <time>2023-08-01T13:10:42</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>81</cadence>
+          <power>290</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.931139" lon="7.881994">
+        <ele>662.0</ele>
+        <time>2023-08-01T13:10:44</time>
+        <extensions>
+          <heartrate>159</heartrate>
+          <cadence>84</cadence>
+          <power>319</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.930904" lon="7.88241">
+        <ele>667.0</ele>
+        <time>2023-08-01T13:10:55</time>
+        <extensions>
+          <heartrate>165</heartrate>
+          <cadence>83</cadence>
+          <power>305</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.93086" lon="7.882454">
+        <ele>667.25</ele>
+        <time>2023-08-01T13:10:56</time>
+        <extensions>
+          <heartrate>162</heartrate>
+          <cadence>78</cadence>
+          <power>340</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.930801" lon="7.882465">
+        <ele>668.75</ele>
+        <time>2023-08-01T13:10:58</time>
+        <extensions>
+          <heartrate>164</heartrate>
+          <cadence>88</cadence>
+          <power>317</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.930739" lon="7.88243">
+        <ele>670.5</ele>
+        <time>2023-08-01T13:11:00</time>
+        <extensions>
+          <heartrate>162</heartrate>
+          <cadence>75</cadence>
+          <power>333</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.930668" lon="7.882334">
+        <ele>672.0</ele>
+        <time>2023-08-01T13:11:03</time>
+        <extensions>
+          <heartrate>161</heartrate>
+          <cadence>70</cadence>
+          <power>309</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.930416" lon="7.881737">
+        <ele>673.25</ele>
+        <time>2023-08-01T13:11:15</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>84</cadence>
+          <power>288</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.93034" lon="7.881599">
+        <ele>674.25</ele>
+        <time>2023-08-01T13:11:18</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>85</cadence>
+          <power>308</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.93025" lon="7.881502">
+        <ele>676.0</ele>
+        <time>2023-08-01T13:11:21</time>
+        <extensions>
+          <heartrate>161</heartrate>
+          <cadence>77</cadence>
+          <power>292</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.930152" lon="7.881437">
+        <ele>678.5</ele>
+        <time>2023-08-01T13:11:25</time>
+        <extensions>
+          <heartrate>161</heartrate>
+          <cadence>71</cadence>
+          <power>281</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.930067" lon="7.881399">
+        <ele>680.75</ele>
+        <time>2023-08-01T13:11:28</time>
+        <extensions>
+          <heartrate>163</heartrate>
+          <cadence>83</cadence>
+          <power>331</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.930011" lon="7.881315">
+        <ele>681.75</ele>
+        <time>2023-08-01T13:11:30</time>
+        <extensions>
+          <heartrate>167</heartrate>
+          <cadence>72</cadence>
+          <power>332</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.929988" lon="7.881227">
+        <ele>681.75</ele>
+        <time>2023-08-01T13:11:31</time>
+        <extensions>
+          <heartrate>169</heartrate>
+          <cadence>74</cadence>
+          <power>287</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.929944" lon="7.880869">
+        <ele>679.75</ele>
+        <time>2023-08-01T13:11:35</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>81</cadence>
+          <power>283</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.929891" lon="7.880722">
+        <ele>681.5</ele>
+        <time>2023-08-01T13:11:39</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>83</cadence>
+          <power>288</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.929684" lon="7.880432">
+        <ele>690.75</ele>
+        <time>2023-08-01T13:11:49</time>
+        <extensions>
+          <heartrate>164</heartrate>
+          <cadence>86</cadence>
+          <power>334</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.929573" lon="7.88032">
+        <ele>696.0</ele>
+        <time>2023-08-01T13:11:54</time>
+        <extensions>
+          <heartrate>169</heartrate>
+          <cadence>76</cadence>
+          <power>333</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.929527" lon="7.880194">
+        <ele>698.0</ele>
+        <time>2023-08-01T13:11:57</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>78</cadence>
+          <power>295</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.929503" lon="7.88004">
+        <ele>699.25</ele>
+        <time>2023-08-01T13:12:00</time>
+        <extensions>
+          <heartrate>164</heartrate>
+          <cadence>71</cadence>
+          <power>296</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.929516" lon="7.879874">
+        <ele>698.5</ele>
+        <time>2023-08-01T13:12:02</time>
+        <extensions>
+          <heartrate>165</heartrate>
+          <cadence>77</cadence>
+          <power>304</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.929562" lon="7.87966">
+        <ele>696.25</ele>
+        <time>2023-08-01T13:12:04</time>
+        <extensions>
+          <heartrate>154</heartrate>
+          <cadence>82</cadence>
+          <power>297</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.929603" lon="7.879292">
+        <ele>694.0</ele>
+        <time>2023-08-01T13:12:08</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>85</cadence>
+          <power>304</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.929597" lon="7.879124">
+        <ele>694.0</ele>
+        <time>2023-08-01T13:12:10</time>
+        <extensions>
+          <heartrate>160</heartrate>
+          <cadence>74</cadence>
+          <power>292</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.929566" lon="7.878961">
+        <ele>694.25</ele>
+        <time>2023-08-01T13:12:13</time>
+        <extensions>
+          <heartrate>152</heartrate>
+          <cadence>75</cadence>
+          <power>299</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.929382" lon="7.878245">
+        <ele>694.5</ele>
+        <time>2023-08-01T13:12:23</time>
+        <extensions>
+          <heartrate>165</heartrate>
+          <cadence>85</cadence>
+          <power>334</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.929309" lon="7.878038">
+        <ele>693.25</ele>
+        <time>2023-08-01T13:12:25</time>
+        <extensions>
+          <heartrate>155</heartrate>
+          <cadence>74</cadence>
+          <power>336</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.929201" lon="7.877848">
+        <ele>693.0</ele>
+        <time>2023-08-01T13:12:28</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>83</cadence>
+          <power>303</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.929079" lon="7.877738">
+        <ele>692.5</ele>
+        <time>2023-08-01T13:12:30</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>70</cadence>
+          <power>331</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.928931" lon="7.877671">
+        <ele>692.25</ele>
+        <time>2023-08-01T13:12:33</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>85</cadence>
+          <power>318</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.928774" lon="7.877642">
+        <ele>693.0</ele>
+        <time>2023-08-01T13:12:37</time>
+        <extensions>
+          <heartrate>164</heartrate>
+          <cadence>87</cadence>
+          <power>323</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.928628" lon="7.877652">
+        <ele>694.5</ele>
+        <time>2023-08-01T13:12:41</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>76</cadence>
+          <power>334</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.927945" lon="7.877848">
+        <ele>706.0</ele>
+        <time>2023-08-01T13:13:03</time>
+        <extensions>
+          <heartrate>151</heartrate>
+          <cadence>76</cadence>
+          <power>292</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.927813" lon="7.877861">
+        <ele>707.5</ele>
+        <time>2023-08-01T13:13:07</time>
+        <extensions>
+          <heartrate>162</heartrate>
+          <cadence>86</cadence>
+          <power>336</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.926596" lon="7.877777">
+        <ele>712.25</ele>
+        <time>2023-08-01T13:13:39</time>
+        <extensions>
+          <heartrate>161</heartrate>
+          <cadence>81</cadence>
+          <power>327</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.926384" lon="7.877818">
+        <ele>713.25</ele>
+        <time>2023-08-01T13:13:45</time>
+        <extensions>
+          <heartrate>163</heartrate>
+          <cadence>74</cadence>
+          <power>301</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.926193" lon="7.87792">
+        <ele>715.75</ele>
+        <time>2023-08-01T13:13:51</time>
+        <extensions>
+          <heartrate>163</heartrate>
+          <cadence>73</cadence>
+          <power>326</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.926078" lon="7.878011">
+        <ele>717.75</ele>
+        <time>2023-08-01T13:13:55</time>
+        <extensions>
+          <heartrate>170</heartrate>
+          <cadence>80</cadence>
+          <power>339</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925697" lon="7.878415">
+        <ele>728.0</ele>
+        <time>2023-08-01T13:14:11</time>
+        <extensions>
+          <heartrate>169</heartrate>
+          <cadence>87</cadence>
+          <power>319</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925557" lon="7.878532">
+        <ele>733.75</ele>
+        <time>2023-08-01T13:14:17</time>
+        <extensions>
+          <heartrate>159</heartrate>
+          <cadence>77</cadence>
+          <power>307</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925448" lon="7.878555">
+        <ele>736.5</ele>
+        <time>2023-08-01T13:14:21</time>
+        <extensions>
+          <heartrate>167</heartrate>
+          <cadence>77</cadence>
+          <power>331</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.92536" lon="7.878512">
+        <ele>737.25</ele>
+        <time>2023-08-01T13:14:24</time>
+        <extensions>
+          <heartrate>150</heartrate>
+          <cadence>75</cadence>
+          <power>287</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.92523" lon="7.878367">
+        <ele>737.25</ele>
+        <time>2023-08-01T13:14:27</time>
+        <extensions>
+          <heartrate>168</heartrate>
+          <cadence>90</cadence>
+          <power>298</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.92509" lon="7.878087">
+        <ele>737.5</ele>
+        <time>2023-08-01T13:14:33</time>
+        <extensions>
+          <heartrate>163</heartrate>
+          <cadence>86</cadence>
+          <power>335</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.924942" lon="7.877712">
+        <ele>739.75</ele>
+        <time>2023-08-01T13:14:41</time>
+        <extensions>
+          <heartrate>160</heartrate>
+          <cadence>79</cadence>
+          <power>325</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.924884" lon="7.877538">
+        <ele>741.5</ele>
+        <time>2023-08-01T13:14:45</time>
+        <extensions>
+          <heartrate>151</heartrate>
+          <cadence>72</cadence>
+          <power>291</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.92482" lon="7.877233">
+        <ele>746.25</ele>
+        <time>2023-08-01T13:14:52</time>
+        <extensions>
+          <heartrate>169</heartrate>
+          <cadence>90</cadence>
+          <power>297</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.924799" lon="7.87699">
+        <ele>749.0</ele>
+        <time>2023-08-01T13:14:57</time>
+        <extensions>
+          <heartrate>167</heartrate>
+          <cadence>85</cadence>
+          <power>328</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.92487" lon="7.876498">
+        <ele>749.5</ele>
+        <time>2023-08-01T13:15:06</time>
+        <extensions>
+          <heartrate>155</heartrate>
+          <cadence>78</cadence>
+          <power>330</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925065" lon="7.875684">
+        <ele>751.75</ele>
+        <time>2023-08-01T13:15:21</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>82</cadence>
+          <power>317</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925177" lon="7.875328">
+        <ele>755.5</ele>
+        <time>2023-08-01T13:15:29</time>
+        <extensions>
+          <heartrate>168</heartrate>
+          <cadence>78</cadence>
+          <power>322</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925566" lon="7.874356">
+        <ele>760.0</ele>
+        <time>2023-08-01T13:15:49</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>83</cadence>
+          <power>300</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925824" lon="7.873549">
+        <ele>761.5</ele>
+        <time>2023-08-01T13:16:04</time>
+        <extensions>
+          <heartrate>165</heartrate>
+          <cadence>87</cadence>
+          <power>299</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925885" lon="7.873332">
+        <ele>762.0</ele>
+        <time>2023-08-01T13:16:08</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>81</cadence>
+          <power>281</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925924" lon="7.873161">
+        <ele>759.5</ele>
+        <time>2023-08-01T13:16:10</time>
+        <extensions>
+          <heartrate>167</heartrate>
+          <cadence>84</cadence>
+          <power>323</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925942" lon="7.872977">
+        <ele>757.5</ele>
+        <time>2023-08-01T13:16:12</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>79</cadence>
+          <power>321</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925946" lon="7.872782">
+        <ele>756.0</ele>
+        <time>2023-08-01T13:16:14</time>
+        <extensions>
+          <heartrate>152</heartrate>
+          <cadence>74</cadence>
+          <power>322</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925908" lon="7.872593">
+        <ele>755.5</ele>
+        <time>2023-08-01T13:16:16</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>70</cadence>
+          <power>309</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925845" lon="7.87244">
+        <ele>755.25</ele>
+        <time>2023-08-01T13:16:18</time>
+        <extensions>
+          <heartrate>155</heartrate>
+          <cadence>71</cadence>
+          <power>325</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925757" lon="7.872316">
+        <ele>753.25</ele>
+        <time>2023-08-01T13:16:20</time>
+        <extensions>
+          <heartrate>155</heartrate>
+          <cadence>80</cadence>
+          <power>307</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.92565" lon="7.872226">
+        <ele>751.75</ele>
+        <time>2023-08-01T13:16:22</time>
+        <extensions>
+          <heartrate>166</heartrate>
+          <cadence>72</cadence>
+          <power>338</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925531" lon="7.872161">
+        <ele>751.25</ele>
+        <time>2023-08-01T13:16:24</time>
+        <extensions>
+          <heartrate>169</heartrate>
+          <cadence>80</cadence>
+          <power>300</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925382" lon="7.872132">
+        <ele>751.75</ele>
+        <time>2023-08-01T13:16:28</time>
+        <extensions>
+          <heartrate>162</heartrate>
+          <cadence>87</cadence>
+          <power>302</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925247" lon="7.872147">
+        <ele>753.0</ele>
+        <time>2023-08-01T13:16:32</time>
+        <extensions>
+          <heartrate>164</heartrate>
+          <cadence>75</cadence>
+          <power>296</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925147" lon="7.872205">
+        <ele>754.75</ele>
+        <time>2023-08-01T13:16:35</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>70</cadence>
+          <power>323</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.925046" lon="7.872305">
+        <ele>757.5</ele>
+        <time>2023-08-01T13:16:39</time>
+        <extensions>
+          <heartrate>162</heartrate>
+          <cadence>90</cadence>
+          <power>306</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.924729" lon="7.87267">
+        <ele>759.75</ele>
+        <time>2023-08-01T13:16:50</time>
+        <extensions>
+          <heartrate>170</heartrate>
+          <cadence>80</cadence>
+          <power>323</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.924036" lon="7.873552">
+        <ele>768.75</ele>
+        <time>2023-08-01T13:17:16</time>
+        <extensions>
+          <heartrate>164</heartrate>
+          <cadence>89</cadence>
+          <power>286</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.922968" lon="7.874626">
+        <ele>772.25</ele>
+        <time>2023-08-01T13:17:49</time>
+        <extensions>
+          <heartrate>156</heartrate>
+          <cadence>81</cadence>
+          <power>313</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.922919" lon="7.874733">
+        <ele>772.5</ele>
+        <time>2023-08-01T13:17:51</time>
+        <extensions>
+          <heartrate>155</heartrate>
+          <cadence>74</cadence>
+          <power>326</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.922902" lon="7.87483">
+        <ele>773.75</ele>
+        <time>2023-08-01T13:17:53</time>
+        <extensions>
+          <heartrate>162</heartrate>
+          <cadence>80</cadence>
+          <power>299</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.922895" lon="7.874951">
+        <ele>776.0</ele>
+        <time>2023-08-01T13:17:56</time>
+        <extensions>
+          <heartrate>166</heartrate>
+          <cadence>82</cadence>
+          <power>330</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.922925" lon="7.875252">
+        <ele>781.25</ele>
+        <time>2023-08-01T13:18:03</time>
+        <extensions>
+          <heartrate>151</heartrate>
+          <cadence>84</cadence>
+          <power>300</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.922937" lon="7.87557">
+        <ele>785.5</ele>
+        <time>2023-08-01T13:18:10</time>
+        <extensions>
+          <heartrate>167</heartrate>
+          <cadence>74</cadence>
+          <power>306</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.922934" lon="7.875713">
+        <ele>787.25</ele>
+        <time>2023-08-01T13:18:13</time>
+        <extensions>
+          <heartrate>164</heartrate>
+          <cadence>74</cadence>
+          <power>300</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.92291" lon="7.875833">
+        <ele>787.5</ele>
+        <time>2023-08-01T13:18:15</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>90</cadence>
+          <power>321</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.922866" lon="7.875967">
+        <ele>788.0</ele>
+        <time>2023-08-01T13:18:18</time>
+        <extensions>
+          <heartrate>158</heartrate>
+          <cadence>79</cadence>
+          <power>289</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.92231" lon="7.877386">
+        <ele>798.0</ele>
+        <time>2023-08-01T13:18:49</time>
+        <extensions>
+          <heartrate>162</heartrate>
+          <cadence>82</cadence>
+          <power>316</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.921671" lon="7.878679">
+        <ele>808.25</ele>
+        <time>2023-08-01T13:19:20</time>
+        <extensions>
+          <heartrate>166</heartrate>
+          <cadence>85</cadence>
+          <power>339</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.921456" lon="7.878973">
+        <ele>811.5</ele>
+        <time>2023-08-01T13:19:29</time>
+        <extensions>
+          <heartrate>151</heartrate>
+          <cadence>87</cadence>
+          <power>334</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.92127" lon="7.879412">
+        <ele>820.75</ele>
+        <time>2023-08-01T13:19:41</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>89</cadence>
+          <power>326</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.921111" lon="7.879516">
+        <ele>820.0</ele>
+        <time>2023-08-01T13:19:44</time>
+        <extensions>
+          <heartrate>157</heartrate>
+          <cadence>86</cadence>
+          <power>309</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.92083" lon="7.879623">
+        <ele>815.75</ele>
+        <time>2023-08-01T13:19:48</time>
+        <extensions>
+          <heartrate>153</heartrate>
+          <cadence>83</cadence>
+          <power>284</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.920708" lon="7.879716">
+        <ele>816.5</ele>
+        <time>2023-08-01T13:19:52</time>
+        <extensions>
+          <heartrate>159</heartrate>
+          <cadence>83</cadence>
+          <power>311</power>
+        </extensions>
+      </trkpt>
+      <trkpt lat="47.920637" lon="7.879806">
+        <ele>817.25</ele>
+        <time>2023-08-01T13:19:55</time>
+        <extensions>
+          <heartrate>163</heartrate>
+          <cadence>71</cadence>
+          <power>286</power>
+        </extensions>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>
