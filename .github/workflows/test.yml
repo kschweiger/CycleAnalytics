@@ -1,0 +1,59 @@
+name: Testing
+
+on:
+    push:
+        branches:
+            - main
+            - develop
+            - 'ci/**'
+    pull_request:
+        branches:
+            - main
+            - develop
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        services:
+            postgres:
+                image: postgres
+                # Provide the password for postgres
+                env:
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: postgres
+                    POSTGRES_DB: Development
+                # Set health checks to wait until postgres has started
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    # Maps tcp port 5432 on service container to the host
+                    - 5432:5432
+        env:
+            FLASK_DATABASE_NAME: Development
+            FLASK_DATABASE_USER: postgres
+            FLASK_DATABASE_PASSWORD: postgres
+            FLASK_DATABASE_SERVER: localhost
+            FLASK_DATABASE_SCHEMA: '@none'
+            FLASK_SECRET_KEY : efgfhauierhgajebiu
+        steps:
+            - name: Check out repository code
+              uses: actions/checkout@v4
+            - name: Setup Python
+              uses: actions/setup-python@v4
+              with:
+                python-version: '3.11'
+            - name: Install Poetry
+              uses: abatilo/actions-poetry@v2
+            - name: Setup a local virtual environment (if no poetry.toml file)
+              run: |
+                poetry config virtualenvs.create true --local
+                poetry config virtualenvs.in-project true --local
+            - name: Install dependencies
+              run: |
+                poetry install --with test
+            - name: pytest
+              run: |
+                source .venv/bin/activate
+                python -m pytest  --cov=cycle_analytics tests --cov-report xml:cov.xml --cov-report term --disable-warnings
