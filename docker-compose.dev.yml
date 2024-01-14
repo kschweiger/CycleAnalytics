@@ -1,5 +1,8 @@
 services:
   app:
+    env_file:
+      - docker/dev.env
+      - docker/secrets.env
     command: python -m flask --app cycle_analytics --debug run -p 8543 -h 0.0.0.0
     volumes:
       - .:/usr/src/app/

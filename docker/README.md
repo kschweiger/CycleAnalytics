@@ -2,12 +2,12 @@
 
 ## Basic setup
 
-Create a `secrets.env` file in this directory. It is not under version control and may be empty. It is intended to overwrite secrets set in a `.secrets.toml` file in the `conf` folder in the project root or replace it. For example, the database password can be set with `CYCLEANALYTICS__db__password=XXX`
+Create a `secrets.env` file in this directory. It is not under version control and may be empty. It is intended to overwrite secrets set in a `.secrets.toml` file in the `conf` folder in the project root or replace it. For example, the database password can be set with `FLASK_database_password=XXX`
 
 To start, build the container with `docker-compose`
 
 ```zsh
-docker compose  build --ssh default
+docker compose  build
 ```
 
 It can then be run in production mode with

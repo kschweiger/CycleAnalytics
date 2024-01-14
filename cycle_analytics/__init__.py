@@ -25,7 +25,6 @@ def create_app(
     for logger_ in (
         app.logger,
         logging.getLogger("geo_track_analyzer"),
-        logging.getLogger("data_organizer"),
     ):
         logger_.setLevel("DEBUG" if app.debug else "INFO")
         logger_.addHandler(default_handler)
@@ -55,7 +54,7 @@ def create_app(
     logger.debug("Initializing Cache")
     cache.init_app(app=app)
 
-    logger.debug("Running cache: %s", type(cache.cache).__name__)
+    logger.info("Running cache: %s", type(cache.cache).__name__)
 
     logger.debug("Initializing CSRF protection from FLASK-WTF")
     CSRFProtect(app)
