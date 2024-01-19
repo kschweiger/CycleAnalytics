@@ -16,6 +16,8 @@ from cycle_analytics.utils.base import (
     get_date_range_from_year_month,
     none_or_round,
 )
+from cycle_analytics.utils.debug import log_timing
+from cycle_analytics.utils.track import get_identifier
 
 from .model import (
     CategoryModel,
@@ -109,7 +111,7 @@ def get_rides_in_timeframe(
 
     select_terrain_indices = convert_to_indices(ride_types, TerrainType)
 
-    rides = (
+    return (
         db.session.query(Ride)
         .filter(
             and_(
@@ -127,8 +129,6 @@ def get_rides_in_timeframe(
         )
         .all()
     )
-
-    return rides
 
 
 def get_curr_and_prev_month_rides(
@@ -164,26 +164,47 @@ def get_curr_and_prev_month_rides(
     return curr_month_rides, prev_month_rides
 
 
-@cache.memoize(timeout=86400)
 def get_thumbnails_for_id(id_track: int) -> list[str]:
-    track = ByteTrack(db.get_or_404(DatabaseTrack, id_track).content)
-    return convert_fig_to_base64(
-        get_track_thumbnails(track.get_segment_data()), 400, 400
-    )
+    key = f"get_thumbnails_for_id_{id_track}"
+    data: None | list[str] = cache.get(key)
+    if data is None:
+        track = ByteTrack(db.get_or_404(DatabaseTrack, id_track).content)
+        data = convert_fig_to_base64(
+            [get_track_thumbnails(track.get_segment_data())], 400, 400
+        )
+        cache.set(key, data)
+    return data
 
 
 def get_thumbnails(track: Track) -> list[str]:
-    return convert_fig_to_base64(
-        get_track_thumbnails(track.get_segment_data()), 400, 400
+    key = get_identifier(track)
+
+    data: None | list[str] = cache.get(key)
+    if data is None:
+        data = convert_fig_to_base64(
+            [get_track_thumbnails(track.get_segment_data())], 400, 400
+        )
+        cache.set(key, data)
+    return data
+
+
+@log_timing
+def _load_last_ride(ride_type: None | str) -> None | Ride:
+    ride_type_id = convert_to_indices([ride_type], TerrainType)[0]
+    last_id = (
+        db.session.query(Ride.id)
+        .filter(Ride.id_terrain_type == ride_type_id)
+        .order_by(desc(Ride.ride_date))
+        .first()
     )
+    if last_id:
+        return db.get_or_404(Ride, next(iter(last_id)))
+
+    return None
 
 
 def get_last_ride(ride_type: None | str) -> None | LastRide:
-    sel = select(Ride).order_by(desc(Ride.ride_date))
-    if ride_type is not None:
-        ride_type_id = convert_to_indices([ride_type], TerrainType)[0]
-        sel = sel.filter(Ride.id_terrain_type == ride_type_id)
-    ride = db.session.execute(sel).scalar()
+    ride = _load_last_ride(ride_type)
 
     if ride is None:
         return None
@@ -267,9 +288,9 @@ def load_goals(year: int | str, load_active: bool, load_inactive: bool) -> list[
             raise ValueError(f"Year {year} not supported")
 
     if load_active and not load_inactive:
-        _filters.append(DatabaseGoal.active == True)
+        _filters.append(DatabaseGoal.active == True)  # noqa: E712
     if not load_active and load_inactive:
-        _filters.append(DatabaseGoal.active == False)
+        _filters.append(DatabaseGoal.active == False)  # noqa: E712
     if not load_active and not load_inactive:
         return []
 

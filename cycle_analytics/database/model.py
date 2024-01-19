@@ -114,7 +114,7 @@ class DatabaseTrack(db.Model):
     is_enhanced: bool = db.Column(db.Boolean, nullable=False, default=False)
 
     overviews: list[TrackOverview] = db.relationship(
-        "TrackOverview", backref="ride", lazy=False, cascade="all, delete"
+        "TrackOverview", backref="ride", lazy=True, cascade="all, delete"
     )  # type: ignore
 
     def __repr__(self) -> str:
@@ -285,61 +285,10 @@ class DatabaseSegment(db.Model):
     difficulty = db.relationship("Difficulty", backref="segment", lazy=False)
 
 
-def fill_data(database: SQLAlchemy) -> None:
-    bike = Bike(
-        name="Bike1",
-        brand="Brand1",
-        model="Model1",
-        # material=Material(text="Aluminium"),
-        id_material=1,
-        id_terraintype=1,
-        id_specification=1,
-        commission_date=datetime.now(),
-    )
-    database.session.add(bike)
+# @dataclass
+# class TrackThumbnail(db.Model):
+#     __tablename__: str = "track_thumbnails"
 
-    ride_1 = Ride(
-        ride_date=date(2023, 12, 10),
-        start_time=time(12),
-        total_duration=timedelta(seconds=60 * 60),
-        id_terrain_type=1,
-    )
-    ride_2 = Ride(
-        ride_date=date(2023, 12, 20),
-        start_time=time(14, 30),
-        ride_duration=timedelta(seconds=60 * 60 * 2),
-        total_duration=timedelta(seconds=60 * 60 * 2 + 120),
-        id_bike=1,
-        id_terrain_type=1,
-        # bike=bike,
-    )
-    database.session.add_all([ride_1, ride_2])
-    database.session.commit()
-
-    event_1 = DatabaseEvent(
-        # ride=[ride_2],
-        event_date=datetime(2023, 12, 20, 12, 15),
-        id_event_type=1,
-        short_description="Short description of event 1",
-    )
-    event_2 = DatabaseEvent(
-        # ride=[ride_2],
-        bike=bike,
-        event_date=datetime(2023, 12, 20, 12, 50),
-        id_event_type=2,
-        short_description="Short description of event 2",
-        description="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed "
-        "diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam",
-        id_severity=1,
-        latitude=10,
-        longitude=10,
-    )
-
-    note = RideNote(
-        text="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam",
-    )
-    ride_2.events.extend([event_1, event_2])
-    ride_2.notes.append(note)
-    # database.session.add_all([note, event_1, event_2])
-
-    database.session.commit()
+#     id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
+#     id_track: int = db.Column(db.Integer, db.ForeignKey("track.id"), nullable=False)
+#     content: bytes = db.Column(db.LargeBinary)

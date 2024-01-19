@@ -169,3 +169,5 @@ docker/secrets.env
 .python-version
 *.DS_Store
 .vscode
+.ruff_cache
+cov.xml

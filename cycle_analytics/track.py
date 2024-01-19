@@ -28,6 +28,7 @@ def enhance_track(id_ride: int) -> Response:
 
     if current_db_track.is_enhanced:
         orm_db.session.delete(current_db_track)
+        orm_db.session.commit()
         flash("Previous enhanced track deleted", "alert-warning")
 
     ride.tracks.append(new_db_track)

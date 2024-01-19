@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 from geo_track_analyzer.track import Track
 
 from cycle_analytics.database.model import Ride
+from cycle_analytics.utils.debug import log_timing
 
 month_label_order = dict(
     month=[
@@ -26,12 +27,12 @@ month_label_order = dict(
 )
 
 
-def get_track_thumbnails(data: pd.DataFrame) -> list[go.Figure]:
-    coordinate_plot = simple_coordinate_plot(data, "latitude", "longitude")
+@log_timing
+def get_track_thumbnails(data: pd.DataFrame) -> go.Figure:
+    return simple_coordinate_plot(data, "latitude", "longitude")
 
-    return [coordinate_plot]
 
-
+@log_timing
 def convert_fig_to_base64(figs: list[go.Figure], width: int, height: int) -> list[str]:
     return [
         base64.b64encode(
@@ -41,6 +42,7 @@ def convert_fig_to_base64(figs: list[go.Figure], width: int, height: int) -> lis
     ]
 
 
+@log_timing
 def simple_coordinate_plot(
     data: pd.DataFrame, x: str, y: str, color: str = "white"
 ) -> go.Figure:

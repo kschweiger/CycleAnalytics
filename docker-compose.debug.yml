@@ -1,0 +1,7 @@
+services:
+  app:
+    environment:
+      - DEBUGGER=True
+    ports:
+      - 8543:8543
+      - 10001:10001

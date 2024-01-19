@@ -25,6 +25,7 @@ flask-sqlalchemy = "^3.1.1"
 psycopg2 = "^2.9.9"
 geo-track-analyzer = "^1.1.2"
 flask-debugtoolbar = "^0.14.1"
+debugpy = "^1.8.0"
 
 [tool.poetry.group.dev]
 optional = true
@@ -54,26 +55,8 @@ profile = "black"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.flake8]
-max-line-length = 88
-extend-ignore = ["E203", "E266", "E402", "PT012"]
-# flake8-pytest-style
-# PT001:
-pytest-fixture-no-parentheses = true
-# PT006:
-pytest-parametrize-names-type = "tuple"
-# PT007:
-pytest-parametrize-values-type = "list"
-pytest-parametrize-values-row-type = "tuple"
-# PT023:
-pytest-mark-no-parentheses = true
-
-[tool.mypy]
-python_version = "3.10"
-strict_optional = true
-check_untyped_defs = true
-exclude = ["tests/*"]
-
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [tool.ruff]
 select = ["E", "F", "I", "PD", "PT", "NPY", "N", "W", "RET", "ANN", "RUF"]
@@ -82,6 +65,11 @@ ignore = ["ANN101", "RUF009", "E731", "RET505", "ANN002", "ANN003", "RUF005"]
 ignore-init-module-imports = true
 target-version = "py310"
 
+[tool.mypy]
+python_version = "3.10"
+strict_optional = true
+check_untyped_defs = true
+exclude = ["tests/*"]
 
 [[tool.mypy.overrides]]
 module = "fitparse.*"

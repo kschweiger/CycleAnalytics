@@ -63,7 +63,6 @@ def render_landing_page() -> str:
                 event.event_date,
             )
         )
-
     # --------------------- GOALS ---------------------
     goal_years = [
         str(g)
@@ -90,7 +89,6 @@ def render_landing_page() -> str:
             or goal.month == inv_month_mapping[goal_month_selected]
         )
     ]
-
     # -----------------------------------------------------------------------------
     # TODO: Check if this takes too long with more data. Maybe add an update button
     data = convert_rides_to_df(get_rides_in_timeframe(goal_year_selected))

@@ -1,7 +1,7 @@
 services:
   redis:
     image: redis:7
-    container_name: cycleanalytics_cache
+    container_name: redis
     restart: unless-stopped
     expose:
       - 6379
@@ -10,7 +10,7 @@ services:
     env_file:
       - docker/prod.env
       - docker/secrets.env
-    container_name: cycleanalytics_app
+    container_name: app
     command: gunicorn --bind 0.0.0.0:8543 "cycle_analytics:create_app()"
     ports:
       - 8543:8543

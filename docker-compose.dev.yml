@@ -6,3 +6,11 @@ services:
     command: python -m flask --app cycle_analytics --debug run -p 8543 -h 0.0.0.0
     volumes:
       - .:/usr/src/app/
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    container_name: RedisInsight
+    restart: unless-stopped
+    ports:
+      - '8544:8001'
+    depends_on:
+      - redis

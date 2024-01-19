@@ -12,8 +12,11 @@ from cycle_analytics.database.creator import (
 from cycle_analytics.database.model import db as orm_db
 from cycle_analytics.landing_page import render_landing_page
 from cycle_analytics.serve import get_segment_download, get_track_download
+from cycle_analytics.utils.debug import initialize_flask_server_debugger_if_needed
 
 logger = logging.getLogger(__name__)
+
+initialize_flask_server_debugger_if_needed()
 
 
 def create_app(

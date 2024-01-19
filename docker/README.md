@@ -25,3 +25,28 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml  up
 from the project root directory. Ad the `-d` flag to run in the background.
 
 The development mode, the application is launched in the flask debug mode and the project code is mounted. For example, this means that the servers restarts on file changes and **DEBUG** messages are shown.
+
+
+## Debugging in VSCode
+
+Add a configuration to your ``launch.json``
+
+```json
+{
+    "name": "Python: Remote Attach",
+    "type": "python",
+    "request": "attach",
+    "port": 10001,
+    "host": "localhost",
+    "pathMappings": [
+        {
+            "localRoot": "${workspaceFolder}",
+            "remoteRoot": "/usr/src/app/"
+        }
+    ]
+}
+```
+
+Also use the the ``docker-compose.debug.yml`` file in the compose commmand.
+
+Based on [this](https://blog.theodo.com/2020/05/debug-flask-vscode/) blog post.

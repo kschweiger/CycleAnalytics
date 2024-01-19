@@ -94,7 +94,7 @@ def display(id_ride: int) -> str | Response:
     ]
     has_note = False
     for note in ride.notes:
-        ride_data.append(("Note", note))
+        ride_data.append(("Note", note.text))
         has_note = True
 
     if ride.tracks:
