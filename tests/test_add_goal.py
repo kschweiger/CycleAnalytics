@@ -5,6 +5,7 @@ from typing import Any
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
+from sqlalchemy import select
 from werkzeug.datastructures import MultiDict
 
 from cycle_analytics.database.model import DatabaseGoal
@@ -129,7 +130,8 @@ def test_add_goal(
     last_year = datetime.now().year - 1
 
     with app.app_context():
-        goals_pre = DatabaseGoal.query.filter(DatabaseGoal.year == last_year).all()
+        stmt = select(DatabaseGoal).filter(DatabaseGoal.year == last_year)
+        goals_pre = orm_db.session.scalars(stmt).unique().all()
         if goals_pre:
             max_id_pre = max([g.id for g in goals_pre])
         else:
@@ -146,7 +148,8 @@ def test_add_goal(
     assert response.status_code == 200
 
     with app.app_context():
-        goals = DatabaseGoal.query.filter(DatabaseGoal.year == last_year).all()
+        stmt = select(DatabaseGoal).filter(DatabaseGoal.year == last_year)
+        goals = orm_db.session.scalars(stmt).unique().all()
         max_id_post = max([g.id for g in goals])
         assert max_id_post > max_id_pre
 

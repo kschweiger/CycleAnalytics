@@ -32,7 +32,10 @@ from wtforms.validators import DataRequired, Optional
 from cycle_analytics.database.model import DatabaseSegment, Difficulty, SegmentType
 from cycle_analytics.database.model import db as orm_db
 from cycle_analytics.database.modifier import modify_segment_visited_flag
-from cycle_analytics.database.retriever import get_segments_for_map_in_bounds
+from cycle_analytics.database.retriever import (
+    get_segments_for_map_in_bounds,
+    get_unique_model_objects_in_db,
+)
 from cycle_analytics.model.base import MapData, MapPathData
 from cycle_analytics.plotting import (
     convert_fig_to_base64,
@@ -90,7 +93,7 @@ def show_segment(id_segment: int) -> str | Response:
         )
         logger.info("Switch segmenet %s to %s", id_segment, switch_to)
 
-    segment: None | DatabaseSegment = DatabaseSegment.query.get(id_segment)
+    segment: None | DatabaseSegment = orm_db.session.get(DatabaseSegment, id_segment)
     if segment is None:
         flash(
             "Invalid value of id_segnebt. Redirecting to main segment view",
@@ -137,10 +140,10 @@ def show_segment(id_segment: int) -> str | Response:
 def add_segment() -> str | Response:
     map_segment_form = AddMapSegmentForm()
     map_segment_form.segment_type.choices = [
-        (s.id, s.text) for s in SegmentType.query.all()
+        (s.id, s.text) for s in get_unique_model_objects_in_db(SegmentType)
     ]
     map_segment_form.segment_difficulty.choices = [
-        (d.id, d.text) for d in Difficulty.query.all()
+        (d.id, d.text) for d in get_unique_model_objects_in_db(Difficulty)
     ]
 
     if map_segment_form.validate_on_submit():
@@ -179,8 +182,12 @@ def add_segment() -> str | Response:
                 description = map_segment_form.segment_description.data
             segment = DatabaseSegment(
                 name=name,
-                id_segment_type=int(map_segment_form.segment_type.data),
-                id_difficulty=int(map_segment_form.segment_difficulty.data),
+                segment_type=orm_db.session.get(
+                    SegmentType, int(map_segment_form.segment_type.data)
+                ),
+                difficulty=orm_db.session.get(
+                    Difficulty, int(map_segment_form.segment_difficulty.data)
+                ),
                 description=description,
                 distance=track_overview.total_distance,
                 min_elevation=track_overview.min_elevation,

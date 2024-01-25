@@ -33,6 +33,9 @@ from cycle_analytics.database.model import (
     TypeSpecification,
 )
 from cycle_analytics.database.model import db as orm_db
+from cycle_analytics.database.retriever import (
+    get_unique_model_objects_in_db,
+)
 from cycle_analytics.model.base import MapData, MapPathData
 from cycle_analytics.model.goal import GoalType
 from cycle_analytics.utils import get_month_mapping
@@ -179,7 +182,7 @@ def add_ride() -> str | Response:
     form = RideForm()
     config = current_app.config
 
-    all_terrain_choices = TerrainType.query.all()
+    all_terrain_choices = get_unique_model_objects_in_db(TerrainType)
     form.ride_type.choices = [
         (tt.id, tt.text)
         for tt in all_terrain_choices
@@ -189,7 +192,7 @@ def add_ride() -> str | Response:
         for tt in all_terrain_choices
         if tt.text != config.defaults.ride_type
     ]  # type: ignore
-    form.bike.choices = [(b.id, b.name) for b in Bike.query.all()]
+    form.bike.choices = [(b.id, b.name) for b in get_unique_model_objects_in_db(Bike)]
 
     if form.validate_on_submit():
         ride = Ride(
@@ -198,8 +201,8 @@ def add_ride() -> str | Response:
             ride_duration=form.ride_time.data,
             total_duration=form.total_time.data,
             distance=form.distance.data,
-            id_bike=int(form.bike.data),
-            id_terrain_type=int(form.ride_type.data),
+            bike=orm_db.session.get(Bike, int(form.bike.data)),
+            terrain_type=orm_db.session.get(TerrainType, int(form.ride_type.data)),
         )
 
         orm_db.session.add(ride)
@@ -251,16 +254,18 @@ def add_event() -> str | Response:
 
     form = EventForm()
 
-    all_event_times: list[EventType] = EventType.query.all()
+    all_event_times: list[EventType] = get_unique_model_objects_in_db(EventType)
     type_choices = [
         et for et in all_event_times if et.text == config.defaults.event_type
     ] + [et for et in all_event_times if et.text != config.defaults.event_type]
     form.event_type.choices = [(c.id, c.text) for c in type_choices]
     form.id_ride.data = None
-    form.bike.choices = [(-1, "-")] + [(b.id, b.name) for b in Bike.query.all()]
+    form.bike.choices = [(-1, "-")] + [
+        (b.id, b.name) for b in get_unique_model_objects_in_db(Bike)
+    ]
 
     form.severity.choices = [(-1, "None")] + [
-        (s.id, s.text) for s in Severity.query.all()
+        (s.id, s.text) for s in get_unique_model_objects_in_db(Severity)
     ]
 
     if arg_date is not None:
@@ -291,9 +296,13 @@ def add_event() -> str | Response:
     if form.validate_on_submit():
         event = DatabaseEvent(
             event_date=form.date.data,
-            id_event_type=int(form.event_type.data),
-            id_severity=None if form.severity.data == "-1" else int(form.severity.data),
-            id_bike=None if form.bike.data == "-1" else int(form.bike.data),
+            event_type=orm_db.session.get(EventType, int(form.event_type.data)),
+            severity=None
+            if form.severity.data == "-1"
+            else orm_db.session.get(Severity, int(form.severity.data)),
+            bike=None
+            if form.bike.data == "-1"
+            else orm_db.session.get(Bike, int(form.bike.data)),
             short_description=form.short_description.data,
             description=None if form.description.data == "" else form.description.data,
             latitude=form.latitude.data,
@@ -331,8 +340,10 @@ def add_event() -> str | Response:
 def add_goal() -> str | Response:
     form = GoalForm()
 
-    form.ride_types.choices = [(tt.text, tt.text) for tt in TerrainType.query.all()]
-    form.bike.choices = [(b.name, b.name) for b in Bike.query.all()]
+    form.ride_types.choices = [
+        (tt.text, tt.text) for tt in get_unique_model_objects_in_db(TerrainType)
+    ]
+    form.bike.choices = [(b.name, b.name) for b in get_unique_model_objects_in_db(Bike)]
 
     if form.validate_on_submit():
         constraints = {}
@@ -369,20 +380,26 @@ def add_goal() -> str | Response:
 def add_bike() -> str | Response:
     form = BikeForm()
 
-    form.bike_type.choices = [(tt.id, tt.text) for tt in TerrainType.query.all()]
-    form.bike_type_specification.choices = [
-        (sp.id, sp.text) for sp in TypeSpecification.query.all()
+    form.bike_type.choices = [
+        (tt.id, tt.text) for tt in get_unique_model_objects_in_db(TerrainType)
     ]
-    form.material.choices = [(fm.id, fm.text) for fm in Material.query.all()]
+    form.bike_type_specification.choices = [
+        (sp.id, sp.text) for sp in get_unique_model_objects_in_db(TypeSpecification)
+    ]
+    form.material.choices = [
+        (fm.id, fm.text) for fm in get_unique_model_objects_in_db(Material)
+    ]
 
     if form.validate_on_submit():
         bike = Bike(
             name=form.name.data,
             brand=form.brand.data,
             model=form.model.data,
-            id_material=int(form.material.data),
-            id_terraintype=int(form.bike_type.data),
-            id_specification=int(form.bike_type_specification.data),
+            material=orm_db.session.get(Material, int(form.material.data)),
+            terrain_type=orm_db.session.get(TerrainType, int(form.bike_type.data)),
+            specification=orm_db.session.get(
+                TypeSpecification, int(form.bike_type_specification.data)
+            ),
             weight=form.weight.data,
             commission_date=form.purchase.data,
         )

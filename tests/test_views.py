@@ -9,10 +9,18 @@ from flask.testing import FlaskClient
 from geo_track_analyzer import PyTrack
 from gpxpy.gpx import GPXTrack
 from pytest_mock import MockerFixture
+from sqlalchemy import select
 from werkzeug.datastructures import MultiDict
 
-from cycle_analytics.database.model import Bike, DatabaseSegment, DatabaseTrack, Ride
+from cycle_analytics.database.model import (
+    Bike,
+    DatabaseSegment,
+    DatabaseTrack,
+    Ride,
+    TerrainType,
+)
 from cycle_analytics.database.model import db as orm_db
+from cycle_analytics.database.retriever import get_unique_model_objects_in_db
 
 
 @pytest.mark.parametrize(
@@ -102,7 +110,7 @@ def test_add_bike(
     this_year = datetime.now().year
 
     with app.app_context():
-        bikes_pre = Bike.query.all()
+        bikes_pre = get_unique_model_objects_in_db(Bike)
         id_max_pre = max([b.id for b in bikes_pre])
 
     post_data = MultiDict(
@@ -124,7 +132,7 @@ def test_add_bike(
     )
     assert response.status_code == 200
     with app.app_context():
-        bikes_post = Bike.query.all()
+        bikes_post = get_unique_model_objects_in_db(Bike)
         id_max_post = max([b.id for b in bikes_post])
 
         assert id_max_post > id_max_pre
@@ -161,14 +169,16 @@ def test_enhance_track(
         ],
     )
     with app.app_context():
+        bike_0 = orm_db.session.scalars(select(Bike)).first()
+        terrain_type = orm_db.session.scalars(select(TerrainType)).first()
         new_ride = Ride(
             ride_date=date(this_year, 2, 27),
             start_time=time(8, 8, 8),
             ride_duration=timedelta(seconds=60 * 20),
             total_duration=timedelta(seconds=(60 * 20) + 60),
             distance=1.234,
-            id_terrain_type=2,
-            id_bike=1,
+            terrain_type=terrain_type,
+            bike=bike_0,
         )
 
         new_ride.tracks.extend(
@@ -203,16 +213,15 @@ def test_view_bike_na(client: FlaskClient) -> None:
 
 def test_view_all_rides(app: Flask, client: FlaskClient) -> None:
     with app.app_context():
-        ride_ids = [r.id for r in Ride.query.all()]
-
-    for ride_id in ride_ids:
-        response = client.get(f"/ride/{ride_id}/")
-        assert response.status_code == 200
+        for ride in get_unique_model_objects_in_db(Ride):
+            ride_id = ride.id
+            response = client.get(f"/ride/{ride_id}/")
+            assert response.status_code == 200
 
 
 def test_view_all_bikes(app: Flask, client: FlaskClient) -> None:
     with app.app_context():
-        bike_names = [b.name for b in Bike.query.all()]
+        bike_names = [b.name for b in get_unique_model_objects_in_db(Bike)]
 
     for name in bike_names:
         response = client.get(f"/bike/{name}/")
@@ -221,7 +230,7 @@ def test_view_all_bikes(app: Flask, client: FlaskClient) -> None:
 
 def test_view_all_segments(app: Flask, client: FlaskClient) -> None:
     with app.app_context():
-        segment_ids = [s.id for s in DatabaseSegment.query.all()]
+        segment_ids = [s.id for s in get_unique_model_objects_in_db(DatabaseSegment)]
 
     for segment_id in segment_ids:
         response = client.get(f"segments/show/{segment_id}")

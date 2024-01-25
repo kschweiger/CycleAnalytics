@@ -1,6 +1,6 @@
 import logging
 from datetime import date, timedelta
-from typing import Type
+from typing import Sequence, Type, TypeVar
 
 from geo_track_analyzer import ByteTrack, Track
 from sqlalchemy import and_, desc, func, or_, select
@@ -20,18 +20,41 @@ from cycle_analytics.utils.debug import log_timing
 from cycle_analytics.utils.track import get_identifier
 
 from .model import (
-    CategoryModel,
+    Bike,
+    CategoryModelType,
     DatabaseEvent,
     DatabaseGoal,
     DatabaseSegment,
     DatabaseTrack,
+    Difficulty,
     EventType,
+    Material,
     Ride,
+    SegmentType,
+    Severity,
     TerrainType,
+    TypeSpecification,
     db,
 )
 
 logger = logging.getLogger(__name__)
+
+M = TypeVar(
+    "M",
+    Bike,
+    Ride,
+    DatabaseEvent,
+    DatabaseGoal,
+    DatabaseSegment,
+    DatabaseSegment,
+    TerrainType,
+    TypeSpecification,
+    Material,
+    EventType,
+    Severity,
+    SegmentType,
+    Difficulty,
+)
 
 
 def get_ride_years_in_database() -> list[int]:
@@ -61,17 +84,21 @@ def get_event_years_in_database() -> list[int]:
     return [year[0] for year in distinct_years]
 
 
-def get_possible_values(category_model_type: Type[CategoryModel]) -> list[str]:
+def get_possible_values(category_model_type: Type[CategoryModelType]) -> list[str]:
     """Get all possible value for a CategoryModel Mapping
 
     :param category_model_type: A child of CategoryModel model
     :return: List of all text values for the passed CategoryModel
     """
-    return [c.text for c in category_model_type.query.all()]
+    return [str(c.text) for c in db.session.scalars(select(category_model_type)).all()]
+
+
+def get_unique_model_objects_in_db(model_obj: Type[M]) -> Sequence[M]:
+    return db.session.scalars(select(model_obj)).unique().all()
 
 
 def convert_to_indices(
-    values: list[str], category_model_type: Type[CategoryModel]
+    values: list[str], category_model_type: CategoryModelType
 ) -> list[int]:
     relevant_elements = db.session.execute(
         select(category_model_type).where(category_model_type.text.in_(values))

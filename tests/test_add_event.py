@@ -8,6 +8,7 @@ from werkzeug.datastructures import MultiDict
 
 from cycle_analytics.database.model import DatabaseEvent, Ride
 from cycle_analytics.database.model import db as orm_db
+from cycle_analytics.database.retriever import get_unique_model_objects_in_db
 
 
 @pytest.mark.parametrize(
@@ -52,7 +53,7 @@ def test_add_event(
     this_year = datetime.now().year
     this_month = datetime.now().month
     with app.app_context():
-        events_pre = DatabaseEvent.query.all()
+        events_pre = get_unique_model_objects_in_db(DatabaseEvent)
         id_max_pre = max([e.id for e in events_pre])
 
     post_data = MultiDict(
@@ -66,7 +67,7 @@ def test_add_event(
     response = client.post("/add/event", data=post_data, follow_redirects=True)
     assert response.status_code == 200
     with app.app_context():
-        events_post = DatabaseEvent.query.all()
+        events_post = get_unique_model_objects_in_db(DatabaseEvent)
         id_max_post = max([e.id for e in events_post])
         assert id_max_post > id_max_pre
         new_event = events_post[-1]
@@ -81,7 +82,7 @@ def test_add_event_from_ride(
     this_year = datetime.now().year
 
     with app.app_context():
-        events_pre = DatabaseEvent.query.all()
+        events_pre = get_unique_model_objects_in_db(DatabaseEvent)
         id_max_pre = max([e.id for e in events_pre])
         ride_pre = orm_db.get_or_404(Ride, 4)
         ride_pre.events
@@ -103,7 +104,7 @@ def test_add_event_from_ride(
     )
     assert response.status_code == 200
     with app.app_context():
-        events_post = DatabaseEvent.query.all()
+        events_post = get_unique_model_objects_in_db(DatabaseEvent)
         id_max_post = max([e.id for e in events_post])
         assert id_max_post > id_max_pre
         ride_post = orm_db.get_or_404(Ride, 4)

@@ -3,9 +3,10 @@ from datetime import date, datetime, time, timedelta
 import pytest
 from flask import Flask, current_app
 from geo_track_analyzer import PyTrack, Track
+from sqlalchemy import select
 
 from cycle_analytics.database.converter import initialize_overviews
-from cycle_analytics.database.model import DatabaseTrack, Ride
+from cycle_analytics.database.model import Bike, DatabaseTrack, Ride, TerrainType
 from cycle_analytics.database.model import db as orm_db
 from cycle_analytics.database.retriever import get_segments_for_map_in_bounds
 
@@ -110,24 +111,24 @@ def test_insert_multi_segment_overview(
 ) -> None:
     this_year = datetime.now().year
     this_month = datetime.now().month
-    test_insert_ride = Ride(
-        ride_date=date(this_year, this_month, 1),
-        start_time=time(12, 0),
-        total_duration=timedelta(6 * 60),
-        distance=4.4,
-        id_bike=1,
-        id_terrain_type=1,
-    )
-
-    test_insert_ride.tracks.append(
-        DatabaseTrack(
-            content=test_track_with_segments.get_xml().encode(),
-            added=datetime(this_year, this_month, 1, 20),
-            is_enhanced=True,
-            overviews=initialize_overviews(test_track_with_segments),
-        )
-    )
-
     with app.app_context():
+        test_insert_ride = Ride(
+            ride_date=date(this_year, this_month, 1),
+            start_time=time(12, 0),
+            total_duration=timedelta(6 * 60),
+            distance=4.4,
+            bike=orm_db.session.scalars(select(Bike)).first(),
+            terrain_type=orm_db.session.scalars(select(TerrainType)).first(),
+        )
+
+        test_insert_ride.tracks.append(
+            DatabaseTrack(
+                content=test_track_with_segments.get_xml().encode(),
+                added=datetime(this_year, this_month, 1, 20),
+                is_enhanced=True,
+                overviews=initialize_overviews(test_track_with_segments),
+            )
+        )
+
         orm_db.session.add(test_insert_ride)
         orm_db.session.commit()

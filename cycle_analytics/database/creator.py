@@ -1,11 +1,11 @@
 import logging
-from typing import Type
 
 from flask import current_app
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import select
 
 from .model import (
-    CategoryModel,
+    CategoryModelType,
     Difficulty,
     EventType,
     Material,
@@ -19,9 +19,11 @@ logger = logging.getLogger(__name__)
 
 
 def _sync_categorical_values(
-    database: SQLAlchemy, values: list[str], category_model_type: Type[CategoryModel]
+    database: SQLAlchemy, values: list[str], category_model_type: CategoryModelType
 ) -> None:
-    existing_elements = [c.text for c in category_model_type.query.all()]
+    existing_elements = [
+        c.text for c in database.session.scalars(select(category_model_type)).all()
+    ]
 
     for value in values:
         if value in existing_elements:

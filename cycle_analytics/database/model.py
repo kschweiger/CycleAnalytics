@@ -1,120 +1,188 @@
-from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
+from typing import Optional, Type
 
 from flask_sqlalchemy import SQLAlchemy
 from geo_track_analyzer import ByteTrack, Track
+from sqlalchemy import Column
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    Mapped,
+    MappedAsDataclass,
+    mapped_column,
+    relationship,
+)
 
-db = SQLAlchemy()
+
+class Base(DeclarativeBase, MappedAsDataclass):
+    pass
+
+
+db = SQLAlchemy(model_class=Base)
 
 ride_event = db.Table(
     "rel_ride_event",
-    db.Column("ride_id", db.Integer, db.ForeignKey("ride.id")),
-    db.Column("event_id", db.Integer, db.ForeignKey("event.id")),
+    Column("ride_id", db.Integer, db.ForeignKey("ride.id")),
+    Column("event_id", db.Integer, db.ForeignKey("event.id")),
 )
 
 ride_track = db.Table(
     "rel_ride_track",
-    db.Column("ride_id", db.Integer, db.ForeignKey("ride.id")),
-    db.Column("track_id", db.Integer, db.ForeignKey("track.id")),
+    Column("ride_id", db.Integer, db.ForeignKey("ride.id")),
+    Column("track_id", db.Integer, db.ForeignKey("track.id")),
 )
 
 ride_note = db.Table(
     "rel_ride_note",
-    db.Column("ride_id", db.Integer, db.ForeignKey("ride.id")),
-    db.Column("note_id", db.Integer, db.ForeignKey("ride_note.id")),
+    Column("ride_id", db.Integer, db.ForeignKey("ride.id")),
+    Column("note_id", db.Integer, db.ForeignKey("ride_note.id")),
 )
 
 
-@dataclass
-class CategoryModel(db.Model):
-    __abstract__ = True
+class TerrainType(Base):
+    __tablename__ = "terrain_type"
 
-    text: str = db.Column(db.String, unique=True, nullable=False, name="text")
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, init=False)
+    text: Mapped[str] = mapped_column(db.String, unique=True, nullable=False)
 
     def __str__(self) -> str:
         return self.text
 
 
-@dataclass
-class TerrainType(CategoryModel):
-    id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
+class TypeSpecification(Base):
+    __tablename__ = "type_specification"
+
+    id: Mapped[int] = mapped_column(
+        db.Integer, primary_key=True, autoincrement=True, init=False
+    )
+    text: Mapped[str] = mapped_column(unique=True, nullable=False)
+
+    def __str__(self) -> str:
+        return self.text
 
 
-@dataclass
-class TypeSpecification(CategoryModel):
-    id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
+class Material(Base):
+    __tablename__ = "material"
+
+    id: Mapped[int] = mapped_column(
+        db.Integer, primary_key=True, autoincrement=True, init=False
+    )
+    text: Mapped[str] = mapped_column(unique=True, nullable=False)
+
+    def __str__(self) -> str:
+        return self.text
 
 
-@dataclass
-class Material(CategoryModel):
-    id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
+class EventType(Base):
+    __tablename__ = "event_type"
+    id: Mapped[int] = mapped_column(
+        db.Integer, primary_key=True, autoincrement=True, init=False
+    )
+    text: Mapped[str] = mapped_column(unique=True, nullable=False)
+
+    def __str__(self) -> str:
+        return self.text
 
 
-@dataclass
-class EventType(CategoryModel):
-    id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
+class Severity(Base):
+    __tablename__ = "severity"
+
+    id: Mapped[int] = mapped_column(
+        db.Integer, primary_key=True, autoincrement=True, init=False
+    )
+    text: Mapped[str] = mapped_column(unique=True, nullable=False)
+
+    def __str__(self) -> str:
+        return self.text
 
 
-@dataclass
-class Severity(CategoryModel):
-    id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
+class SegmentType(Base):
+    __tablename__ = "segment_type"
+
+    id: Mapped[int] = mapped_column(
+        db.Integer, primary_key=True, autoincrement=True, init=False
+    )
+    text: Mapped[str] = mapped_column(unique=True, nullable=False)
+
+    def __str__(self) -> str:
+        return self.text
 
 
-@dataclass
-class SegmentType(CategoryModel):
-    id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
+class Difficulty(Base):
+    __tablename__ = "difficulty"
+
+    id: Mapped[int] = mapped_column(
+        db.Integer, primary_key=True, autoincrement=True, init=False
+    )
+    text: Mapped[str] = mapped_column(unique=True, nullable=False)
+
+    def __str__(self) -> str:
+        return self.text
 
 
-@dataclass
-class Difficulty(CategoryModel):
-    id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
+CategoryModelType = Type[
+    TerrainType
+    | TypeSpecification
+    | Material
+    | EventType
+    | Severity
+    | SegmentType
+    | Difficulty
+]
 
 
-@dataclass
-class RideNote(db.Model):
-    id: int = db.Column(db.Integer, primary_key=True)
-    text: str = db.Column(db.TEXT, nullable=False)
+class RideNote(Base):
+    __tablename__ = "ride_note"
+
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True, init=False)
+    text: Mapped[str] = mapped_column(db.TEXT, nullable=False)
 
 
-@dataclass
-class TrackOverview(db.Model):
+class TrackOverview(Base):
+    __tablename__ = "track_overview"
     __table_args__ = (db.UniqueConstraint("id_track", "id_segment"),)
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    id_track: int = db.Column(db.Integer, db.ForeignKey("track.id"), nullable=False)
-    id_segment: None | int = db.Column(db.Integer, nullable=True)
-    moving_time_seconds: float = db.Column(db.Float, nullable=False)
-    total_time_seconds: float = db.Column(db.Float, nullable=False)
-    moving_distance: float = db.Column(db.Float, nullable=False)
-    total_distance: float = db.Column(db.Float, nullable=False)
-    max_velocity: float = db.Column(db.Float, nullable=False)
-    avg_velocity: float = db.Column(db.Float, nullable=False)
-    max_elevation: None | float = db.Column(db.Float, nullable=True)
-    min_elevation: None | float = db.Column(db.Float, nullable=True)
-    uphill_elevation: None | float = db.Column(db.Float, nullable=True)
-    downhill_elevation: None | float = db.Column(db.Float, nullable=True)
-    moving_distance_km: float = db.Column(db.Float, nullable=False)
-    total_distance_km: float = db.Column(db.Float, nullable=False)
-    max_velocity_kmh: float = db.Column(db.Float, nullable=False)
-    avg_velocity_kmh: float = db.Column(db.Float, nullable=False)
-    bounds_min_lat: float = db.Column(db.Float, nullable=False)
-    bounds_max_lat: float = db.Column(db.Float, nullable=False)
-    bounds_min_lng: float = db.Column(db.Float, nullable=False)
-    bounds_max_lng: float = db.Column(db.Float, nullable=False)
+    id: Mapped[int] = mapped_column(
+        db.Integer, primary_key=True, autoincrement=True, init=False
+    )
+    id_track: Mapped[int] = mapped_column(
+        db.Integer, db.ForeignKey("track.id"), nullable=False
+    )
+    id_segment: Mapped[Optional[int]] = mapped_column(db.Integer, nullable=True)
+    moving_time_seconds: Mapped[float] = mapped_column(db.Float, nullable=False)
+    total_time_seconds: Mapped[float] = mapped_column(db.Float, nullable=False)
+    moving_distance: Mapped[float] = mapped_column(db.Float, nullable=False)
+    total_distance: Mapped[float] = mapped_column(db.Float, nullable=False)
+    max_velocity: Mapped[float] = mapped_column(db.Float, nullable=False)
+    avg_velocity: Mapped[float] = mapped_column(db.Float, nullable=False)
+    max_elevation: Mapped[Optional[float]] = mapped_column(db.Float, nullable=True)
+    min_elevation: Mapped[Optional[float]] = mapped_column(db.Float, nullable=True)
+    uphill_elevation: Mapped[Optional[float]] = mapped_column(db.Float, nullable=True)
+    downhill_elevation: Mapped[Optional[float]] = mapped_column(db.Float, nullable=True)
+    moving_distance_km: Mapped[float] = mapped_column(db.Float, nullable=False)
+    total_distance_km: Mapped[float] = mapped_column(db.Float, nullable=False)
+    max_velocity_kmh: Mapped[float] = mapped_column(db.Float, nullable=False)
+    avg_velocity_kmh: Mapped[float] = mapped_column(db.Float, nullable=False)
+    bounds_min_lat: Mapped[float] = mapped_column(db.Float, nullable=False)
+    bounds_max_lat: Mapped[float] = mapped_column(db.Float, nullable=False)
+    bounds_min_lng: Mapped[float] = mapped_column(db.Float, nullable=False)
+    bounds_max_lng: Mapped[float] = mapped_column(db.Float, nullable=False)
 
 
-@dataclass
-class DatabaseTrack(db.Model):
+class DatabaseTrack(Base):
     __tablename__: str = "track"
     __allow_unmapped__ = True
 
-    id: int = db.Column(db.Integer, primary_key=True)
-    content: bytes = db.Column(db.LargeBinary)
-    added: datetime = db.Column(db.DateTime(timezone=True))
-    is_enhanced: bool = db.Column(db.Boolean, nullable=False, default=False)
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True, init=False)
+    content: Mapped[bytes] = mapped_column(db.LargeBinary)
+    added: Mapped[datetime] = mapped_column(db.DateTime(timezone=True))
+    is_enhanced: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=False)
 
     overviews: list[TrackOverview] = db.relationship(
-        "TrackOverview", backref="ride", lazy=True, cascade="all, delete"
+        "TrackOverview",
+        backref="ride",
+        lazy=True,
+        cascade="all, delete",
+        default_factory=lambda: [],
     )  # type: ignore
 
     def __repr__(self) -> str:
@@ -125,85 +193,121 @@ class DatabaseTrack(db.Model):
         )
 
 
-@dataclass
-class Bike(db.Model):
-    id: int = db.Column(db.Integer, primary_key=True)
-    name: str = db.Column(db.String, unique=True, nullable=False)
-    brand: str = db.Column(db.String, nullable=False)
-    model: str = db.Column(db.String, nullable=False)
-    id_material: int = db.Column(
-        db.Integer, db.ForeignKey("material.id"), nullable=False
-    )
-    id_terraintype: int = db.Column(
-        db.Integer, db.ForeignKey("terrain_type.id"), nullable=False
-    )
-    id_specification: int = db.Column(
-        db.Integer, db.ForeignKey("type_specification.id"), nullable=False
-    )
-    weight: None | float = db.Column(db.Float)
-    commission_date: date = db.Column(db.Date())
-    decommission_date: None | date = db.Column(db.Date(), default=None)
+class Bike(Base):
+    __tablename__ = "bike"
 
-    material = db.relationship("Material", backref="bike", lazy=False)
-    terrain_type = db.relationship("TerrainType", backref="bike", lazy=False)
-    specification = db.relationship("TypeSpecification", backref="bike", lazy=False)
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True, init=False)
+    name: Mapped[str] = mapped_column(db.String, unique=True, nullable=False)
+    brand: Mapped[str] = mapped_column(db.String, nullable=False)
+    model: Mapped[str] = mapped_column(db.String, nullable=False)
+
+    id_material: Mapped[int] = mapped_column(
+        db.Integer, db.ForeignKey("material.id"), nullable=False, init=False
+    )
+    material: Mapped[Material] = relationship(lazy=False)
+
+    id_terraintype: Mapped[int] = mapped_column(
+        db.Integer, db.ForeignKey("terrain_type.id"), nullable=False, init=False
+    )
+    terrain_type: Mapped[TerrainType] = relationship(lazy=False)
+
+    id_specification: Mapped[int] = mapped_column(
+        db.Integer, db.ForeignKey("type_specification.id"), nullable=False, init=False
+    )
+    specification: Mapped[TypeSpecification] = relationship(lazy=False)
+
+    commission_date: Mapped[date] = mapped_column(db.Date())
+    weight: Mapped[Optional[float]] = mapped_column(db.Float, default=None)
+    decommission_date: Mapped[Optional[date]] = mapped_column(db.Date(), default=None)
 
 
-@dataclass
-class DatabaseEvent(db.Model):
+class DatabaseEvent(Base):
     __tablename__: str = "event"
 
-    id: int = db.Column(db.Integer, primary_key=True)
-    event_date: date = db.Column(db.Date())
-    id_event_type: int = db.Column(
-        db.Integer, db.ForeignKey("event_type.id"), nullable=False
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True, init=False)
+
+    event_date: Mapped[date] = mapped_column(db.Date())
+    id_event_type: Mapped[int] = mapped_column(
+        db.Integer, db.ForeignKey("event_type.id"), nullable=False, init=False
     )
-    short_description: str = db.Column(db.String, nullable=False)
-    description: None | str = db.Column(db.String, nullable=True)
-    id_severity: None | int = db.Column(
-        db.Integer, db.ForeignKey("severity.id"), nullable=True
+    event_type: Mapped[EventType] = relationship(backref="event", lazy=False)
+
+    short_description: Mapped[str] = mapped_column(db.String, nullable=False)
+
+    id_severity: Mapped[Optional[int]] = mapped_column(
+        db.Integer, db.ForeignKey("severity.id"), nullable=True, init=False
     )
-    latitude: None | float = db.Column(db.Float, nullable=True)
-    longitude: None | float = db.Column(db.Float, nullable=True)
-    id_bike: None | int = db.Column(db.Integer, db.ForeignKey("bike.id"), nullable=True)
+    severity: Mapped[Optional[Severity]] = relationship(
+        "Severity", backref="event", lazy=False, default=None
+    )
 
-    event_type = db.relationship("EventType", backref="event", lazy=False)
-    severity = db.relationship("Severity", backref="event", lazy=False)
-    bike = db.relationship("Bike", backref="event", lazy=True)
+    id_bike: Mapped[Optional[int]] = mapped_column(
+        db.Integer, db.ForeignKey("bike.id"), nullable=True, init=False
+    )
+    bike: Mapped[Optional[Bike]] = relationship(
+        "Bike", backref="event", lazy=True, default=None
+    )
+
+    description: Mapped[Optional[str]] = mapped_column(
+        db.String, nullable=True, default=None
+    )
+    latitude: Mapped[Optional[float]] = mapped_column(
+        db.Float, nullable=True, default=None
+    )
+    longitude: Mapped[Optional[float]] = mapped_column(
+        db.Float, nullable=True, default=None
+    )
 
 
-@dataclass
-class Ride(db.Model):
+class Ride(Base):
+    __tablename__ = "ride"
     __allow_unmapped__ = True
 
-    id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    ride_date: date = db.Column(db.Date(), nullable=False)
-    start_time: time = db.Column(db.Time(), nullable=False)
-    ride_duration: None | timedelta = db.Column(db.Interval, nullable=True)
-    total_duration: timedelta = db.Column(db.Interval, nullable=False)
-    distance: float = db.Column(db.Float, nullable=False)
-    id_bike: None | int = db.Column(db.Integer, db.ForeignKey("bike.id"), nullable=True)
-    id_terrain_type: int = db.Column(
-        db.Integer, db.ForeignKey("terrain_type.id"), nullable=False
+    id: Mapped[int] = mapped_column(
+        db.Integer, primary_key=True, autoincrement=True, init=False
     )
-    bike: Bike = db.relationship("Bike", backref="ride", lazy=True)  # type: ignore
-    terrain_type: TerrainType = db.relationship(
-        "TerrainType", backref="ride", lazy=False
-    )  # type: ignore
+    ride_date: Mapped[date] = mapped_column(db.Date(), nullable=False)
+    start_time: Mapped[time] = mapped_column(db.Time(), nullable=False)
+    total_duration: Mapped[timedelta] = mapped_column(db.Interval, nullable=False)
+    distance: Mapped[float] = mapped_column(db.Float, nullable=False)
 
-    tracks: list[DatabaseTrack] = db.relationship(
+    id_bike: Mapped[Optional[int]] = mapped_column(
+        db.Integer, db.ForeignKey("bike.id"), nullable=True, init=False
+    )
+    bike: Mapped[Bike] = relationship("Bike", backref="ride")
+
+    id_terrain_type: Mapped[int] = mapped_column(
+        db.Integer, db.ForeignKey("terrain_type.id"), nullable=False, init=False
+    )
+    terrain_type: Mapped[TerrainType] = relationship(
+        "TerrainType", backref="ride", lazy=False
+    )
+
+    ride_duration: Mapped[Optional[timedelta]] = mapped_column(
+        db.Interval, nullable=True, default=None
+    )
+    tracks: Mapped[list[DatabaseTrack]] = relationship(
         "DatabaseTrack",
         backref="ride",
         secondary=ride_track,
         lazy=False,
         order_by="DatabaseTrack.added",
-    )  # type: ignore
-    notes: list[RideNote] = db.relationship(
-        "RideNote", secondary=ride_note, backref="ride", lazy=True
-    )  # type: ignore
-    events: list[DatabaseEvent] = db.relationship(
-        "DatabaseEvent", secondary=ride_event, backref="ride", lazy=True
-    )  # type: ignore
+        default_factory=lambda: [],
+    )
+    notes: Mapped[list[RideNote]] = relationship(
+        "RideNote",
+        secondary=ride_note,
+        backref="ride",
+        lazy=True,
+        default_factory=lambda: [],
+    )
+    events: Mapped[list[DatabaseEvent]] = relationship(
+        "DatabaseEvent",
+        secondary=ride_event,
+        backref="ride",
+        lazy=True,
+        default_factory=lambda: [],
+    )
 
     def get_latest_track(self) -> None | DatabaseTrack:
         if not self.tracks:
@@ -239,54 +343,62 @@ class Ride(db.Model):
         return self.get_latest_track()
 
 
-@dataclass
-class DatabaseGoal(db.Model):
+class DatabaseGoal(Base):
     __tablename__: str = "goal"
 
-    id: int = db.Column(db.Integer, primary_key=True)
-    year: int = db.Column(db.Integer, nullable=False)
-    month: None | int = db.Column(db.Integer, nullable=True)
-    name: str = db.Column(db.String, nullable=False)
-    goal_type: str = db.Column(db.String, nullable=False)
-    threshold: float = db.Column(db.Float, nullable=False)
-    is_upper_bound: bool = db.Column(db.Boolean, nullable=False)
-    constraints: None | dict = db.Column(db.JSON)
-    description: None | str = db.Column(db.TEXT)
-    has_been_reached: bool = db.Column(db.Boolean, nullable=False, default=False)
-    active: bool = db.Column(db.Boolean, nullable=False, default=True)
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True, init=False)
+    year: Mapped[int] = mapped_column(db.Integer, nullable=False)
+    month: Mapped[Optional[int]] = mapped_column(db.Integer, nullable=True)
+    name: Mapped[str] = mapped_column(db.String, nullable=False)
+    goal_type: Mapped[str] = mapped_column(db.String, nullable=False)
+    threshold: Mapped[float] = mapped_column(db.Float, nullable=False)
+    is_upper_bound: Mapped[bool] = mapped_column(db.Boolean, nullable=False)
+    constraints: Mapped[Optional[dict]] = mapped_column(db.JSON, default=None)
+    description: Mapped[Optional[str]] = mapped_column(db.TEXT, default=None)
+    has_been_reached: Mapped[bool] = mapped_column(
+        db.Boolean, nullable=False, default=False
+    )
+    active: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=True)
 
 
-@dataclass
-class DatabaseSegment(db.Model):
+class DatabaseSegment(Base):
     __tablename__: str = "segment"
 
-    id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name: str = db.Column(db.String(50), nullable=False)
-    description: None | str = db.Column(db.TEXT)
-    id_segment_type: int = db.Column(
-        db.Integer, db.ForeignKey("segment_type.id"), nullable=False
+    id: Mapped[int] = mapped_column(
+        db.Integer, primary_key=True, autoincrement=True, init=False
     )
-    id_difficulty: int = db.Column(
-        db.Integer, db.ForeignKey("difficulty.id"), nullable=False
-    )
-    distance: float = db.Column(db.Float, nullable=False)
-    min_elevation: None | float = db.Column(db.Float, default=None)
-    max_elevation: None | float = db.Column(db.Float, default=None)
-    uphill_elevation: None | float = db.Column(db.Float, default=None)
-    downhill_elevation: None | float = db.Column(db.Float, default=None)
-    bounds_min_lat: float = db.Column(db.Float, nullable=False)
-    bounds_max_lat: float = db.Column(db.Float, nullable=False)
-    bounds_min_lng: float = db.Column(db.Float, nullable=False)
-    bounds_max_lng: float = db.Column(db.Float, nullable=False)
-    gpx: bytes = db.Column(db.LargeBinary, nullable=False)
-    visited: bool = db.Column(db.Boolean, nullable=False, default=False)
+    name: Mapped[str] = mapped_column(db.String(50), nullable=False)
 
-    segment_type = db.relationship("SegmentType", backref="segment", lazy=False)
-    difficulty = db.relationship("Difficulty", backref="segment", lazy=False)
+    id_segment_type: Mapped[int] = mapped_column(
+        db.Integer, db.ForeignKey("segment_type.id"), nullable=False, init=False
+    )
+    segment_type: Mapped[SegmentType] = relationship(
+        "SegmentType", backref="segment", lazy=False
+    )
+
+    id_difficulty: Mapped[int] = mapped_column(
+        db.Integer, db.ForeignKey("difficulty.id"), nullable=False, init=False
+    )
+    difficulty: Mapped[Difficulty] = relationship(
+        "Difficulty", backref="segment", lazy=False
+    )
+
+    distance: Mapped[float] = mapped_column(db.Float, nullable=False)
+    bounds_min_lat: Mapped[float] = mapped_column(db.Float, nullable=False)
+    bounds_max_lat: Mapped[float] = mapped_column(db.Float, nullable=False)
+    bounds_min_lng: Mapped[float] = mapped_column(db.Float, nullable=False)
+    bounds_max_lng: Mapped[float] = mapped_column(db.Float, nullable=False)
+    gpx: Mapped[bytes] = mapped_column(db.LargeBinary, nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(db.TEXT, default=None)
+    visited: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=False)
+    min_elevation: Mapped[Optional[float]] = mapped_column(db.Float, default=None)
+    max_elevation: Mapped[Optional[float]] = mapped_column(db.Float, default=None)
+    uphill_elevation: Mapped[Optional[float]] = mapped_column(db.Float, default=None)
+    downhill_elevation: Mapped[Optional[float]] = mapped_column(db.Float, default=None)
 
 
 # @dataclass
-# class TrackThumbnail(db.Model):
+# class TrackThumbnail(Base):
 #     __tablename__: str = "track_thumbnails"
 
 #     id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)

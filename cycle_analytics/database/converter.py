@@ -224,7 +224,8 @@ def track_to_db_overview(
     )
     if id_track:
         data["id_track"] = id_track
-
+    else:
+        data["id_track"] = None
     return TrackOverview(**data)
 
 

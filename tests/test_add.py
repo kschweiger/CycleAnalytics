@@ -5,12 +5,13 @@ from flask.testing import FlaskClient
 
 from cycle_analytics.database.model import Ride
 from cycle_analytics.database.model import db as orm_db
+from cycle_analytics.database.retriever import get_unique_model_objects_in_db
 
 
 def test_add_note_ride_has_note(app: Flask, client: FlaskClient) -> None:
     test_ride: Ride = None
     with app.app_context():
-        for ride in Ride.query.all():
+        for ride in get_unique_model_objects_in_db(Ride):
             if ride.notes:
                 test_ride = ride
                 break
@@ -38,7 +39,7 @@ def test_add_note_ride_has_note(app: Flask, client: FlaskClient) -> None:
 def test_add_note_ride_no_note(app: Flask, client: FlaskClient) -> None:
     test_ride: Ride = None
     with app.app_context():
-        for ride in Ride.query.all():
+        for ride in get_unique_model_objects_in_db(Ride):
             if not ride.notes:
                 test_ride = ride
                 break

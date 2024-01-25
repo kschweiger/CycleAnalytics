@@ -3,7 +3,8 @@ from .model import db as orm_db
 
 
 def modify_goal_status(id_goal: int, active: bool = True) -> bool:
-    goal = DatabaseGoal.query.get(id_goal)
+    goal = orm_db.session.get(DatabaseGoal, id_goal)
+
     if not goal:
         return False
 
@@ -14,7 +15,7 @@ def modify_goal_status(id_goal: int, active: bool = True) -> bool:
 
 
 def modify_segment_visited_flag(id_segment: int, visited: bool) -> bool:
-    segment: DatabaseSegment | None = DatabaseSegment.query.get(id_segment)
+    segment: DatabaseSegment | None = orm_db.session.get(DatabaseSegment, id_segment)
     if not segment:
         return False
 

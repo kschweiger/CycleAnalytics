@@ -5,6 +5,7 @@ from typing import Any
 import numpy as np
 from flask_sqlalchemy import SQLAlchemy
 from geo_track_analyzer import PyTrack, Track
+from sqlalchemy import select
 
 from cycle_analytics.database.converter import initialize_overviews
 from cycle_analytics.database.model import (
@@ -13,9 +14,15 @@ from cycle_analytics.database.model import (
     DatabaseGoal,
     DatabaseSegment,
     DatabaseTrack,
+    Difficulty,
+    EventType,
+    Material,
     Ride,
     RideNote,
     SegmentType,
+    Severity,
+    TerrainType,
+    TypeSpecification,
 )
 
 # from tests import resources
@@ -27,6 +34,13 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
     this_month = datetime.now().month
     last_year = this_year - 1
 
+    materials = database.session.scalars(select(Material)).all()
+    terrain_types = database.session.scalars(select(TerrainType)).all()
+    specifications = database.session.scalars(select(TypeSpecification)).all()
+    event_types = database.session.scalars(select(EventType)).all()
+    severities = database.session.scalars(select(Severity)).all()
+    difficulties = database.session.scalars(select(Difficulty)).all()
+
     fr_track_top_segment: Track = data["fr_track_top_segment"]
     fr_track_sub_segment: Track = data["fr_track_sub_segment"]
     fr_track: Track = data["fr_track"]
@@ -35,18 +49,18 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
         name="Bike 1",
         brand="Brand 1",
         model="Model 1",
-        id_material=1,
-        id_specification=1,
-        id_terraintype=1,
+        material=materials[0],
+        specification=specifications[0],
+        terrain_type=terrain_types[0],
         commission_date=datetime.now().date(),
     )
     bike_2 = Bike(
         name="Bike 2",
         brand="Brand 1",
         model="Model 2",
-        id_material=2,
-        id_specification=2,
-        id_terraintype=2,
+        material=materials[1],
+        specification=specifications[1],
+        terrain_type=terrain_types[1],
         commission_date=datetime.now().date(),
     )
 
@@ -60,8 +74,8 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
         ride_duration=None,
         total_duration=timedelta(seconds=(60 * 60)),
         distance=12,
-        id_terrain_type=1,
-        id_bike=bike_1.id,
+        terrain_type=terrain_types[0],
+        bike=bike_1,
     )
     ride_last_year_2 = Ride(
         ride_date=date(last_year, 12, 10),
@@ -69,8 +83,8 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
         ride_duration=None,
         total_duration=timedelta(seconds=(60 * 60)),
         distance=42,
-        id_terrain_type=1,
-        id_bike=bike_1.id,
+        terrain_type=terrain_types[0],
+        bike=bike_1,
     )
 
     database.session.add_all([ride_last_year_1, ride_last_year_2])
@@ -82,8 +96,8 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
         ride_duration=timedelta(seconds=60 * 60 * 3),
         total_duration=timedelta(seconds=(60 * 60 * 3) + 60),
         distance=42.42,
-        id_terrain_type=2,
-        id_bike=bike_2.id,
+        terrain_type=terrain_types[1],
+        bike=bike_2,
     )
 
     ride_1 = Ride(
@@ -92,8 +106,8 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
         ride_duration=timedelta(seconds=60 * 20),
         total_duration=timedelta(seconds=(60 * 20) + 60),
         distance=5.7,
-        id_terrain_type=2,
-        id_bike=bike_2.id,
+        terrain_type=terrain_types[1],
+        bike=bike_2,
     )
 
     ride_1.tracks.extend(
@@ -118,29 +132,29 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
         [
             DatabaseEvent(
                 event_date=date(this_year, 8, 1),
-                id_event_type=1,
+                event_type=event_types[0],
                 short_description="Some event for ride 1",
-                id_bike=bike_2.id,
+                bike=bike_2,
             ),
             DatabaseEvent(
                 event_date=date(this_year, 8, 1),
-                id_event_type=2,
+                event_type=event_types[1],
                 short_description="Some located event for ride 1",
                 latitude=47.932704,
                 longitude=7.875811,
-                id_bike=bike_2.id,
-                id_severity=4,
+                bike=bike_2,
+                severity=severities[3],
             ),
             DatabaseEvent(
                 event_date=date(this_year, 8, 1),
-                id_event_type=2,
+                event_type=event_types[1],
                 short_description="Some located event for ride 1",
                 description="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, "
                 "sed diam nonumy eirmod tempor invidunt.",
                 latitude=47.931671,
                 longitude=7.88191,
-                id_bike=bike_2.id,
-                id_severity=2,
+                bike=bike_2,
+                severity=severities[1],
             ),
         ]
     )
@@ -151,8 +165,8 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
         ride_duration=None,
         total_duration=timedelta(seconds=(60 * 60)),
         distance=19.7,
-        id_terrain_type=2,
-        id_bike=bike_2.id,
+        terrain_type=terrain_types[1],
+        bike=bike_2,
     )
 
     ride_2.tracks.extend(
@@ -171,8 +185,8 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
         ride_duration=None,
         total_duration=timedelta(seconds=(60 * 10)),
         distance=3.33,
-        id_terrain_type=2,
-        id_bike=bike_2.id,
+        terrain_type=terrain_types[1],
+        bike=bike_2,
     )
 
     points = []
@@ -218,26 +232,26 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
     # Generate some Events
     event_1 = DatabaseEvent(
         event_date=date(last_year, 11, 1),
-        id_event_type=1,
+        event_type=event_types[0],
         short_description="Short desciption of event 1",
     )
     event_2 = DatabaseEvent(
         event_date=date(last_year, 12, 20),
-        id_event_type=1,
+        event_type=event_types[0],
         short_description="Short desciption of event 2",
     )
     event_3 = DatabaseEvent(
         event_date=date(this_year, 1, 1),
-        id_event_type=1,
+        event_type=event_types[0],
         short_description="Short desciption of event 3",
     )
     event_4 = DatabaseEvent(
         event_date=date(this_year, 1, 1),
-        id_event_type=2,
+        event_type=event_types[1],
         short_description="Short desciption of event 4",
         description="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.",  # noqa: E501
-        id_severity=4,
-        id_bike=bike_1.id,
+        severity=severities[3],
+        bike=bike_1,
         latitude=47.972,
         longitude=7.860162,
     )
@@ -246,7 +260,7 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
 
     # Generate some segments
     sample_segments = []
-    segment_types: list[SegmentType] = SegmentType.query.all()
+    segment_types = database.session.scalars(select(SegmentType)).all()
     for i, st in enumerate(segment_types):
         track = PyTrack(
             points=[
@@ -261,8 +275,8 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
         sample_segments.append(
             DatabaseSegment(
                 name=f"Sample Segment of type {st.text}",
-                id_segment_type=st.id,
-                id_difficulty=1,
+                segment_type=st,
+                difficulty=difficulties[0],
                 distance=4.24242 * (i + 1),
                 bounds_min_lat=bounds.min_latitude,
                 bounds_max_lat=bounds.max_latitude,
@@ -278,8 +292,8 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
     fr_top_db_segment = DatabaseSegment(
         name="Top part of FR segment",
         description="Some longer description of the FR track",
-        id_segment_type=next(iter([s for s in segment_types if s.text == "Road"])).id,
-        id_difficulty=1,
+        segment_type=next(iter([s for s in segment_types if s.text == "Road"])),
+        difficulty=difficulties[0],
         distance=overview.total_distance_km,
         min_elevation=overview.min_elevation,
         max_elevation=overview.max_elevation,
