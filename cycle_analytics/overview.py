@@ -23,7 +23,7 @@ from cycle_analytics.database.retriever import (
 from cycle_analytics.forms import YearAndRideTypeForm
 from cycle_analytics.plotting import per_month_overview_plots
 from cycle_analytics.utils import get_month_mapping, get_nice_timedelta_isoformat
-from cycle_analytics.utils.base import format_timedelta
+from cycle_analytics.utils.base import format_timedelta, unwrap
 
 logger = logging.getLogger(__name__)
 
@@ -380,8 +380,8 @@ def journal() -> str:
     if request.method == "POST":
         if request.form.get("next_month", None) == "next_month":
             logger.debug("Next button pressed")
-            curr_month = int(request.form.get("curr_month"))
-            curr_year = int(request.form.get("curr_year"))
+            curr_month = int(unwrap(request.form.get("curr_month")))
+            curr_year = int(unwrap(request.form.get("curr_year")))
             button_used = True
             month = curr_month + 1
             if month == 13:
@@ -390,8 +390,8 @@ def journal() -> str:
 
         if request.form.get("prev_month", None) == "prev_month":
             logger.debug("Prev button pressed")
-            curr_month = int(request.form.get("curr_month"))
-            curr_year = int(request.form.get("curr_year"))
+            curr_month = int(unwrap(request.form.get("curr_month")))
+            curr_year = int(unwrap(request.form.get("curr_year")))
             button_used = True
             month = curr_month - 1
             if month == 0:
