@@ -49,7 +49,7 @@ def flash_form_error(form: FlaskForm) -> None:
         "\n".join(
             ["<ul>"]
             + [
-                f"<li>{field} - {','.join(error)} - Got **{form[field].data}**</li>"
+                f"<li>{field} - {','.join(error)} - Got **{form[field].data}**</li>"  # type: ignore
                 for field, error in form.errors.items()
             ]
             + ["</ul>"]

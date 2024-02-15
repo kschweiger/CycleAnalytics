@@ -1,5 +1,6 @@
 import logging
 from datetime import date
+from typing import Sequence
 
 # from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import Blueprint, current_app, flash, redirect, render_template, request
@@ -39,6 +40,7 @@ from cycle_analytics.database.retriever import (
 from cycle_analytics.model.base import MapData, MapPathData
 from cycle_analytics.model.goal import GoalType
 from cycle_analytics.utils import get_month_mapping
+from cycle_analytics.utils.base import unwrap
 from cycle_analytics.utils.forms import flash_form_error, get_track_from_form
 from cycle_analytics.utils.track import init_db_track_and_enhance
 
@@ -196,13 +198,15 @@ def add_ride() -> str | Response:
 
     if form.validate_on_submit():
         ride = Ride(
-            ride_date=form.date.data,
-            start_time=form.start_time.data,
-            ride_duration=form.ride_time.data,
-            total_duration=form.total_time.data,
-            distance=form.distance.data,
-            bike=orm_db.session.get(Bike, int(form.bike.data)),
-            terrain_type=orm_db.session.get(TerrainType, int(form.ride_type.data)),
+            ride_date=unwrap(form.date.data),
+            start_time=unwrap(form.start_time.data),
+            ride_duration=form.ride_time.data,  # type: ignore
+            total_duration=unwrap(form.total_time.data),  # type: ignore
+            distance=float(unwrap(form.distance.data)),
+            bike=unwrap(orm_db.session.get(Bike, int(form.bike.data))),
+            terrain_type=unwrap(
+                orm_db.session.get(TerrainType, int(form.ride_type.data))
+            ),
         )
 
         orm_db.session.add(ride)
@@ -254,7 +258,7 @@ def add_event() -> str | Response:
 
     form = EventForm()
 
-    all_event_times: list[EventType] = get_unique_model_objects_in_db(EventType)
+    all_event_times: Sequence[EventType] = get_unique_model_objects_in_db(EventType)
     type_choices = [
         et for et in all_event_times if et.text == config.defaults.event_type
     ] + [et for et in all_event_times if et.text != config.defaults.event_type]
@@ -295,18 +299,18 @@ def add_event() -> str | Response:
 
     if form.validate_on_submit():
         event = DatabaseEvent(
-            event_date=form.date.data,
-            event_type=orm_db.session.get(EventType, int(form.event_type.data)),
+            event_date=unwrap(form.date.data),
+            event_type=unwrap(orm_db.session.get(EventType, int(form.event_type.data))),
             severity=None
             if form.severity.data == "-1"
             else orm_db.session.get(Severity, int(form.severity.data)),
             bike=None
             if form.bike.data == "-1"
             else orm_db.session.get(Bike, int(form.bike.data)),
-            short_description=form.short_description.data,
+            short_description=unwrap(form.short_description.data),
             description=None if form.description.data == "" else form.description.data,
-            latitude=form.latitude.data,
-            longitude=form.longitude.data,
+            latitude=form.latitude.data,  # type: ignore
+            longitude=form.longitude.data,  # type: ignore
         )
         if form.id_ride.data:
             ride = orm_db.get_or_404(Ride, form.id_ride.data)
@@ -355,11 +359,11 @@ def add_goal() -> str | Response:
             constraints = None
 
         goal = DatabaseGoal(
-            year=int(form.year.data),
+            year=int(unwrap(form.year.data)),
             month=None if int(form.month.data) == -1 else int(form.month.data),
-            name=form.name.data,
+            name=unwrap(form.name.data),
             goal_type=form.goal_type.data,
-            threshold=form.threshold.data,
+            threshold=float(unwrap(form.threshold.data)),
             is_upper_bound=bool(int(form.boundary.data)),
             constraints=constraints,
             description=None if form.description.data == "" else form.description.data,
@@ -392,16 +396,20 @@ def add_bike() -> str | Response:
 
     if form.validate_on_submit():
         bike = Bike(
-            name=form.name.data,
-            brand=form.brand.data,
-            model=form.model.data,
-            material=orm_db.session.get(Material, int(form.material.data)),
-            terrain_type=orm_db.session.get(TerrainType, int(form.bike_type.data)),
-            specification=orm_db.session.get(
-                TypeSpecification, int(form.bike_type_specification.data)
+            name=unwrap(form.name.data),
+            brand=unwrap(form.brand.data),
+            model=unwrap(form.model.data),
+            material=unwrap(orm_db.session.get(Material, int(form.material.data))),
+            terrain_type=unwrap(
+                orm_db.session.get(TerrainType, int(form.bike_type.data))
             ),
-            weight=form.weight.data,
-            commission_date=form.purchase.data,
+            specification=unwrap(
+                orm_db.session.get(
+                    TypeSpecification, int(form.bike_type_specification.data)
+                )
+            ),
+            weight=form.weight.data,  # type: ignore
+            commission_date=unwrap(form.purchase.data),
         )
         orm_db.session.add(bike)
         try:

@@ -8,6 +8,7 @@ from wtforms.validators import DataRequired
 from cycle_analytics.database.converter import convert_rides_to_df
 from cycle_analytics.model.base import GoalDisplayData, GoalInfoData
 from cycle_analytics.utils import get_month_mapping
+from cycle_analytics.utils.base import unwrap
 
 
 class OverviewForm(FlaskForm):
@@ -44,7 +45,7 @@ def overview() -> str:
     from cycle_analytics.database.retriever import get_rides_in_timeframe, load_goals
 
     if request.form.get("change_state_goal_id") is not None:
-        id_to_update = int(request.form.get("change_state_goal_id"))
+        id_to_update = int(unwrap(request.form.get("change_state_goal_id")))
         status_value = request.form.get("change_state_value")
         modify_succ = modify_goal_status(
             id_to_update,

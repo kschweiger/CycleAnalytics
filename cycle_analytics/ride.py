@@ -31,7 +31,7 @@ from cycle_analytics.plotting import (
     get_track_elevation_plot,
     get_track_elevation_slope_plot,
 )
-from cycle_analytics.utils.base import none_or_round
+from cycle_analytics.utils.base import none_or_round, unwrap
 from cycle_analytics.utils.forms import get_track_from_form
 from cycle_analytics.utils.track import init_db_track_and_enhance
 
@@ -283,7 +283,7 @@ def add_note(id_ride: int) -> str | Response:
             orm_db.session.commit()
             flash("Note updated", "alert-success")
         else:
-            ride.notes.append(RideNote(text=new_note_value))
+            ride.notes.append(RideNote(text=unwrap(new_note_value)))
             orm_db.session.commit()
             flash("Note added", "alert-success")
         return redirect(url_for("ride.display", id_ride=id_ride))

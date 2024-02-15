@@ -47,8 +47,8 @@ def simple_coordinate_plot(
     data: pd.DataFrame, x: str, y: str, color: str = "white"
 ) -> go.Figure:
     fig = px.line(data[data.moving], x=x, y=y)
-    fig["data"][0]["line"]["color"] = color
-    fig["data"][0]["line"]["width"] = 5
+    fig["data"][0]["line"]["color"] = color  # type: ignore
+    fig["data"][0]["line"]["width"] = 5  # type: ignore
 
     fig.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
