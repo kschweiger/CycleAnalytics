@@ -1,7 +1,10 @@
+from typing import TypeVar
 from datetime import date, timedelta
 from typing import Literal
 
 import pandas as pd
+
+T = TypeVar("T")
 
 
 def none_or_round(value: None | float, digits: int = 2) -> None | float:
@@ -114,3 +117,9 @@ def find_closest_elem_to_poi(
         raise RuntimeError("Something want wrong here...")
 
     return idx_min
+
+
+def unwrap(data: None | T) -> T:
+    if data is None:
+        raise RuntimeError("Data is None")
+    return data

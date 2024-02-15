@@ -2,7 +2,6 @@ import json
 import logging
 from collections import defaultdict
 
-# from data_organizer.db.exceptions import QueryReturnedNoData
 from flask import (
     Blueprint,
     current_app,
@@ -47,6 +46,7 @@ from cycle_analytics.rest_models import (
     SegmentsInBoundsResponse,
 )
 from cycle_analytics.utils import find_closest_elem_to_poi
+from cycle_analytics.utils.base import unwrap
 from cycle_analytics.utils.forms import flash_form_error
 
 logger = logging.getLogger(__name__)
@@ -173,7 +173,7 @@ def add_segment() -> str | Response:
         if bounds is None:
             flash("Cound not determine bounds", "alert-danger")
         else:
-            name = map_segment_form.segment_name.data
+            name = unwrap(map_segment_form.segment_name.data)
             description = None
             if (
                 map_segment_form.segment_description.data != ""
@@ -182,11 +182,15 @@ def add_segment() -> str | Response:
                 description = map_segment_form.segment_description.data
             segment = DatabaseSegment(
                 name=name,
-                segment_type=orm_db.session.get(
-                    SegmentType, int(map_segment_form.segment_type.data)
+                segment_type=unwrap(
+                    orm_db.session.get(
+                        SegmentType, int(map_segment_form.segment_type.data)
+                    )
                 ),
-                difficulty=orm_db.session.get(
-                    Difficulty, int(map_segment_form.segment_difficulty.data)
+                difficulty=unwrap(
+                    orm_db.session.get(
+                        Difficulty, int(map_segment_form.segment_difficulty.data)
+                    )
                 ),
                 description=description,
                 distance=track_overview.total_distance,
@@ -194,10 +198,10 @@ def add_segment() -> str | Response:
                 max_elevation=track_overview.max_elevation,
                 uphill_elevation=track_overview.uphill_elevation,
                 downhill_elevation=track_overview.downhill_elevation,
-                bounds_min_lat=bounds.min_latitude,
-                bounds_max_lat=bounds.max_latitude,
-                bounds_min_lng=bounds.min_longitude,
-                bounds_max_lng=bounds.max_longitude,
+                bounds_min_lat=unwrap(bounds.min_latitude),
+                bounds_max_lat=unwrap(bounds.max_latitude),
+                bounds_min_lng=unwrap(bounds.min_longitude),
+                bounds_max_lng=unwrap(bounds.max_longitude),
                 gpx=track_for_segment.get_xml().encode(),
             )
 
@@ -361,8 +365,11 @@ def merge_route_segments(
 
 @bp.route("/segments-in-bounds", methods=["POST"])
 def get_segments_in_bounds() -> tuple[dict, int] | str:
+    data = request.json
+    if data is None:
+        return {"error": "No data passed"}, 400
     try:
-        received_request = SegmentsInBoundsRequest(**request.json)
+        received_request = SegmentsInBoundsRequest(**data)  # type: ignore
     except ValidationError:
         return {
             "error": "Pass ne_latitude, ne_longitude, sw_latitude, and sw_longitude"
