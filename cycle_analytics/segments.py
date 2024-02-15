@@ -333,7 +333,7 @@ def calcualte_route() -> dict | tuple[dict, int]:
 
 
 def merge_route_segments(
-    segments: list[list[tuple[float, float]]]
+    segments: list[list[tuple[float, float]]],
 ) -> list[tuple[float, float]]:
     """
     Merge segements from multipel qaypoint poirs into a single segment. The goal
