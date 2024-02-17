@@ -217,13 +217,12 @@ def get_thumbnails(track: Track) -> list[str]:
 
 @log_timing
 def _load_last_ride(ride_type: None | str) -> None | Ride:
-    ride_type_id = convert_to_indices([ride_type], TerrainType)[0]
-    last_id = (
-        db.session.query(Ride.id)
-        .filter(Ride.id_terrain_type == ride_type_id)
-        .order_by(desc(Ride.ride_date))
-        .first()
-    )
+    query = db.session.query(Ride.id)
+    if ride_type is not None:
+        ride_type_id = convert_to_indices([ride_type], TerrainType)[0]
+        query = query.filter(Ride.id_terrain_type == ride_type_id)
+
+    last_id = query.order_by(desc(Ride.ride_date)).first()
     if last_id:
         return db.get_or_404(Ride, next(iter(last_id)))
 
