@@ -61,7 +61,16 @@ line-length = 88
 [tool.ruff.lint]
 select = ["E", "F", "I", "PD", "PT", "NPY", "N", "W", "RET", "ANN", "RUF"]
 unfixable = ["F841", "RUF005", "RUF015"]
-ignore = ["ANN101", "RUF009", "E731", "RET505", "ANN002", "ANN003", "RUF005"]
+ignore = [
+    "ANN101",
+    "RUF009",
+    "E731",
+    "RET505",
+    "ANN002",
+    "ANN003",
+    "RUF005",
+    "RUF007",
+]
 ignore-init-module-imports = true
 
 

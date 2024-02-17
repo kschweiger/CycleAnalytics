@@ -162,8 +162,8 @@ def summarize_rides_in_month(
             "Ride time",
             curr_month_ride_time,
             compare_values(
-                curr_month_ride_time - last_month_ride_time,
-                pd.Timedelta(minutes=15),
+                curr_month_ride_time - last_month_ride_time,  # type: ignore
+                pd.Timedelta(minutes=15),  # type: ignore
             ),
         ),
         (
@@ -226,7 +226,7 @@ def track_to_db_overview(
         data["id_track"] = id_track
     else:
         data["id_track"] = None
-    return TrackOverview(**data)
+    return TrackOverview(**data)  # type: ignore
 
 
 def initialize_overviews(

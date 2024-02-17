@@ -20,6 +20,7 @@ from cycle_analytics.database.retriever import (
 from cycle_analytics.forms import YearAndRideTypeForm
 from cycle_analytics.model.goal import YearlyGoal, format_goals_concise
 from cycle_analytics.utils import get_month_mapping
+from cycle_analytics.utils.base import unwrap
 
 logger = logging.getLogger(__name__)
 
@@ -73,8 +74,8 @@ def render_landing_page() -> str:
     goal_month_selected = month_mapping[date_today.month]
 
     if request.method == "POST" and request.form.get("form_goals_year") is not None:
-        goal_year_selected = request.form.get("form_goals_year")
-        goal_month_selected = request.form.get("form_goals_month")
+        goal_year_selected = unwrap(request.form.get("form_goals_year"))
+        goal_month_selected = unwrap(request.form.get("form_goals_month"))
 
     inv_month_mapping = {value: key for key, value in month_mapping.items()}
     goal_months = [month_mapping[i] for i in range(1, 13)]

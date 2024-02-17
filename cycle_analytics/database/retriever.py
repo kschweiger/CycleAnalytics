@@ -329,7 +329,7 @@ def load_goals(year: int | str, load_active: bool, load_inactive: bool) -> list[
 @cache.memoize(timeout=86400)
 def get_rides_for_bike(id_bike: int) -> list[Ride]:
     return list(
-        db.session.execute(select(Ride).filter_by(Ride.id_bike == id_bike)).scalars()
+        db.session.execute(select(Ride).filter_by(Ride.id_bike == id_bike)).scalars()  # type: ignore
     )
 
 
