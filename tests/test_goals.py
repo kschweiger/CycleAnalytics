@@ -1,103 +1,32 @@
 from datetime import date
+from typing import Type
 
 import pandas as pd
 import pytest
-from flask import Flask
-from flask.testing import FlaskClient
 
-from cycle_analytics.database.model import DatabaseGoal
-from cycle_analytics.database.model import db as orm_db
-from cycle_analytics.model.goal import MonthlyGoal, YearlyGoal, initialize_goals
-
-
-def test_initialize_goals() -> None:
-    columns = [
-        "id",
-        "year",
-        "month",
-        "name",
-        "goal_type",
-        "threshold",
-        "is_upper_bound",
-        "description",
-        "has_been_reached",
-        "constraints",
-        "active",
-    ]
-
-    test_data = [
-        [
-            1,
-            2022,
-            None,
-            "YearlyGoal",
-            "count",
-            5,
-            True,
-            "Description YearlyGoal",
-            False,
-            None,
-            True,
-        ],
-        [
-            1,
-            2022,
-            0,
-            "MonthlyGoal_all",
-            "total_distance",
-            100,
-            True,
-            "Description MonthlyGoal_all",
-            False,
-            None,
-            True,
-        ],
-        [
-            1,
-            2022,
-            1,
-            "MonthlyGoal_jan",
-            "avg_distance",
-            20,
-            True,
-            "Description MonthlyGoal_jan",
-            False,
-            None,
-            True,
-        ],
-    ]
-
-    test_goals = initialize_goals(columns, test_data)
-
-    assert len(test_goals) == 14
+from cycle_analytics.model.goal import (
+    AggregationType,
+    ConciseGoal,
+    Goal,
+    GoalEvaluation,
+    ManualGoal,
+    RideGoal,
+    TemporalType,
+    agg_ride_goal,
+    format_goals_concise,
+)
 
 
 @pytest.mark.parametrize(
-    ("goal_type", "exp_value"),
+    ("agg_type", "exp_value"),
     [
-        ("count", 3),
-        ("total_distance", 41),
-        ("avg_distance", 41 / 3),
-        ("max_distance", 17),
+        (AggregationType.COUNT, 3),
+        (AggregationType.TOTAL_DISTANCE, 41),
+        (AggregationType.AVG_DISTANCE, 41 / 3),
+        (AggregationType.MAX_DISTANCE, 17),
     ],
 )
-def test_goal_compute_value(goal_type: str, exp_value: int | float) -> None:
-    kwargs = {
-        "id": 1,
-        "year": 2022,
-        "month": None,
-        "name": "YearlyGoal",
-        "goal_type": goal_type,
-        "threshold": 10,
-        "is_upper_bound": True,
-        "description": "Description YearlyGoal",
-        "has_been_reached": False,
-        "constraints": None,
-        "active": True,
-    }
-
-    goal = YearlyGoal(**kwargs)
-
+def test_agg_ride_goal(agg_type: AggregationType, exp_value: int | float) -> None:
     data = pd.DataFrame(
         {
             "date": [
@@ -109,132 +38,161 @@ def test_goal_compute_value(goal_type: str, exp_value: int | float) -> None:
         }
     )
 
-    assert goal._compute_value(data) == exp_value
+    assert agg_ride_goal(data, agg_type) == exp_value
 
 
 @pytest.mark.parametrize(
-    ("is_upper_bound", "threshold", "exp_result"),
-    [(True, 2, True), (True, 4, False), (False, 4, True)],
-)
-def test_yearly_goal(is_upper_bound: bool, threshold: float, exp_result: bool) -> None:
-    kwargs = {
-        "id": 1,
-        "year": 2022,
-        "month": None,
-        "name": "YearlyGoal",
-        "goal_type": "count",
-        "threshold": threshold,
-        "is_upper_bound": is_upper_bound,
-        "description": "Description YearlyGoal",
-        "has_been_reached": False,
-        "constraints": None,
-        "active": True,
-    }
-    goal = YearlyGoal(**kwargs)
-    data = pd.DataFrame(
-        {
-            "date": [
-                date(2021, 1, 1),
-                date(2022, 1, 1),
-                date(2022, 2, 2),
-                date(2022, 3, 3),
-            ],
-            "distance": [7, 11, 13, 17],
-        }
-    )
-
-    assert goal.has_been_reached(data) == exp_result
-
-
-def test_monthly_goal() -> None:
-    kwargs = {
-        "id": 1,
-        "year": 2022,
-        "month": 2,
-        "name": "YearlyGoal",
-        "goal_type": "count",
-        "threshold": 3,
-        "is_upper_bound": True,
-        "description": "Description YearlyGoal",
-        "has_been_reached": False,
-        "constraints": None,
-        "active": True,
-    }
-    goal = MonthlyGoal(**kwargs)
-    data = pd.DataFrame(
-        {
-            "date": [
-                date(2022, 1, 1),
-                date(2022, 1, 2),
-                date(2022, 1, 3),
-                date(2022, 1, 4),
-                date(2022, 2, 1),
-                date(2022, 2, 2),
-                date(2022, 3, 2),
-                date(2022, 3, 3),
-                date(2022, 3, 5),
-                date(2022, 3, 6),
-            ],
-            "distance": [7, 11, 13, 17, 19, 23, 29, 31, 37, 41],
-        }
-    )
-
-    assert not goal.has_been_reached(data)
-
-
-@pytest.mark.parametrize(
-    ("goal_type", "theshold", "upper_bound", "exp_check", "exp_value", "exp_progress"),
+    ("agg_type", "threshold", "text"),
     [
-        ("count", 3, True, True, 5, 5 / 3),
-        ("count", 6, True, False, 5, 5 / 6),
-        ("count", 3, False, False, 5, -2),
-        ("count", 7, False, True, 5, 2),
-        ("total_distance", 100, True, False, 67, 0.67),
-        ("total_distance", 50, True, True, 67, 67 / 50),
-        ("avg_distance", 15, True, False, (67 / 5), (67 / 5) / 15),
-        ("avg_distance", 10, True, True, (67 / 5), (67 / 5) / 10),
+        (AggregationType.COUNT, 5, "5 occurances"),
+        (AggregationType.TOTAL_DISTANCE, 1000, "1000 m"),
+        (AggregationType.TOTAL_DISTANCE, 10000, "10.0 km"),
+        (AggregationType.MAX_DISTANCE, 5, "5 km"),
     ],
 )
-def test_evaluate(
-    goal_type: str,
-    theshold: float,
-    upper_bound: bool,
-    exp_check: bool,
-    exp_value: float,
-    exp_progress: float,
+def test_agg_get_formatted_condition(
+    agg_type: AggregationType, threshold: float, text: str
 ) -> None:
-    kwargs = {
+    assert agg_type.get_formatted_condition(threshold) == text
+
+
+@pytest.mark.parametrize("goal_type", [RideGoal, ManualGoal])
+@pytest.mark.parametrize(
+    ("year", "month", "exp_temporal_type"), [(2022, None, TemporalType.YEARLY)]
+)
+def test_temporal_type(
+    goal_type: Type[Goal], year: int, month: None | int, exp_temporal_type: TemporalType
+) -> None:
+    init_args = {
         "id": 1,
-        "year": 2022,
-        "month": None,
-        "name": "YearlyGoal",
-        "goal_type": goal_type,
-        "threshold": theshold,
-        "is_upper_bound": upper_bound,
+        "name": "SomeName",
+        "agg_type": AggregationType.COUNT,
+        "threshold": 10,
+        "is_upper_bound": True,
         "description": "Description YearlyGoal",
-        "has_been_reached": False,
+        "reached": False,
         "constraints": None,
         "active": True,
+        "value": None,
     }
-    goal = YearlyGoal(**kwargs)
+
+    goal = goal_type(year=year, month=month, **init_args)
+
+    assert goal.temporal_type == exp_temporal_type
+
+
+@pytest.mark.parametrize(
+    ("year", "month", "exp_eval", "temp_type"),
+    [
+        (2022, 1, GoalEvaluation(False, 3, 3 / 5), TemporalType.MONTHLY),
+        (2022, 5, GoalEvaluation(False, 0, 0), TemporalType.MONTHLY),
+        (2021, 12, GoalEvaluation(False, 1, 1 / 5), TemporalType.MONTHLY),
+        (2022, None, GoalEvaluation(True, 6, 6 / 5), TemporalType.YEARLY),
+    ],
+)
+def test_ride_goal(
+    year: int, month: None | int, exp_eval: GoalEvaluation, temp_type: TemporalType
+) -> None:
+    init_args = {
+        "id": 1,
+        "name": "SomeName",
+        "agg_type": AggregationType.COUNT,
+        "threshold": 5,
+        "is_upper_bound": True,
+        "description": "Description YearlyGoal",
+        "reached": False,
+        "constraints": None,
+        "active": True,
+        "value": None,
+    }
+
     data = pd.DataFrame(
         {
             "date": [
                 date(2022, 1, 1),
                 date(2022, 1, 2),
                 date(2022, 1, 3),
-                date(2022, 1, 4),
-                date(2022, 2, 1),
+                date(2022, 2, 3),
+                date(2022, 2, 4),
+                date(2022, 2, 6),
+                date(2021, 12, 6),
             ],
-            "distance": [7, 11, 13, 17, 19],
+            "distance": [11, 13, 17, 22, 10, 5, 1],
         }
     )
 
-    check, current_value, progress = goal.evaluate(data)
+    goal = RideGoal(**init_args, year=year, month=month)
 
-    assert check == exp_check
-    assert current_value == exp_value
-    assert progress == exp_progress
+    assert goal.temporal_type == temp_type
+
+    assert goal.evaluate(data) == exp_eval
+
+
+@pytest.mark.parametrize(
+    ("month", "temp_type"), [(None, TemporalType.YEARLY), (1, TemporalType.MONTHLY)]
+)
+@pytest.mark.parametrize(
+    ("year", "value", "exp_eval"),
+    [
+        (2022, None, GoalEvaluation(False, 0, 0)),
+        (2022, 2, GoalEvaluation(False, 2, 2 / 5)),
+    ],
+)
+def test_manual_goal(
+    year: int,
+    month: None | int,
+    value: None | float,
+    exp_eval: GoalEvaluation,
+    temp_type: TemporalType,
+) -> None:
+    init_args = {
+        "id": 1,
+        "name": "SomeName",
+        "agg_type": AggregationType.COUNT,
+        "threshold": 5,
+        "is_upper_bound": True,
+        "description": "Description YearlyGoal",
+        "reached": False,
+        "constraints": None,
+        "active": True,
+    }
+
+    goal = ManualGoal(**init_args, year=year, month=month, value=value)
+
+    assert goal.temporal_type == temp_type
+
+    assert goal.evaluate() == exp_eval
+
+
+@pytest.mark.parametrize(("goal_type", "value"), [(ManualGoal, 2), (RideGoal, None)])
+@pytest.mark.parametrize("month", [None, 1])
+@pytest.mark.parametrize("reached", [True, False])
+def test_format_goals_concise(
+    goal_type: Type[Goal], value: None | int, month: None | int, reached: bool
+) -> None:
+    init_args = {
+        "year": 2024,
+        "month": month,
+        "id": 1,
+        "name": "SomeName",
+        "agg_type": AggregationType.COUNT,
+        "threshold": 5,
+        "is_upper_bound": True,
+        "description": "Description",
+        "reached": reached,
+        "constraints": None,
+        "active": True,
+        "value": value,
+    }
+
+    goal = goal_type(**init_args)
+
+    res = format_goals_concise([goal])[0]
+
+    assert isinstance(res, ConciseGoal)
+
+    assert res.name == init_args["name"]
+    assert res.reached == reached
 
 
 @pytest.mark.parametrize(
@@ -253,15 +211,16 @@ def test_constraints(constraints: dict[str, list[str]], exp_len: int) -> None:
         "year": 2022,
         "month": None,
         "name": "YearlyGoal",
-        "goal_type": "count",
+        "agg_type": AggregationType.COUNT,
         "threshold": 5,
         "is_upper_bound": True,
         "description": "Description YearlyGoal",
-        "has_been_reached": False,
+        "reached": False,
         "constraints": constraints,
         "active": True,
+        "value": None,
     }
-    goal = YearlyGoal(**kwargs)
+    goal = RideGoal(**kwargs)
 
     data = pd.DataFrame(
         {
@@ -279,21 +238,3 @@ def test_constraints(constraints: dict[str, list[str]], exp_len: int) -> None:
     )
 
     assert len(goal._apply_constraints(data)) == exp_len
-
-
-def test_goal_change_state(app: Flask, client: FlaskClient) -> None:
-    with app.app_context():
-        test_goal = orm_db.get_or_404(DatabaseGoal, 1)
-        assert test_goal.active
-
-    response = client.post(
-        "/goals/", data=dict(change_state_value="Deactivate", change_state_goal_id=1)
-    )
-
-    assert response.status_code == 200
-
-    with app.app_context():
-        test_goal = orm_db.get_or_404(DatabaseGoal, 1)
-        assert not test_goal.active
-        test_goal.active = True
-        orm_db.session.commit()
