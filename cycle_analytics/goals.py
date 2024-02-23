@@ -7,6 +7,7 @@ from wtforms.validators import DataRequired
 
 from cycle_analytics.database.converter import convert_rides_to_df
 from cycle_analytics.model.base import GoalDisplayData, GoalInfoData
+from cycle_analytics.model.goal import ManualGoal, RideGoal
 from cycle_analytics.utils import get_month_mapping
 from cycle_analytics.utils.base import unwrap
 
@@ -101,18 +102,24 @@ def overview() -> str:
     month_goal_displays = []
     # TODO: Add update of has_been_reached column
     for goal in year_goals + month_goals:
-        status, current_value, progress = goal.evaluate(data)
+        if isinstance(goal, RideGoal):
+            evaluation = goal.evaluate(data)
+        elif isinstance(goal, ManualGoal):
+            evaluation = goal.evaluate()
+        # status, current_value, progress = goal.evaluate(data)
         goal_data = GoalDisplayData(
             goal_id=str(goal.id),
             info=GoalInfoData(
                 name=goal.name,
-                goal=goal.type.get_formatted_condition(goal.threshold),
+                goal=goal.aggregation_type.get_formatted_condition(goal.threshold),
                 threshold=goal.threshold,
-                value=round(current_value, 2)
-                if isinstance(current_value, float)
-                else current_value,
-                progress=round(progress * 100) if goal.is_upper_bound else progress,
-                reached=int(status),
+                value=round(evaluation.current, 2)
+                if isinstance(evaluation.current, float)
+                else evaluation.current,
+                progress=round(evaluation.progress * 100)
+                if goal.is_upper_bound
+                else evaluation.progress,
+                reached=int(evaluation.reached),
                 active=goal.active,
                 description=goal.description,
             ),

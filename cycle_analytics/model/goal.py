@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from datetime import date
 from enum import Enum
 from typing import final
-import numpy as np
 
+import numpy as np
 import pandas as pd
 
 
@@ -33,6 +33,19 @@ class AggregationType(str, Enum):
     TOTAL_DISTANCE = "total_distance"
     AVG_DISTANCE = "avg_distance"
     MAX_DISTANCE = "max_distance"
+
+    @property
+    def description(self) -> str:
+        if self == AggregationType.COUNT:
+            return "Count rides"
+        elif self == AggregationType.TOTAL_DISTANCE:
+            return "Total distance in time span"
+        elif self == AggregationType.AVG_DISTANCE:
+            return "Average monthly distance"
+        elif self == AggregationType.MAX_DISTANCE:
+            return "Maximum ride distance"
+        else:
+            raise NotImplementedError
 
     def get_formatted_condition(self, threshold: float) -> str:
         if self == AggregationType.COUNT:
@@ -70,7 +83,7 @@ def agg_manual_goal(value: float, agg: AggregationType) -> float:
 
 class GoalType(str, Enum):
     MANUAL = "manual"
-    RIDE = "ride_goal"
+    RIDE = "ride"
 
 
 def is_acceptable_aggregation(goal_type: GoalType, agg: AggregationType) -> bool:
@@ -93,7 +106,7 @@ class Goal(ABC):
         name: str,
         id: int,
         description: str | None,
-        agg_type: AggregationType,
+        aggregation_type: AggregationType,
         threshold: float,
         is_upper_bound: bool,
         year: int,
@@ -106,7 +119,7 @@ class Goal(ABC):
         self.name = name
         self.id = id
         self.description = description
-        self.aggregation_type = agg_type
+        self.aggregation_type = aggregation_type
         self.threshold = threshold
         self.is_upper_bound = is_upper_bound
         self.reached = reached

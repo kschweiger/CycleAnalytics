@@ -173,7 +173,7 @@ def add_segment() -> str | Response:
         if bounds is None:
             flash("Cound not determine bounds", "alert-danger")
         else:
-            name = unwrap(map_segment_form.segment_name.data)
+            name: str = unwrap(map_segment_form.segment_name.data)
             description = None
             if (
                 map_segment_form.segment_description.data != ""

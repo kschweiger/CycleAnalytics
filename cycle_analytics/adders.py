@@ -38,7 +38,11 @@ from cycle_analytics.database.retriever import (
     get_unique_model_objects_in_db,
 )
 from cycle_analytics.model.base import MapData, MapPathData
-from cycle_analytics.model.goal import GoalType
+from cycle_analytics.model.goal import (
+    AggregationType,
+    GoalType,
+    is_acceptable_aggregation,
+)
 from cycle_analytics.utils import get_month_mapping
 from cycle_analytics.utils.base import unwrap
 from cycle_analytics.utils.forms import flash_form_error, get_track_from_form
@@ -99,7 +103,7 @@ class EventForm(FlaskForm):
     )
 
 
-class GoalForm(FlaskForm):
+class GoalBaseForm(FlaskForm):
     year = IntegerField(
         "Year",
         validators=[DataRequired(), NumberRange(2022, 2099)],
@@ -114,11 +118,6 @@ class GoalForm(FlaskForm):
     name = StringField(
         "Name", validators=[DataRequired()], description="Short name for the goal"
     )
-    goal_type = SelectField(
-        "Type",
-        validators=[DataRequired()],
-        choices=[(g.value, g.description) for g in GoalType],
-    )
     threshold = DecimalField("Threshold", validators=[DataRequired()])
     boundary = SelectField(
         "Boundary", validators=[DataRequired()], choices=[(1, "Upper"), (0, "Lower")]
@@ -128,18 +127,41 @@ class GoalForm(FlaskForm):
         default=None,
         description="Optional longer description of the goal",
     )
+
+
+class RideGoalForm(GoalBaseForm):
+    aggregation_type = SelectField(
+        "Type",
+        validators=[DataRequired()],
+        choices=[
+            (g.value, g.description)
+            for g in AggregationType
+            if is_acceptable_aggregation(GoalType.RIDE, g)
+        ],
+    )
     ride_types = SelectMultipleField(
         "Ride Types",
         default=None,
         description="Select zero, one, or more ride types for the goal "
         "(hold ctrl or cmd to select)",
     )
-
     bike = SelectMultipleField(
         "Bike Name",
         default=None,
         description="Select zero, one, or more bikes for the goal "
         "(hold ctrl or cmd to select)",
+    )
+
+
+class ManualGoalForm(GoalBaseForm):
+    aggregation_type = SelectField(
+        "Type",
+        validators=[DataRequired()],
+        choices=[
+            (g.value, g.description)
+            for g in AggregationType
+            if is_acceptable_aggregation(GoalType.MANUAL, g)
+        ],
     )
 
 
@@ -342,19 +364,31 @@ def add_event() -> str | Response:
 
 @bp.route("/goal", methods=("GET", "POST"))
 def add_goal() -> str | Response:
-    form = GoalForm()
+    return render_template("adders/goal_selection.html", active_page="add_goal")
 
-    form.ride_types.choices = [
-        (tt.text, tt.text) for tt in get_unique_model_objects_in_db(TerrainType)
-    ]
-    form.bike.choices = [(b.name, b.name) for b in get_unique_model_objects_in_db(Bike)]
+
+def add_goal_by_type(type: GoalType) -> RideGoalForm | ManualGoalForm:
+    if type == GoalType.RIDE:
+        form = RideGoalForm()
+        form.ride_types.choices = [
+            (tt.text, tt.text) for tt in get_unique_model_objects_in_db(TerrainType)
+        ]
+        form.bike.choices = [
+            (b.name, b.name) for b in get_unique_model_objects_in_db(Bike)
+        ]
+
+    elif type == GoalType.MANUAL:
+        form = ManualGoalForm()
+    else:
+        raise NotImplementedError
 
     if form.validate_on_submit():
         constraints = {}
-        if form.bike.data:
-            constraints["bike"] = form.bike.data
-        if form.ride_types.data:
-            constraints["ride_type"] = form.ride_types.data
+        if isinstance(form, (RideGoalForm)):
+            if form.bike.data:
+                constraints["bike"] = form.bike.data
+            if form.ride_types.data:
+                constraints["ride_type"] = form.ride_types.data
         if not constraints:
             constraints = None
 
@@ -362,7 +396,8 @@ def add_goal() -> str | Response:
             year=int(unwrap(form.year.data)),
             month=None if int(form.month.data) == -1 else int(form.month.data),
             name=unwrap(form.name.data),
-            goal_type=form.goal_type.data,
+            goal_type=type,
+            aggregation_type=form.aggregation_type.data,
             threshold=float(unwrap(form.threshold.data)),
             is_upper_bound=bool(int(form.boundary.data)),
             constraints=constraints,
@@ -375,9 +410,40 @@ def add_goal() -> str | Response:
             flash("Error: %s" % e, "alert-danger")
         else:
             flash("Goal Added", "alert-success")
-    elif request.method == "POST":
+
+    return form
+
+
+@bp.route("/goal/ride", methods=("GET", "POST"))
+def add_goal_ride() -> str | Response:
+    form = add_goal_by_type(GoalType.RIDE)
+
+    if request.method == "POST":
         flash_form_error(form)
-    return render_template("adders/goal.html", active_page="add_goal", form=form)
+
+    return render_template(
+        "adders/goal.html",
+        active_page="add_goal",
+        goal_type=GoalType.RIDE,
+        title="Add a new ride-dependent goal",
+        form=form,
+    )
+
+
+@bp.route("/goal/manual", methods=("GET", "POST"))
+def add_goal_manual() -> str | Response:
+    form = add_goal_by_type(GoalType.MANUAL)
+
+    if request.method == "POST":
+        flash_form_error(form)
+
+    return render_template(
+        "adders/goal.html",
+        active_page="add_goal",
+        goal_type=GoalType.MANUAL,
+        title="Add a new manual goal",
+        form=form,
+    )
 
 
 @bp.route("/bike", methods=("GET", "POST"))

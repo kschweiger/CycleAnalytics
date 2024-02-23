@@ -18,7 +18,7 @@ from cycle_analytics.model.goal import (
 
 
 @pytest.mark.parametrize(
-    ("agg_type", "exp_value"),
+    ("aggregation_type", "exp_value"),
     [
         (AggregationType.COUNT, 3),
         (AggregationType.TOTAL_DISTANCE, 41),
@@ -26,7 +26,9 @@ from cycle_analytics.model.goal import (
         (AggregationType.MAX_DISTANCE, 17),
     ],
 )
-def test_agg_ride_goal(agg_type: AggregationType, exp_value: int | float) -> None:
+def test_agg_ride_goal(
+    aggregation_type: AggregationType, exp_value: int | float
+) -> None:
     data = pd.DataFrame(
         {
             "date": [
@@ -38,11 +40,11 @@ def test_agg_ride_goal(agg_type: AggregationType, exp_value: int | float) -> Non
         }
     )
 
-    assert agg_ride_goal(data, agg_type) == exp_value
+    assert agg_ride_goal(data, aggregation_type) == exp_value
 
 
 @pytest.mark.parametrize(
-    ("agg_type", "threshold", "text"),
+    ("aggregation_type", "threshold", "text"),
     [
         (AggregationType.COUNT, 5, "5 occurances"),
         (AggregationType.TOTAL_DISTANCE, 1000, "1000 m"),
@@ -51,9 +53,9 @@ def test_agg_ride_goal(agg_type: AggregationType, exp_value: int | float) -> Non
     ],
 )
 def test_agg_get_formatted_condition(
-    agg_type: AggregationType, threshold: float, text: str
+    aggregation_type: AggregationType, threshold: float, text: str
 ) -> None:
-    assert agg_type.get_formatted_condition(threshold) == text
+    assert aggregation_type.get_formatted_condition(threshold) == text
 
 
 @pytest.mark.parametrize("goal_type", [RideGoal, ManualGoal])
@@ -66,7 +68,7 @@ def test_temporal_type(
     init_args = {
         "id": 1,
         "name": "SomeName",
-        "agg_type": AggregationType.COUNT,
+        "aggregation_type": AggregationType.COUNT,
         "threshold": 10,
         "is_upper_bound": True,
         "description": "Description YearlyGoal",
@@ -96,7 +98,7 @@ def test_ride_goal(
     init_args = {
         "id": 1,
         "name": "SomeName",
-        "agg_type": AggregationType.COUNT,
+        "aggregation_type": AggregationType.COUNT,
         "threshold": 5,
         "is_upper_bound": True,
         "description": "Description YearlyGoal",
@@ -148,7 +150,7 @@ def test_manual_goal(
     init_args = {
         "id": 1,
         "name": "SomeName",
-        "agg_type": AggregationType.COUNT,
+        "aggregation_type": AggregationType.COUNT,
         "threshold": 5,
         "is_upper_bound": True,
         "description": "Description YearlyGoal",
@@ -175,7 +177,7 @@ def test_format_goals_concise(
         "month": month,
         "id": 1,
         "name": "SomeName",
-        "agg_type": AggregationType.COUNT,
+        "aggregation_type": AggregationType.COUNT,
         "threshold": 5,
         "is_upper_bound": True,
         "description": "Description",
@@ -211,7 +213,7 @@ def test_constraints(constraints: dict[str, list[str]], exp_len: int) -> None:
         "year": 2022,
         "month": None,
         "name": "YearlyGoal",
-        "agg_type": AggregationType.COUNT,
+        "aggregation_type": AggregationType.COUNT,
         "threshold": 5,
         "is_upper_bound": True,
         "description": "Description YearlyGoal",

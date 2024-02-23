@@ -3,7 +3,7 @@
 {% block content %}
 
 <div class="m-1 p-1 border rounded-3">
-    <h4> Add a new goal</h4>
+    <h4>{{ title }}</h4>
     <form method="POST" enctype="multipart/form-data">
         {{ form.csrf_token }}
         <div class="row  mt-2">
@@ -22,8 +22,8 @@
         </div>
         <div class="row  mt-2">
             <div class="col">
-                {{form.goal_type.label(class_="form-label") }}
-                {{form.goal_type(class_="form-select")}}
+                {{form.aggregation_type.label(class_="form-label") }}
+                {{form.aggregation_type(class_="form-select")}}
             </div>
             <div class="col">
                 {{form.threshold.label(class_="form-label") }}
@@ -34,6 +34,7 @@
                 {{form.boundary(class_="form-select")}}
             </div>
         </div>
+        {% if goal_type == "ride" %}
         <div class="row  mt-2">
             <div class="col">
                 {{form.bike.label(class_="form-label") }}
@@ -58,6 +59,7 @@
                 {{form.ride_types(class_="form-select", size_="3")}}
             </div>
         </div>
+        {% endif %}
         <div class="col"></div>
         <div class="row mt-2">
             <div class="col">

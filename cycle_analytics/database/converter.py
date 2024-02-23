@@ -1,12 +1,13 @@
 import logging
+from copy import deepcopy
 from dataclasses import asdict
-from typing import Literal
+from typing import Literal, Type
 
 import pandas as pd
 from geo_track_analyzer import Track
 from geo_track_analyzer.model import SegmentOverview
 
-from cycle_analytics.model.goal import Goal
+from cycle_analytics.model.goal import AggregationType, Goal
 from cycle_analytics.utils.base import compare_values
 
 from .model import (
@@ -175,21 +176,33 @@ def summarize_rides_in_month(
 
 
 def convert_database_goals(data: list[DatabaseGoal]) -> list[Goal]:
-    from cycle_analytics.model.goal import MonthlyGoal, YearlyGoal
+    from cycle_analytics.model.goal import GoalType, ManualGoal, RideGoal
+
+    def generate_goals(goal_type: Type[Goal], data: dict) -> list[Goal]:
+        goals = []
+        if data["month"] == 0:
+            for i in range(1, 13):
+                _data = deepcopy(data)
+                _data["month"] = i
+                goals.append(goal_type(**_data))
+        else:
+            goals.append(goal_type(**data))
+
+        return goals
 
     goals: list[Goal] = []
 
     for db_goal in data:
-        if db_goal.month is None:
-            goals.append(YearlyGoal(**asdict(db_goal)))
+        goal_dict = asdict(db_goal)
+        goal_dict["aggregation_type"] = AggregationType(goal_dict["aggregation_type"])
+        _type = GoalType(goal_dict.pop("goal_type"))
+        if _type == GoalType.RIDE:
+            goals.extend(generate_goals(RideGoal, goal_dict))
+
+        elif _type == GoalType.MANUAL:
+            goals.extend(generate_goals(ManualGoal, goal_dict))
         else:
-            if db_goal.month == 0:
-                for i in range(1, 13):
-                    goal_dict = asdict(db_goal)
-                    goal_dict["month"] = i
-                    goals.append(MonthlyGoal(**goal_dict))
-            else:
-                goals.append(MonthlyGoal(**asdict(db_goal)))
+            raise NotImplementedError
 
     return goals
 
