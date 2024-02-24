@@ -89,15 +89,19 @@ def overview() -> str:
         else:
             raise ValueError(f"Value {change} is not supported")
 
-    form = OverviewForm()
-    form.year.choices = [(y, str(y)) for y in get_goal_years_in_database()]
-
-    month_mapping = get_month_mapping()
-
     today = date.today()
 
     load_year = today.year
     load_month = today.month
+
+    form = OverviewForm()
+    goal_years_in_db = get_goal_years_in_database()
+    if today.year not in goal_years_in_db:
+        goal_years_in_db.append(today.year)
+
+    form.year.choices = [(y, str(y)) for y in sorted(goal_years_in_db, reverse=True)]
+
+    month_mapping = get_month_mapping()
 
     load_active = True
     load_inactive = False
