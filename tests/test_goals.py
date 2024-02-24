@@ -48,8 +48,9 @@ def test_agg_ride_goal(
     [
         (AggregationType.COUNT, 5, "5 occurances"),
         (AggregationType.TOTAL_DISTANCE, 1000, "1000 m"),
-        (AggregationType.TOTAL_DISTANCE, 10000, "10.0 km"),
+        (AggregationType.TOTAL_DISTANCE, 10000, "10 km"),
         (AggregationType.MAX_DISTANCE, 5, "5 km"),
+        (AggregationType.MAX_DISTANCE, 5.5, "5.50 km"),
     ],
 )
 def test_agg_get_formatted_condition(
