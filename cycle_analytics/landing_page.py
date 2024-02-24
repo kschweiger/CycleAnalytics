@@ -106,7 +106,6 @@ def render_landing_page() -> str:
     # -----------------------------------------------------------------------------
 
     goals = format_goals_concise(display_goals)
-
     # --------------------- SUMMARY ---------------------
     summary_form = YearAndRideTypeForm()
 

@@ -7,6 +7,8 @@ from typing import final
 import numpy as np
 import pandas as pd
 
+from cycle_analytics.utils.base import format_float
+
 
 @dataclass
 class GoalEvaluation:
@@ -28,6 +30,11 @@ class TemporalType(str, Enum):
     MONTHLY = "Monthly"
 
 
+class GoalType(str, Enum):
+    MANUAL = "manual"
+    RIDE = "ride"
+
+
 class AggregationType(str, Enum):
     COUNT = "count"
     TOTAL_DISTANCE = "total_distance"
@@ -47,16 +54,20 @@ class AggregationType(str, Enum):
         else:
             raise NotImplementedError
 
-    def get_formatted_condition(self, threshold: float) -> str:
+    def get_formatted_condition(
+        self, threshold: float, goal_type: None | GoalType = None
+    ) -> str:
         if self == AggregationType.COUNT:
-            return f"{threshold} occurances"
+            if goal_type == GoalType.RIDE:
+                return f"{format_float(threshold)} rides"
+            return f"{format_float(threshold)} occurances"
         elif self in [AggregationType.TOTAL_DISTANCE, AggregationType.AVG_DISTANCE]:
             if threshold >= 5000:
-                return f"{threshold/1000} km"
+                return f"{format_float(threshold/1000)} km"
             else:
-                return f"{threshold} m"
+                return f"{format_float(threshold)} m"
         elif self == AggregationType.MAX_DISTANCE:
-            return f"{threshold} km"
+            return f"{format_float(threshold)} km"
         else:
             raise NotImplementedError
 
@@ -79,11 +90,6 @@ def agg_manual_goal(value: float, agg: AggregationType) -> float:
         return value
     else:
         raise NotImplementedError("Type %s not yet implemented" % agg)
-
-
-class GoalType(str, Enum):
-    MANUAL = "manual"
-    RIDE = "ride"
 
 
 def is_acceptable_aggregation(goal_type: GoalType, agg: AggregationType) -> bool:
@@ -171,6 +177,11 @@ class Goal(ABC):
     def goal_type_repr(self) -> str:
         ...
 
+    @property
+    @abstractmethod
+    def goal_type(self) -> GoalType:
+        ...
+
     def _apply_constraints(self, data: pd.DataFrame) -> pd.DataFrame:
         if self.constraints is None:
             return data
@@ -246,7 +257,11 @@ class RideGoal(Goal):
 
     @property
     def goal_type_repr(self) -> str:
-        return f"{self.temporal_type}RideGoal"
+        return f"{self.temporal_type.value}RideGoal"
+
+    @property
+    def goal_type(self) -> GoalType:
+        return GoalType.RIDE
 
 
 @final
@@ -278,7 +293,11 @@ class ManualGoal(Goal):
 
     @property
     def goal_type_repr(self) -> str:
-        return f"{self.temporal_type}ManualGoal"
+        return f"{self.temporal_type.value}ManualGoal"
+
+    @property
+    def goal_type(self) -> GoalType:
+        return GoalType.MANUAL
 
 
 def format_goals_concise(goals: list[Goal]) -> list[ConciseGoal]:
@@ -288,7 +307,9 @@ def format_goals_concise(goals: list[Goal]) -> list[ConciseGoal]:
             ConciseGoal(
                 goal.name,
                 goal.goal_type_repr,
-                goal.aggregation_type.get_formatted_condition(goal.threshold),
+                goal.aggregation_type.get_formatted_condition(
+                    goal.threshold, goal.goal_type
+                ),
                 int(goal.reached),
             )
         )

@@ -143,7 +143,9 @@ def overview() -> str:
             goal_id=str(goal.id),
             info=GoalInfoData(
                 name=goal.name,
-                goal=goal.aggregation_type.get_formatted_condition(goal.threshold),
+                goal=goal.aggregation_type.get_formatted_condition(
+                    goal.threshold, goal.goal_type
+                ),
                 threshold=goal.threshold,
                 value=round(evaluation.current, 2)
                 if isinstance(evaluation.current, float)

@@ -42,9 +42,9 @@
             <tbody>
                 {% for goal in goals%}
                 <tr>
-                    <td>{{goal[0]}}</td>
-                    <td>{{goal[1]}}</td>
-                    <td>{{goal[2]}}</td>
+                    <td>{{goal.name}}</td>
+                    <td>{{goal.goal_type_repr}}</td>
+                    <td>{{goal.condition}}</td>
                     <td>
                         <svg id="goal_check_{{loop.index}}" xmlns="http://www.w3.org/2000/svg" width="22" height="22"
                             fill="currentColor" viewBox="0 0 16 16" class="">

@@ -1,6 +1,5 @@
-from typing import TypeVar
 from datetime import date, timedelta
-from typing import Literal
+from typing import Literal, TypeVar
 
 import pandas as pd
 
@@ -123,3 +122,20 @@ def unwrap(data: None | T) -> T:
     if data is None:
         raise RuntimeError("Data is None")
     return data
+
+
+def format_float(num: float) -> str:
+    """Formats a float to a string, removing decimal points if possible.
+
+    :param num: The float to format.
+
+    :return: A string representation of the float, with decimal points removed
+    if possible.
+    """
+
+    # Check if the float can be rounded to an integer without loss of precision.
+    if int(num) == num:
+        return str(int(num))
+    else:
+        # Use f-strings to format the float with two decimal places.
+        return f"{num:.2f}"
