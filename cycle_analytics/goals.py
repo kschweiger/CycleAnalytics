@@ -6,9 +6,6 @@ from flask_wtf import FlaskForm
 from wtforms import RadioField, SelectField
 from wtforms.validators import DataRequired
 
-from cycle_analytics.database.converter import convert_rides_to_df
-from cycle_analytics.database.modifier import modify_manual_goal_value_count
-from cycle_analytics.database.retriever import get_goal_years_in_database
 from cycle_analytics.model.base import GoalDisplayData, GoalInfoData
 from cycle_analytics.model.goal import ManualGoal, RideGoal
 from cycle_analytics.utils import get_month_mapping
@@ -47,10 +44,21 @@ bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 @bp.route("/", methods=("GET", "POST"))
 def overview() -> str:
-    from cycle_analytics.database.modifier import modify_goal_status
-    from cycle_analytics.database.retriever import get_rides_in_timeframe, load_goals
+    from cycle_analytics.database.converter import convert_rides_to_df
+    from cycle_analytics.database.modifier import (
+        modify_goal_status,
+        modify_manual_goal_value_count,
+    )
+    from cycle_analytics.database.retriever import (
+        get_goal_years_in_database,
+        get_rides_in_timeframe,
+        load_goals,
+    )
+
+    validate_overview_form = True
 
     if request.form.get("change_state_goal_id") is not None:
+        validate_overview_form = False
         id_to_update = int(unwrap(request.form.get("change_state_goal_id")))
         status_value = request.form.get("change_state_value")
         modify_succ = modify_goal_status(
@@ -69,6 +77,7 @@ def overview() -> str:
             )
 
     if request.form.get("value_manua_goal_id") is not None:
+        validate_overview_form = False
         id_to_update = int(unwrap(request.form.get("value_manua_goal_id")))
         change: str = unwrap(request.form.get("change_value"))
         if change == "increase":
@@ -92,7 +101,7 @@ def overview() -> str:
 
     load_active = True
     load_inactive = False
-    if form.validate_on_submit():
+    if form.validate_on_submit() and validate_overview_form:
         load_year = form.year.data
         load_month = form.month.data
 
@@ -104,9 +113,9 @@ def overview() -> str:
             load_inactive = True
         else:
             load_inactive = False
-
+    logger.debug(f"load_goals {load_year=}, {load_active=}, {load_inactive=})")
     goals = load_goals(load_year, load_active, load_inactive)
-
+    logger.debug("Loaded %s goals", len(goals))
     form.active.data = load_active if load_active else None
     form.inactive.data = load_inactive if load_inactive else None
 
