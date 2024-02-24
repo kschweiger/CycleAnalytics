@@ -274,6 +274,11 @@ class ManualGoal(Goal):
                 f"Aggregation {self.aggregation_type} is not supported for ManualGoals"
             )
 
+        if self.month is not None and self.month == 0:
+            raise NotImplementedError(
+                "Implicit monthly goals are not supported for manual goals"
+            )
+
     def _get_relevant_data(self) -> float:
         return 0 if self.value is None else self.value
 

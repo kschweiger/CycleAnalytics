@@ -137,13 +137,13 @@ from cycle_analytics.model.goal import GoalType
         # ~~~~~~~~~~~~~~ MANUAL GOALS ~~~~~~~~~~~~~~~~~~~
         (
             [
-                ("month", "0"),
+                ("month", "-1"),
                 ("aggregation_type", "count"),
                 ("threshold", "10"),
                 ("boundary", "1"),
             ],
             {
-                "month": 0,
+                "month": None,
                 "aggregation_type": "count",
                 "is_upper_bound": True,
                 "threshold": 10.0,

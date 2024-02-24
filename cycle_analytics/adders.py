@@ -109,12 +109,6 @@ class GoalBaseForm(FlaskForm):
         validators=[DataRequired(), NumberRange(2022, 2099)],
         default=date.today().year,
     )
-    month = SelectField(
-        "Month",
-        validators=[DataRequired()],
-        choices=[(-1, "-"), (0, "All")]
-        + [(i, get_month_mapping()[i]) for i in range(1, 13)],
-    )
     name = StringField(
         "Name", validators=[DataRequired()], description="Short name for the goal"
     )
@@ -130,6 +124,12 @@ class GoalBaseForm(FlaskForm):
 
 
 class RideGoalForm(GoalBaseForm):
+    month = SelectField(
+        "Month",
+        validators=[DataRequired()],
+        choices=[(-1, "-"), (0, "All")]
+        + [(i, get_month_mapping()[i]) for i in range(1, 13)],
+    )
     aggregation_type = SelectField(
         "Type",
         validators=[DataRequired()],
@@ -154,6 +154,12 @@ class RideGoalForm(GoalBaseForm):
 
 
 class ManualGoalForm(GoalBaseForm):
+    month = SelectField(
+        "Month",
+        validators=[DataRequired()],
+        choices=[(-1, "-")] + [(i, get_month_mapping()[i]) for i in range(1, 13)],
+    )
+
     aggregation_type = SelectField(
         "Type",
         validators=[DataRequired()],
