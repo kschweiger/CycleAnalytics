@@ -49,6 +49,8 @@ class GoalInfoData:
     reached: int
     description: None | str
     active: bool
+    is_manual: bool
+    decreasable: bool
 
 
 @dataclass

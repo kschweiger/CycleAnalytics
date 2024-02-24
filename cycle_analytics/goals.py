@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 
 from flask import Blueprint, flash, render_template, request
@@ -6,10 +7,14 @@ from wtforms import RadioField, SelectField
 from wtforms.validators import DataRequired
 
 from cycle_analytics.database.converter import convert_rides_to_df
+from cycle_analytics.database.modifier import modify_manual_goal_value_count
+from cycle_analytics.database.retriever import get_goal_years_in_database
 from cycle_analytics.model.base import GoalDisplayData, GoalInfoData
 from cycle_analytics.model.goal import ManualGoal, RideGoal
 from cycle_analytics.utils import get_month_mapping
 from cycle_analytics.utils.base import unwrap
+
+logger = logging.getLogger(__name__)
 
 
 class OverviewForm(FlaskForm):
@@ -63,8 +68,20 @@ def overview() -> str:
                 "alert-danger",
             )
 
+    if request.form.get("value_manua_goal_id") is not None:
+        id_to_update = int(unwrap(request.form.get("value_manua_goal_id")))
+        change: str = unwrap(request.form.get("change_value"))
+        if change == "increase":
+            logger.debug("Increasing value of goal with id %s", id_to_update)
+            modify_succ = modify_manual_goal_value_count(id_to_update, "increase")
+        elif change == "decrease":
+            logger.debug("Decrease value of goal with id %s", id_to_update)
+            modify_succ = modify_manual_goal_value_count(id_to_update, "decrease")
+        else:
+            raise ValueError(f"Value {change} is not supported")
+
     form = OverviewForm()
-    form.year.choices = ["2023", "2022"]
+    form.year.choices = [(y, str(y)) for y in get_goal_years_in_database()]
 
     month_mapping = get_month_mapping()
 
@@ -102,10 +119,16 @@ def overview() -> str:
     month_goal_displays = []
     # TODO: Add update of has_been_reached column
     for goal in year_goals + month_goals:
+        is_manual = False
+        decreasable = False
         if isinstance(goal, RideGoal):
             evaluation = goal.evaluate(data)
         elif isinstance(goal, ManualGoal):
             evaluation = goal.evaluate()
+            is_manual = True
+            decreasable = True
+            if goal.value is None or goal.value < 1:
+                decreasable = False
         # status, current_value, progress = goal.evaluate(data)
         goal_data = GoalDisplayData(
             goal_id=str(goal.id),
@@ -122,6 +145,8 @@ def overview() -> str:
                 reached=int(evaluation.reached),
                 active=goal.active,
                 description=goal.description,
+                is_manual=is_manual,
+                decreasable=decreasable,
             ),
             progress_bar=goal.is_upper_bound,
         )
