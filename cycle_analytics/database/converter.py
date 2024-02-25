@@ -90,7 +90,12 @@ def convert_rides_to_df(rides: list[Ride]) -> pd.DataFrame:
             ]
         ]:
             if overview is None:
-                data[key].append(None)
+                if key == "total_time_seconds":
+                    data[key].append(ride.total_duration.seconds)
+                elif key == "moving_time_seconds" and ride.ride_duration is not None:
+                    data[key].append(ride.ride_duration.seconds)
+                else:
+                    data[key].append(None)
             else:
                 data[key].append(getattr(overview, key))
 

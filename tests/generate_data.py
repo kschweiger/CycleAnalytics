@@ -351,6 +351,15 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
             DatabaseGoal(
                 year=this_year,
                 month=this_month,
+                name="Monthly Goal (duration)",
+                goal_type="ride",
+                aggregation_type="duration",
+                threshold=60 * 60,
+                is_upper_bound=True,
+            ),
+            DatabaseGoal(
+                year=this_year,
+                month=this_month,
                 name="Manual goal 1",
                 goal_type="manual",
                 aggregation_type="count",

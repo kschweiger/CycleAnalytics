@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Literal
 
 import pandas as pd
 import pytest
@@ -9,7 +10,7 @@ from cycle_analytics.utils import (
     find_closest_elem_to_poi,
     get_date_range_from_year_month,
 )
-from cycle_analytics.utils.base import format_description
+from cycle_analytics.utils.base import format_description, format_seconds
 
 
 @pytest.mark.parametrize(
@@ -94,3 +95,50 @@ def test_format_descirption_url_multi() -> None:
         'Some link <a href="https://www.domain.com/sub">domain.com</a> and some '
         'other link <a href="https://www.other_domain.com/sub&xys=2">other_domain.com</a>'
     )
+
+
+@pytest.mark.parametrize(
+    ("seconds", "to", "format", "exp"),
+    [
+        (0, "seconds", "minimal", "0"),
+        (0, "seconds", "complete", "0 seconds"),
+        # ~~~~~~~~~~~~~~~~~~
+        (10, "seconds", "minimal", "10"),
+        (10, "minutes", "minimal", "00:00:10"),
+        (60, "minutes", "minimal", "00:01:00"),
+        (3600, "hours", "minimal", "01:00:00"),
+        # ~~~~~~~~~~~~~~~~~~
+        (10, "seconds", "complete", "10 seconds"),
+        (1, "seconds", "complete", "1 second"),
+        (10, "minutes", "complete", "0 minutes and 10 seconds"),
+        (60, "minutes", "complete", "1 minute and 0 seconds"),
+        (130, "minutes", "complete", "2 minutes and 10 seconds"),
+        (130, "hours", "complete", "0 hours and 2 minutes and 10 seconds"),
+        (3600, "hours", "complete", "1 hour and 0 minutes and 0 seconds"),
+        (3662, "hours", "complete", "1 hour and 1 minute and 2 seconds"),
+        (3661, "hours", "complete", "1 hour and 1 minute and 1 second"),
+        (2 * 3600, "hours", "complete", "2 hours and 0 minutes and 0 seconds"),
+        # ~~~~~~~~~~~~~~~~~~
+        (3600, "hours", "truncated", "1 hour"),
+        (3601, "hours", "truncated", "1 hour and 1 second"),
+        (3660, "hours", "truncated", "1 hour and 1 minute"),
+        (60, "minutes", "truncated", "1 minute"),
+        (30, "minutes", "truncated", "30 seconds"),
+    ],
+)
+def test_format_seconds(
+    seconds: int,
+    to: Literal["seconds", "minutes", "hours"],
+    format: Literal["minimal", "complete", "truncated"],
+    exp: str,
+) -> None:
+    assert format_seconds(seconds, to, format) == exp
+
+
+@pytest.mark.parametrize("to", ["seconds", "minutes", "hours"])
+@pytest.mark.parametrize("format", ["complete", "truncated"])
+def test_format_seconds_zero(
+    to: Literal["seconds", "minutes", "hours"],
+    format: Literal["minimal", "complete", "truncated"],
+) -> None:
+    assert format_seconds(0, to, format) == "0 seconds"

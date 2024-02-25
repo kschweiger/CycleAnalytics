@@ -44,6 +44,74 @@ def test_agg_ride_goal(
 
 
 @pytest.mark.parametrize(
+    ("data", "exp_value"),
+    [
+        (
+            pd.DataFrame(
+                {
+                    "moving_time_seconds": [
+                        60,
+                        30,
+                    ],
+                    "total_time_seconds": [
+                        90,
+                        100,
+                    ],
+                }
+            ),
+            60,
+        ),
+        (
+            pd.DataFrame(
+                {
+                    "moving_time_seconds": [
+                        None,
+                        30,
+                    ],
+                    "total_time_seconds": [
+                        90,
+                        100,
+                    ],
+                }
+            ),
+            90,
+        ),
+        (
+            pd.DataFrame(
+                {
+                    "moving_time_seconds": [
+                        None,
+                        30,
+                    ],
+                    "total_time_seconds": [
+                        None,
+                        100,
+                    ],
+                }
+            ),
+            30,
+        ),
+        (
+            pd.DataFrame(
+                {
+                    "moving_time_seconds": [
+                        None,
+                    ],
+                    "total_time_seconds": [
+                        None,
+                    ],
+                }
+            ),
+            0,
+        ),
+    ],
+)
+def test_max_duration_aggregation(data: pd.DataFrame, exp_value: float) -> None:
+    ret_value = agg_ride_goal(data, AggregationType.DURATION)
+    assert ret_value == exp_value
+
+
+@pytest.mark.parametrize(
     ("aggregation_type", "threshold", "text"),
     [
         (AggregationType.COUNT, 5, "5 occurances"),

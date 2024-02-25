@@ -164,3 +164,54 @@ def format_description(raw_text: str) -> str:
         )
 
     return out_text
+
+
+def format_seconds(
+    seconds: int,
+    to: Literal["seconds", "minutes", "hours"],
+    format: Literal["minimal", "complete", "truncated"],
+) -> str:
+    if seconds == 0:
+        return "0" if format == "minimal" else "0 seconds"
+    if to == "seconds":
+        if format == "minimal":
+            return str(seconds)
+        else:
+            sec_kw = "second" if seconds == 1 else "seconds"
+            return f"{seconds} {sec_kw}"
+    elif to == "minutes":
+        if format == "minimal":
+            return format_timedelta(timedelta(seconds=seconds))
+        else:
+            minutes = seconds // 60
+            _seconds = seconds - (minutes * 60)
+            min_kw = "minute" if minutes == 1 else "minutes"
+            sec_kw = "second" if _seconds == 1 else "seconds"
+            elements = []
+            if minutes >= 1 or format == "complete":
+                elements.append(f"{minutes} {min_kw}")
+            if _seconds >= 1 or format == "complete":
+                elements.append(f"{_seconds} {sec_kw}")
+            return " and ".join(elements)
+    elif to == "hours":
+        if format == "minimal":
+            return format_timedelta(timedelta(seconds=seconds))
+        else:
+            hours = seconds // (60 * 60)
+            _seconds = seconds - (hours * 60 * 60)
+            minutes = _seconds // 60
+            _seconds = _seconds - (minutes * 60)
+            elements = []
+            h_kw = "hour" if hours == 1 else "hours"
+            min_kw = "minute" if minutes == 1 else "minutes"
+            sec_kw = "second" if _seconds == 1 else "seconds"
+            if hours >= 1 or format == "complete":
+                elements.append(f"{hours} {h_kw}")
+            if minutes >= 1 or format == "complete":
+                elements.append(f"{minutes} {min_kw}")
+            if _seconds >= 1 or format == "complete":
+                elements.append(f"{_seconds} {sec_kw}")
+            return " and ".join(elements)
+
+    else:
+        raise NotImplementedError("formatting to %s is not supported", to)

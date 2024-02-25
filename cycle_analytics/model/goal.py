@@ -7,7 +7,7 @@ from typing import final
 import numpy as np
 import pandas as pd
 
-from cycle_analytics.utils.base import format_float
+from cycle_analytics.utils.base import format_float, format_seconds
 
 
 @dataclass
@@ -72,8 +72,12 @@ class AggregationType(str, Enum):
         elif self == AggregationType.MAX_DISTANCE:
             return f"{format_float(threshold)} km"
         elif self == AggregationType.DURATION:
-            # TODO: Also add possibility of minutes and hours
-            return f"{format_float(threshold)} seconds"
+            if threshold > 60 * 60:
+                return format_seconds(int(threshold), to="hours", format="truncated")
+            elif threshold > 120:
+                return format_seconds(int(threshold), to="minutes", format="truncated")
+            else:
+                return format_seconds(int(threshold), to="seconds", format="truncated")
         else:
             raise NotImplementedError
 
@@ -87,6 +91,14 @@ def agg_ride_goal(data: pd.DataFrame, agg: AggregationType) -> float:
         return data.distance.mean()
     elif agg == AggregationType.MAX_DISTANCE:
         return data.distance.max()
+    elif agg == AggregationType.DURATION:
+        relevant_data = (
+            data[["moving_time_seconds", "total_time_seconds"]].min(axis=1).dropna()
+        )
+        print(relevant_data)
+        if relevant_data.empty:
+            return 0
+        return relevant_data.max()
     else:
         raise NotImplementedError("Type %s not yet implemented" % agg)
 
@@ -107,6 +119,7 @@ def is_acceptable_aggregation(goal_type: GoalType, agg: AggregationType) -> bool
             AggregationType.TOTAL_DISTANCE,
             AggregationType.AVG_DISTANCE,
             AggregationType.MAX_DISTANCE,
+            AggregationType.DURATION,
         ]
     else:
         raise NotImplementedError
