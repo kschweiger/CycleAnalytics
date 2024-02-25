@@ -278,10 +278,10 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
                 segment_type=st,
                 difficulty=difficulties[0],
                 distance=4.24242 * (i + 1),
-                bounds_min_lat=bounds.min_latitude,
-                bounds_max_lat=bounds.max_latitude,
-                bounds_min_lng=bounds.min_longitude,
-                bounds_max_lng=bounds.max_longitude,
+                bounds_min_lat=bounds.min_latitude,  # type: ignore
+                bounds_max_lat=bounds.max_latitude,  # type: ignore
+                bounds_min_lng=bounds.min_longitude,  # type: ignore
+                bounds_max_lng=bounds.max_longitude,  # type: ignore
                 gpx=track.get_xml().encode(),
             )
         )
@@ -299,10 +299,10 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
         max_elevation=overview.max_elevation,
         uphill_elevation=overview.uphill_elevation,
         downhill_elevation=overview.downhill_elevation,
-        bounds_min_lat=bounds.min_latitude,
-        bounds_max_lat=bounds.max_latitude,
-        bounds_min_lng=bounds.min_longitude,
-        bounds_max_lng=bounds.max_longitude,
+        bounds_min_lat=bounds.min_latitude,  # type: ignore
+        bounds_max_lat=bounds.max_latitude,  # type: ignore
+        bounds_min_lng=bounds.min_longitude,  # type: ignore
+        bounds_max_lng=bounds.max_longitude,  # type: ignore
         gpx=fr_track_top_segment.get_xml().encode(),
     )
 
@@ -365,6 +365,15 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
                 goal_type="manual",
                 aggregation_type="count",
                 threshold=5,
+                is_upper_bound=True,
+            ),
+            DatabaseGoal(
+                year=this_year,
+                month=this_month,
+                name="Manual duration goal",
+                goal_type="manual",
+                aggregation_type="duration",
+                threshold=60,
                 is_upper_bound=True,
             ),
         ]

@@ -6,8 +6,9 @@ from flask_wtf import FlaskForm
 from wtforms import RadioField, SelectField
 from wtforms.validators import DataRequired
 
-from cycle_analytics.model.base import GoalDisplayData, GoalInfoData
-from cycle_analytics.model.goal import ManualGoal, RideGoal
+from cycle_analytics.database.modifier import update_manual_goal_value
+from cycle_analytics.model.base import GoalDisplayData, GoalInfoData, ManualGoalSetting
+from cycle_analytics.model.goal import AggregationType, ManualGoal, RideGoal
 from cycle_analytics.utils import get_month_mapping
 from cycle_analytics.utils.base import unwrap
 
@@ -57,6 +58,7 @@ def overview() -> str:
 
     validate_overview_form = True
 
+    # ~~~~~~~~ Switch a goal between active and inactive ~~~~~~~~~~~~~~~~~~
     if request.form.get("change_state_goal_id") is not None:
         validate_overview_form = False
         id_to_update = int(unwrap(request.form.get("change_state_goal_id")))
@@ -76,9 +78,14 @@ def overview() -> str:
                 "alert-danger",
             )
 
+    # ~~~~~~~~~ Deal with manual goal modifications ~~~~~~~~~~~~
     if request.form.get("value_manua_goal_id") is not None:
         validate_overview_form = False
         id_to_update = int(unwrap(request.form.get("value_manua_goal_id")))
+
+        error = f"An error corrured with change state if goal {id_to_update}"
+        modify_succ = False
+
         change: str = unwrap(request.form.get("change_value"))
         if change == "increase":
             logger.debug("Increasing value of goal with id %s", id_to_update)
@@ -87,7 +94,18 @@ def overview() -> str:
             logger.debug("Decrease value of goal with id %s", id_to_update)
             modify_succ = modify_manual_goal_value_count(id_to_update, "decrease")
         else:
-            raise ValueError(f"Value {change} is not supported")
+            logger.debug("Updating value of %s to %s", id_to_update, change)
+            try:
+                _change = float(change)
+            except ValueError:
+                error = f"Passed value {change} is not valid. Pass a number"
+            else:
+                modify_succ = update_manual_goal_value(id_to_update, _change)
+
+        if modify_succ:
+            flash(f"Goal {id_to_update} has been updated", "alert-success")
+        else:
+            flash(error, "alert-danger")
 
     today = date.today()
 
@@ -132,16 +150,21 @@ def overview() -> str:
     month_goal_displays = []
     # TODO: Add update of has_been_reached column
     for goal in year_goals + month_goals:
-        is_manual = False
-        decreasable = False
+        manual_setting = None
         if isinstance(goal, RideGoal):
             evaluation = goal.evaluate(data)
         elif isinstance(goal, ManualGoal):
+            manual_setting = ManualGoalSetting(
+                steps=False,
+                decreasable=False,
+            )
             evaluation = goal.evaluate()
-            is_manual = True
-            decreasable = True
-            if goal.value is None or goal.value < 1:
-                decreasable = False
+            if goal.aggregation_type in [AggregationType.COUNT]:
+                manual_setting.steps = True
+                manual_setting.decreasable = True
+                if goal.value is None or goal.value < 1:
+                    manual_setting.decreasable = False
+
         # status, current_value, progress = goal.evaluate(data)
         goal_data = GoalDisplayData(
             goal_id=str(goal.id),
@@ -160,8 +183,7 @@ def overview() -> str:
                 reached=int(evaluation.reached),
                 active=goal.active,
                 description=goal.description,
-                is_manual=is_manual,
-                decreasable=decreasable,
+                manual_setting=manual_setting,
             ),
             progress_bar=goal.is_upper_bound,
         )
@@ -169,7 +191,6 @@ def overview() -> str:
             year_goal_displays.append(goal_data)
         else:
             month_goal_displays.append(goal_data)
-
     return render_template(
         "goals.html",
         active_page="goals",

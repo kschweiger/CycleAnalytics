@@ -40,17 +40,20 @@ class AggregationType(str, Enum):
     TOTAL_DISTANCE = "total_distance"
     AVG_DISTANCE = "avg_distance"
     MAX_DISTANCE = "max_distance"
+    DURATION = "duration"
 
     @property
     def description(self) -> str:
         if self == AggregationType.COUNT:
-            return "Count rides"
+            return "Count occurances"
         elif self == AggregationType.TOTAL_DISTANCE:
             return "Total distance in time span"
         elif self == AggregationType.AVG_DISTANCE:
             return "Average monthly distance"
         elif self == AggregationType.MAX_DISTANCE:
             return "Maximum ride distance"
+        elif self == AggregationType.DURATION:
+            return "Duration"
         else:
             raise NotImplementedError
 
@@ -68,6 +71,9 @@ class AggregationType(str, Enum):
                 return f"{format_float(threshold)} m"
         elif self == AggregationType.MAX_DISTANCE:
             return f"{format_float(threshold)} km"
+        elif self == AggregationType.DURATION:
+            # TODO: Also add possibility of minutes and hours
+            return f"{format_float(threshold)} seconds"
         else:
             raise NotImplementedError
 
@@ -86,7 +92,7 @@ def agg_ride_goal(data: pd.DataFrame, agg: AggregationType) -> float:
 
 
 def agg_manual_goal(value: float, agg: AggregationType) -> float:
-    if agg == AggregationType.COUNT:
+    if agg in [AggregationType.COUNT, AggregationType.DURATION]:
         return value
     else:
         raise NotImplementedError("Type %s not yet implemented" % agg)
@@ -94,7 +100,7 @@ def agg_manual_goal(value: float, agg: AggregationType) -> float:
 
 def is_acceptable_aggregation(goal_type: GoalType, agg: AggregationType) -> bool:
     if goal_type == GoalType.MANUAL:
-        return agg in [AggregationType.COUNT]
+        return agg in [AggregationType.COUNT, AggregationType.DURATION]
     elif goal_type == GoalType.RIDE:
         return agg in [
             AggregationType.COUNT,

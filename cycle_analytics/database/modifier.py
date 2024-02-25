@@ -43,6 +43,17 @@ def modify_manual_goal_value_count(
     return True
 
 
+def update_manual_goal_value(id_goal: int, new_value: float) -> bool:
+    goal = orm_db.session.get(DatabaseGoal, id_goal)
+    if not goal:
+        return False
+
+    goal.value = new_value
+    orm_db.session.add(goal)
+    orm_db.session.commit()
+    return True
+
+
 def modify_segment_visited_flag(id_segment: int, visited: bool) -> bool:
     segment: DatabaseSegment | None = orm_db.session.get(DatabaseSegment, id_segment)
     if not segment:

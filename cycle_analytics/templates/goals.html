@@ -111,28 +111,7 @@
                     {% endif %}
                     <div class="container">
                         <div class="row">
-                            {% if goal.info.is_manual %}
-                            <div class="col-auto">
-                                <form method="POST">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                                    <input type="hidden" name="value_manua_goal_id" value="{{goal.goal_id}}" />
-
-                                    <input type="hidden" name="change_value" value="increase" />
-                                    <input type="submit" value="+" class="btn btn-success">
-                                </form>
-                            </div>
-                            <div class="col-auto">
-                                <form method="POST">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                                    <input type="hidden" name="value_manua_goal_id" value="{{goal.goal_id}}" />
-
-                                    <input type="hidden" name="change_value" value="decrease" />
-                                    <input type="submit" value="-"
-                                        class="btn btn-danger {%if not goal.info.decreasable %}disabled{%endif%}">
-
-                                </form>
-                            </div>
-                            {% endif %}
+                            {% include "utils/manual_goal_mod_form.html" %}
                             <div class="col-auto"><a href="#" class="btn btn-success disabled">Modify</a></div>
                             <div class="col-auto">
                                 <form method="POST">
@@ -224,28 +203,7 @@
                     {% endif %}
                     <div class="container">
                         <div class="row">
-                            {% if goal.info.is_manual %}
-                            <div class="col-auto">
-                                <form method="POST">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                                    <input type="hidden" name="value_manua_goal_id" value="{{goal.goal_id}}" />
-
-                                    <input type="hidden" name="change_value" value="increase" />
-                                    <input type="submit" value="+" class="btn btn-success">
-                                </form>
-                            </div>
-                            <div class="col-auto">
-                                <form method="POST">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                                    <input type="hidden" name="value_manua_goal_id" value="{{goal.goal_id}}" />
-
-                                    <input type="hidden" name="change_value" value="decrease" />
-                                    <input type="submit" value="-"
-                                        class="btn btn-danger {%if not goal.info.decreasable %}disabled{%endif%}">
-
-                                </form>
-                            </div>
-                            {% endif %}
+                            {% include "utils/manual_goal_mod_form.html" %}
                             <div class="col-auto"><a href="#" class="btn btn-success disabled">Modify</a></div>
                             <div class="col-auto">
                                 <form method="POST">
