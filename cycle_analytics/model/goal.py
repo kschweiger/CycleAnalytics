@@ -95,7 +95,6 @@ def agg_ride_goal(data: pd.DataFrame, agg: AggregationType) -> float:
         relevant_data = (
             data[["moving_time_seconds", "total_time_seconds"]].min(axis=1).dropna()
         )
-        print(relevant_data)
         if relevant_data.empty:
             return 0
         return relevant_data.max()

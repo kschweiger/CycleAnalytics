@@ -106,8 +106,18 @@ class EventForm(FlaskForm):
 class GoalBaseForm(FlaskForm):
     year = IntegerField(
         "Year",
-        validators=[DataRequired(), NumberRange(2022, 2099)],
+        validators=[DataRequired(), NumberRange(2020, 2099)],
         default=date.today().year,
+    )
+    month = SelectField(
+        "Month",
+        validators=[DataRequired()],
+    )
+    multi_month_explicit = RadioField(
+        "Mutli-month Settings",
+        choices=[(True, "Explicit")],
+        coerce=bool,
+        validate_choice=False,
     )
     name = StringField(
         "Name", validators=[DataRequired()], description="Short name for the goal"
@@ -127,7 +137,7 @@ class RideGoalForm(GoalBaseForm):
     month = SelectField(
         "Month",
         validators=[DataRequired()],
-        choices=[(-1, "-"), (0, "All")]
+        choices=[(-1, "-"), (0, "All"), (-2, "Upcoming")]
         + [(i, get_month_mapping()[i]) for i in range(1, 13)],
     )
     aggregation_type = SelectField(
@@ -157,7 +167,8 @@ class ManualGoalForm(GoalBaseForm):
     month = SelectField(
         "Month",
         validators=[DataRequired()],
-        choices=[(-1, "-")] + [(i, get_month_mapping()[i]) for i in range(1, 13)],
+        choices=[(-1, "-"), (-2, "Upcoming")]
+        + [(i, get_month_mapping()[i]) for i in range(1, 13)],
     )
 
     aggregation_type = SelectField(
@@ -382,7 +393,6 @@ def add_goal_by_type(type: GoalType) -> RideGoalForm | ManualGoalForm:
         form.bike.choices = [
             (b.name, b.name) for b in get_unique_model_objects_in_db(Bike)
         ]
-
     elif type == GoalType.MANUAL:
         form = ManualGoalForm()
     else:
@@ -397,25 +407,50 @@ def add_goal_by_type(type: GoalType) -> RideGoalForm | ManualGoalForm:
                 constraints["ride_type"] = form.ride_types.data
         if not constraints:
             constraints = None
-
-        goal = DatabaseGoal(
-            year=int(unwrap(form.year.data)),
-            month=None if int(form.month.data) == -1 else int(form.month.data),
-            name=unwrap(form.name.data),
-            goal_type=type,
-            aggregation_type=form.aggregation_type.data,
-            threshold=float(unwrap(form.threshold.data)),
-            is_upper_bound=bool(int(form.boundary.data)),
-            constraints=constraints,
-            description=None if form.description.data == "" else form.description.data,
-        )
-        orm_db.session.add(goal)
-        try:
-            orm_db.session.commit()
-        except IntegrityError as e:
-            flash("Error: %s" % e, "alert-danger")
+        if form.month.data not in [None] + list(
+            map(str, [-1, -2, 0] + list(range(1, 13)))
+        ):
+            flash(f"Invalid month value {form.month.data}", "alert-danger")
         else:
-            flash("Goal Added", "alert-success")
+            month_values: list[None | int] = []
+            # Yearly goal
+            if form.month.data == "-1":
+                month_values = [None]
+            # Current and future month
+            elif form.month.data == "-2":
+                month_values = list(range(date.today().month, 13))
+            # All month
+            elif form.month.data == "0":
+                if form.multi_month_explicit.data is not None:
+                    month_values = list(range(1, 13))
+                else:
+                    month_values = [0]
+            else:
+                month_values = [int(form.month.data)]
+
+            goals = [
+                DatabaseGoal(
+                    year=int(unwrap(form.year.data)),
+                    month=month_value,
+                    name=unwrap(form.name.data),
+                    goal_type=type,
+                    aggregation_type=form.aggregation_type.data,
+                    threshold=float(unwrap(form.threshold.data)),
+                    is_upper_bound=bool(int(form.boundary.data)),
+                    constraints=constraints,
+                    description=None
+                    if form.description.data == ""
+                    else form.description.data,
+                )
+                for month_value in month_values
+            ]
+            orm_db.session.add_all(goals)
+            try:
+                orm_db.session.commit()
+            except IntegrityError as e:
+                flash("Error: %s" % e, "alert-danger")
+            else:
+                flash("Goal Added", "alert-success")
 
     return form
 

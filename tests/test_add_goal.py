@@ -5,6 +5,8 @@ from typing import Any
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
+from freezegun import freeze_time
+from pytest_mock import MockerFixture
 from sqlalchemy import select
 from werkzeug.datastructures import MultiDict
 
@@ -215,3 +217,72 @@ def test_add_goal(
         assert test_goal.year == last_year
         for key, value in check_data.items():
             assert getattr(test_goal, key) == value
+
+
+@pytest.mark.parametrize(
+    "route",
+    ["/add/goal/ride"],
+)
+def test_explicit_multi_month(app: Flask, client: FlaskClient, route: str) -> None:
+    last_year = datetime.now().year - 1
+    name = str(uuid.uuid4())
+    post_data = MultiDict(
+        [
+            ("name", name),
+            ("year", str(last_year)),
+            ("month", "0"),
+            ("multi_month_explicit", "True"),
+            ("aggregation_type", "count"),
+            ("threshold", "10"),
+            ("boundary", "1"),
+        ]
+    )
+    response = client.post(
+        route,
+        data=post_data,
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    with app.app_context():
+        stmt = select(DatabaseGoal).filter(
+            (DatabaseGoal.year == last_year) & (DatabaseGoal.name == name)
+        )
+
+        goals = orm_db.session.scalars(stmt).unique().all()
+        assert len(goals) == 12
+
+
+@freeze_time("2020-06-01")
+@pytest.mark.parametrize(
+    "route",
+    ["/add/goal/ride", "/add/goal/manual"],
+)
+def test_future_multi_month(
+    app: Flask, client: FlaskClient, route: str, mocker: MockerFixture
+) -> None:
+    year = datetime.now().year
+    name = str(uuid.uuid4())
+    post_data = MultiDict(
+        [
+            ("name", name),
+            ("year", str(year)),
+            ("month", "-2"),
+            ("aggregation_type", "count"),
+            ("threshold", "10"),
+            ("boundary", "1"),
+        ]
+    )
+    response = client.post(
+        route,
+        data=post_data,
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    with app.app_context():
+        stmt = select(DatabaseGoal).filter(
+            (DatabaseGoal.year == year) & (DatabaseGoal.name == name)
+        )
+
+        goals = orm_db.session.scalars(stmt).unique().all()
+        assert len(goals) == 7
+        assert [g.month for g in goals] == list(range(6, 13))

@@ -19,6 +19,7 @@ flask-debugtoolbar==0.14.1 ; python_version >= "3.10" and python_version < "3.13
 flask-sqlalchemy==3.1.1 ; python_version >= "3.10" and python_version < "3.13"
 flask-wtf==1.2.1 ; python_version >= "3.10" and python_version < "3.13"
 flask==3.0.2 ; python_version >= "3.10" and python_version < "3.13"
+freezegun==1.4.0 ; python_version >= "3.10" and python_version < "3.13"
 geo-track-analyzer==1.2.0 ; python_version >= "3.10" and python_version < "3.13"
 gpxpy==1.6.2 ; python_version >= "3.10" and python_version < "3.13"
 greenlet==3.0.3 ; python_version >= "3.10" and python_version < "3.13" and (platform_machine == "aarch64" or platform_machine == "ppc64le" or platform_machine == "x86_64" or platform_machine == "amd64" or platform_machine == "AMD64" or platform_machine == "win32" or platform_machine == "WIN32")
