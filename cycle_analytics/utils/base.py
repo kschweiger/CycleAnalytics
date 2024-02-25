@@ -1,7 +1,10 @@
+import re
+from copy import copy
 from datetime import date, timedelta
 from typing import Literal, TypeVar
 
 import pandas as pd
+import tldextract
 
 T = TypeVar("T")
 
@@ -139,3 +142,25 @@ def format_float(num: float) -> str:
     else:
         # Use f-strings to format the float with two decimal places.
         return f"{num:.2f}"
+
+
+def format_description(raw_text: str) -> str:
+    """
+    Takes a raw string and fomrats it to a string with html formatting.
+    Currently does:
+    - FInd links and transform them to html links with <a>
+    :param raw_text: Raw text to format
+    :return: Text enriched with html formatting
+    """
+    out_text = copy(raw_text)
+
+    pattern_link = r"https?://\S+|www\.\S+"
+    matches_link = re.findall(pattern_link, raw_text)
+    for match in matches_link:
+        hyperlink = match
+        res = tldextract.extract(hyperlink)
+        out_text = out_text.replace(
+            hyperlink, f'<a href="{hyperlink}">{res.domain}.{res.suffix}</a>'
+        )
+
+    return out_text

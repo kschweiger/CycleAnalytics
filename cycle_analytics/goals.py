@@ -10,7 +10,7 @@ from cycle_analytics.database.modifier import update_manual_goal_value
 from cycle_analytics.model.base import GoalDisplayData, GoalInfoData, ManualGoalSetting
 from cycle_analytics.model.goal import AggregationType, ManualGoal, RideGoal
 from cycle_analytics.utils import get_month_mapping
-from cycle_analytics.utils.base import unwrap
+from cycle_analytics.utils.base import format_description, unwrap
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +182,9 @@ def overview() -> str:
                 else evaluation.progress,
                 reached=int(evaluation.reached),
                 active=goal.active,
-                description=goal.description,
+                description=None
+                if goal.description is None
+                else format_description(goal.description),
                 manual_setting=manual_setting,
             ),
             progress_bar=goal.is_upper_bound,

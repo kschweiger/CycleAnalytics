@@ -80,6 +80,12 @@ def create_app(
         orm_db.create_all()
         sync_categorical_values(orm_db)
 
+    @app.context_processor
+    def utility_processor() -> dict:
+        from cycle_analytics.utils.base import format_description
+
+        return dict(format_description=format_description)
+
     @app.route("/", methods=["GET", "POST"])
     def landing_page() -> str:
         return render_landing_page()
