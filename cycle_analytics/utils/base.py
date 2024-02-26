@@ -1,8 +1,10 @@
-from typing import TypeVar
+import re
+from copy import copy
 from datetime import date, timedelta
-from typing import Literal
+from typing import Literal, TypeVar
 
 import pandas as pd
+import tldextract
 
 T = TypeVar("T")
 
@@ -123,3 +125,93 @@ def unwrap(data: None | T) -> T:
     if data is None:
         raise RuntimeError("Data is None")
     return data
+
+
+def format_float(num: float) -> str:
+    """Formats a float to a string, removing decimal points if possible.
+
+    :param num: The float to format.
+
+    :return: A string representation of the float, with decimal points removed
+    if possible.
+    """
+
+    # Check if the float can be rounded to an integer without loss of precision.
+    if int(num) == num:
+        return str(int(num))
+    else:
+        # Use f-strings to format the float with two decimal places.
+        return f"{num:.2f}"
+
+
+def format_description(raw_text: str) -> str:
+    """
+    Takes a raw string and fomrats it to a string with html formatting.
+    Currently does:
+    - FInd links and transform them to html links with <a>
+    :param raw_text: Raw text to format
+    :return: Text enriched with html formatting
+    """
+    out_text = copy(raw_text)
+
+    pattern_link = r"https?://\S+|www\.\S+"
+    matches_link = re.findall(pattern_link, raw_text)
+    for match in matches_link:
+        hyperlink = match
+        res = tldextract.extract(hyperlink)
+        out_text = out_text.replace(
+            hyperlink, f'<a href="{hyperlink}">{res.domain}.{res.suffix}</a>'
+        )
+
+    return out_text
+
+
+def format_seconds(
+    seconds: int,
+    to: Literal["seconds", "minutes", "hours"],
+    format: Literal["minimal", "complete", "truncated"],
+) -> str:
+    if seconds == 0:
+        return "0" if format == "minimal" else "0 seconds"
+    if to == "seconds":
+        if format == "minimal":
+            return str(seconds)
+        else:
+            sec_kw = "second" if seconds == 1 else "seconds"
+            return f"{seconds} {sec_kw}"
+    elif to == "minutes":
+        if format == "minimal":
+            return format_timedelta(timedelta(seconds=seconds))
+        else:
+            minutes = seconds // 60
+            _seconds = seconds - (minutes * 60)
+            min_kw = "minute" if minutes == 1 else "minutes"
+            sec_kw = "second" if _seconds == 1 else "seconds"
+            elements = []
+            if minutes >= 1 or format == "complete":
+                elements.append(f"{minutes} {min_kw}")
+            if _seconds >= 1 or format == "complete":
+                elements.append(f"{_seconds} {sec_kw}")
+            return " and ".join(elements)
+    elif to == "hours":
+        if format == "minimal":
+            return format_timedelta(timedelta(seconds=seconds))
+        else:
+            hours = seconds // (60 * 60)
+            _seconds = seconds - (hours * 60 * 60)
+            minutes = _seconds // 60
+            _seconds = _seconds - (minutes * 60)
+            elements = []
+            h_kw = "hour" if hours == 1 else "hours"
+            min_kw = "minute" if minutes == 1 else "minutes"
+            sec_kw = "second" if _seconds == 1 else "seconds"
+            if hours >= 1 or format == "complete":
+                elements.append(f"{hours} {h_kw}")
+            if minutes >= 1 or format == "complete":
+                elements.append(f"{minutes} {min_kw}")
+            if _seconds >= 1 or format == "complete":
+                elements.append(f"{_seconds} {sec_kw}")
+            return " and ".join(elements)
+
+    else:
+        raise NotImplementedError("formatting to %s is not supported", to)

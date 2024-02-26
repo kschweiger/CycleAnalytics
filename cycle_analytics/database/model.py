@@ -351,13 +351,13 @@ class DatabaseGoal(Base):
     month: Mapped[Optional[int]] = mapped_column(db.Integer, nullable=True)
     name: Mapped[str] = mapped_column(db.String, nullable=False)
     goal_type: Mapped[str] = mapped_column(db.String, nullable=False)
+    aggregation_type: Mapped[str] = mapped_column(db.String, nullable=False)
     threshold: Mapped[float] = mapped_column(db.Float, nullable=False)
     is_upper_bound: Mapped[bool] = mapped_column(db.Boolean, nullable=False)
+    value: Mapped[Optional[float]] = mapped_column(db.Float, default=None)
     constraints: Mapped[Optional[dict]] = mapped_column(db.JSON, default=None)
     description: Mapped[Optional[str]] = mapped_column(db.TEXT, default=None)
-    has_been_reached: Mapped[bool] = mapped_column(
-        db.Boolean, nullable=False, default=False
-    )
+    reached: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=False)
     active: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=True)
 
 

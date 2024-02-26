@@ -1,0 +1,40 @@
+{% if goal.info.manual_setting is not none %}
+{% if goal.info.manual_setting.steps %}
+<div class="col-auto">
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="value_manua_goal_id" value="{{goal.goal_id}}" />
+
+        <input type="hidden" name="change_value" value="increase" />
+        <input type="submit" value="+" class="btn btn-success">
+    </form>
+</div>
+<div class="col-auto">
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="value_manua_goal_id" value="{{goal.goal_id}}" />
+
+        <input type="hidden" name="change_value" value="decrease" />
+        <input type="submit" value="-"
+            class="btn btn-danger {%if not goal.info.manual_setting.decreasable %}disabled{%endif%}">
+
+    </form>
+</div>
+{%else%}
+<div class="col-auto">
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="value_manua_goal_id" value="{{goal.goal_id}}" />
+        <div class="row">
+            <div class="col-auto">
+                <input type="number" class="form-control" placeholder="New Value" aria-label="New Value" min="0"
+                    step="0.1" name="change_value">
+            </div>
+            <div class=" col-auto">
+                <input type="submit" value="Set" class="btn btn-success">
+            </div>
+        </div>
+    </form>
+</div>
+{% endif %}
+{% endif %}

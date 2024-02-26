@@ -14,7 +14,7 @@
             <h3> {{data.name}} <small class="text-muted">ID: {{data.id}}</small></h3>
             {% if data.description is not none%}
             <p>
-                {{data.description | safe}}
+                {{format_description(data.description) | safe}}
             </p>
             {% endif %}
         </div>

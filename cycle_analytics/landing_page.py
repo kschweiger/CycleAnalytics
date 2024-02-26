@@ -18,7 +18,7 @@ from cycle_analytics.database.retriever import (
     load_goals,
 )
 from cycle_analytics.forms import YearAndRideTypeForm
-from cycle_analytics.model.goal import YearlyGoal, format_goals_concise
+from cycle_analytics.model.goal import ManualGoal, RideGoal, format_goals_concise
 from cycle_analytics.utils import get_month_mapping
 from cycle_analytics.utils.base import unwrap
 
@@ -86,7 +86,7 @@ def render_landing_page() -> str:
         goal
         for goal in goals_
         if (
-            isinstance(goal, YearlyGoal)
+            goal.month is None  # YearlyGoals
             or goal.month == inv_month_mapping[goal_month_selected]
         )
     ]
@@ -96,12 +96,16 @@ def render_landing_page() -> str:
     for goal in display_goals:
         # TODO: This should really work with a list of rides instead of the
         # TODO: dataframe
-        reached, _, _ = goal.evaluate(data)
-        goal.reached = reached
+        if isinstance(goal, RideGoal):
+            this_evaluation = goal.evaluate(data)
+        elif isinstance(goal, ManualGoal):
+            this_evaluation = goal.evaluate()
+        else:
+            raise NotImplementedError
+        goal.reached = this_evaluation.reached
     # -----------------------------------------------------------------------------
 
     goals = format_goals_concise(display_goals)
-
     # --------------------- SUMMARY ---------------------
     summary_form = YearAndRideTypeForm()
 

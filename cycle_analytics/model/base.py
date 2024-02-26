@@ -40,6 +40,12 @@ class MapMarker:
 
 
 @dataclass
+class ManualGoalSetting:
+    steps: bool
+    decreasable: bool
+
+
+@dataclass
 class GoalInfoData:
     name: str
     goal: str
@@ -49,6 +55,7 @@ class GoalInfoData:
     reached: int
     description: None | str
     active: bool
+    manual_setting: None | ManualGoalSetting
 
 
 @dataclass

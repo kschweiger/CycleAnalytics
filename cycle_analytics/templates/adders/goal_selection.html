@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="m-1 p-1 border rounded-3">
+    <h4>Select the kind of goal to add</h4>
+    <div class="container py-2">
+        <div class="row">
+            <div class="col-md">
+                <a class="btn btn-success w-100" href="{{url_for('adders.add_goal_ride')}}">Ride Goal</a>
+            </div>
+            <div class="col-9 text-left lh-md align-self-center">
+                Add a goal which aggregates metrics of all rides in a year or month.
+            </div>
+        </div>
+        <div class="row pt-3">
+            <div class="col-md">
+                <a class="btn btn-success w-100" href="{{url_for('adders.add_goal_manual')}}">Manual Goal</a>
+            </div>
+            <div class="col-9 text-left lh-md align-self-center">
+                Add a goal which represents a yearly or monthly progress that need to be updated manually.
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
