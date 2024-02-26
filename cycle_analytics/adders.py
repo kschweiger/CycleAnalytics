@@ -326,7 +326,7 @@ def add_event() -> str | Response:
         ride = orm_db.get_or_404(Ride, form.id_ride.data)
         track = ride.track
         if track:
-            track_segment_data = track.get_segment_data(0)
+            track_segment_data = track.get_track_data()
             lats = track_segment_data[track_segment_data.moving].latitude.to_list()
             lats = ",".join([str(l) for l in lats])  # noqa: E741
             longs = track_segment_data[track_segment_data.moving].longitude.to_list()

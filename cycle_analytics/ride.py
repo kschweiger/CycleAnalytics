@@ -135,7 +135,7 @@ def display(id_ride: int) -> str | Response:
             logger.debug("Found raw track data but no enhanced track data")
             show_track_enhance_from = True
         id_track = database_track.id
-        track_segment_data = track.get_segment_data(0)
+        track_segment_data = track.get_track_data()
 
         colors = current_app.config.style.color_sequence
 

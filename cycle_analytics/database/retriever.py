@@ -197,7 +197,7 @@ def get_thumbnails_for_id(id_track: int) -> list[str]:
     if data is None:
         track = ByteTrack(db.get_or_404(DatabaseTrack, id_track).content)
         data = convert_fig_to_base64(
-            [get_track_thumbnails(track.get_segment_data())], 400, 400
+            [get_track_thumbnails(track.get_track_data())], 400, 400
         )
         cache.set(key, data)
     return data
@@ -209,7 +209,7 @@ def get_thumbnails(track: Track) -> list[str]:
     data: None | list[str] = cache.get(key)
     if data is None:
         data = convert_fig_to_base64(
-            [get_track_thumbnails(track.get_segment_data())], 400, 400
+            [get_track_thumbnails(track.get_track_data())], 400, 400
         )
         cache.set(key, data)
     return data
