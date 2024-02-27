@@ -171,9 +171,43 @@
             </div>
         </div>
         {% endif %}
+        {% if segment_table is not none %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="segment_data_heading">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse_segment_data" aria-expanded="true" aria-controls="collapse_segment_data">
+                    Segments / Laps
+                </button>
+            </h2>
+            <div id="collapse_segment_data" class="accordion-collapse collapse" aria-labelledby="segment_data_heading">
+                <div class="accordion-body">
+                    <table class="table mt-3">
+                        <thead>
+                            <th scope="col">#</th>
+                            {% for heading in segment_table[0]%}
+                            <th scope="col">{{heading}}</th>
+                            {% endfor %}
+                        </thead>
+                        <tbody>
+                            {% for row in segment_table[1]%}
+                            <tr>
+                                <th scope="col">{{loop.index0}} </th>
+                                {% for element in row %}
+                                <td>{{element}}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
+        {% endif %}
 
     </div>
+
+
 
     {% if map_data is not none%}
     <div class="m-2 p-2 border rounded-3">

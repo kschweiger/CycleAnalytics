@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import plotly
 from flask import (
@@ -31,7 +31,7 @@ from cycle_analytics.plotting import (
     get_track_elevation_plot,
     get_track_elevation_slope_plot,
 )
-from cycle_analytics.utils.base import none_or_round, unwrap
+from cycle_analytics.utils.base import format_timedelta, none_or_round, unwrap
 from cycle_analytics.utils.forms import get_track_from_form
 from cycle_analytics.utils.track import init_db_track_and_enhance
 
@@ -110,8 +110,9 @@ def display(id_ride: int) -> str | Response:
 
     track_data = None
     track_overview = None
+    segment_overviews = None
     try:
-        track_overview = ride.track_overview
+        track_overview, segment_overviews = ride.track_overviews
     except RuntimeError:
         pass
 
@@ -128,6 +129,28 @@ def display(id_ride: int) -> str | Response:
             ("Uphill [m]", none_or_round(track_overview.uphill_elevation, 2)),
             ("Downhill [m]", none_or_round(track_overview.downhill_elevation, 2)),
         ]
+
+    segment_table = None
+    if segment_overviews and len(segment_overviews) > 1:
+        segment_table_header = [
+            "Distance [km]",
+            "Max velocity [km/h]",
+            "Avg velocity [km/h]",
+            "Duration",
+        ]
+        segment_table_data = []
+        for segment_overview in segment_overviews:
+            segment_table_data.append(
+                [
+                    round(segment_overview.moving_distance / 1000, 2),
+                    round(segment_overview.max_velocity_kmh, 2),
+                    round(segment_overview.avg_velocity_kmh, 2),
+                    format_timedelta(
+                        timedelta(seconds=segment_overview.moving_time_seconds)
+                    ),
+                ]
+            )
+        segment_table = (segment_table_header, segment_table_data)
 
     if track and database_track:
         show_track_add_from = False
@@ -254,6 +277,7 @@ def display(id_ride: int) -> str | Response:
         ride_data=ride_data,
         id_track=id_track,
         track_data=track_data,
+        segment_table=segment_table,
         plot_elevation_and_velocity=plot_elevation_and_velocity,
         slope_plot=slope_plot,
         heartrate_plot=hr_plot,

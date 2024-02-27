@@ -339,6 +339,28 @@ class Ride(Base):
         raise RuntimeError("No overview for full track available")
 
     @property
+    def track_overviews(
+        self,
+    ) -> tuple[None | TrackOverview, None | list[TrackOverview]]:
+        latest_track = self.get_latest_track()
+        if not latest_track:
+            return None, None
+
+        overviews = latest_track.overviews
+        fill_overview = None
+        segment_overviews = []
+        for overview in overviews:
+            if overview.id_segment is None:
+                fill_overview = overview
+            else:
+                segment_overviews.append(overview)
+
+        if fill_overview is None:
+            raise RuntimeError("No overview for full track available")
+
+        return fill_overview, None if len(segment_overviews) == 0 else segment_overviews
+
+    @property
     def database_track(self) -> None | DatabaseTrack:
         return self.get_latest_track()
 
