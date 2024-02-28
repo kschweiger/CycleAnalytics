@@ -25,6 +25,7 @@ from wtforms.validators import DataRequired
 
 from cycle_analytics.database.model import Ride, RideNote
 from cycle_analytics.database.model import db as orm_db
+from cycle_analytics.database.modifier import switch_overview_of_interest_flag
 from cycle_analytics.model.base import MapData, MapMarker, MapPathData
 from cycle_analytics.plotting import (
     get_track_elevation_extension_plot,
@@ -60,8 +61,45 @@ def display(id_ride: int) -> str | Response:
 
     ride = orm_db.get_or_404(Ride, id_ride)
 
+    raw_form_processed = False
+    show_all_segments_clicked = False
+    modify_segments_clicked = False
+    if request.method == "POST":
+        # Deal with the show all segment form
+        if request.form.get("hidden_state_toggle_form") is not None:
+            raw_form_processed = True
+            if request.form.get("show_all_btn") is not None:
+                show_all_segments_clicked = True
+            if request.form.get("mod_interest_btn") is not None:
+                modify_segments_clicked = True
+
+        # Deal with the hide/unhide form
+        if request.form.get("updated_hidden_state") is not None:
+            raw_form_processed = True
+            for idx in [
+                int(k.replace("current_value_segment_hide_", ""))
+                for k in request.form.keys()
+                if k.startswith("current_value_segment_hide_")
+            ]:
+                # Was false is switched to "of interest"
+                if (
+                    unwrap(request.form.get(f"current_value_segment_hide_{idx}")) == "0"
+                    and request.form.get(f"segment_hide_checkbox_{idx}") is not None
+                ):
+                    logger.debug("Switching value of overview %s to of interest", idx)
+                    switch_overview_of_interest_flag(idx)
+                # Was true is switched to not "of interest"
+                elif (
+                    unwrap(request.form.get(f"current_value_segment_hide_{idx}")) == "1"
+                    and request.form.get(f"segment_hide_checkbox_{idx}") is None
+                ):
+                    logger.debug(
+                        "Switching value of overview %s to NOT of interest", idx
+                    )
+                    switch_overview_of_interest_flag(idx)
+
     show_track_add_from = True
-    if form.validate_on_submit():
+    if form.validate_on_submit() and not raw_form_processed:
         try:
             track = get_track_from_form(form, "track")
         except RuntimeError as e:
@@ -133,24 +171,33 @@ def display(id_ride: int) -> str | Response:
     segment_table = None
     if segment_overviews and len(segment_overviews) > 1:
         segment_table_header = [
+            "#",
             "Distance [km]",
             "Max velocity [km/h]",
             "Avg velocity [km/h]",
             "Duration",
         ]
         segment_table_data = []
-        for segment_overview in segment_overviews:
+        for idx_segment, segment_overview in enumerate(segment_overviews):
+            if not show_all_segments_clicked and not segment_overview.of_interest:
+                continue
             segment_table_data.append(
                 [
+                    idx_segment,
                     round(segment_overview.moving_distance / 1000, 2),
                     round(segment_overview.max_velocity_kmh, 2),
                     round(segment_overview.avg_velocity_kmh, 2),
                     format_timedelta(
                         timedelta(seconds=segment_overview.moving_time_seconds)
                     ),
+                    (segment_overview.id, segment_overview.of_interest),
                 ]
             )
-        segment_table = (segment_table_header, segment_table_data)
+
+        segment_table = (
+            segment_table_header,
+            segment_table_data,
+        )
 
     if track and database_track:
         show_track_add_from = False
@@ -278,6 +325,8 @@ def display(id_ride: int) -> str | Response:
         id_track=id_track,
         track_data=track_data,
         segment_table=segment_table,
+        show_all_segments_clicked=show_all_segments_clicked,
+        modify_segments_clicked=modify_segments_clicked,
         plot_elevation_and_velocity=plot_elevation_and_velocity,
         slope_plot=slope_plot,
         heartrate_plot=hr_plot,

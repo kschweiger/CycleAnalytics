@@ -206,14 +206,26 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
                 + ((i + 1) * timedelta(seconds=30)),
             ]
         )
+    elevations = rng.integers(150, 200, size=len(points)).tolist()
+    heartrate = rng.integers(100, 170, size=len(points)).tolist()
+    cadence = rng.integers(40, 80, size=len(points)).tolist()
+    power = rng.integers(200, 350, size=len(points)).tolist()
 
     track_with_extensions = PyTrack(
-        points=points,
-        times=times,
-        elevations=rng.integers(150, 200, size=len(points)).tolist(),
-        heartrate=rng.integers(100, 170, size=len(points)).tolist(),
-        cadence=rng.integers(40, 80, size=len(points)).tolist(),
-        power=rng.integers(200, 350, size=len(points)).tolist(),
+        points=points[0:30],
+        times=times[0:30],
+        elevations=elevations[0:30],
+        heartrate=heartrate[0:30],
+        cadence=cadence[0:30],
+        power=power[0:30],
+    )
+    track_with_extensions.add_segmeent(
+        points=points[30:],
+        times=times[30:],
+        elevations=elevations[30:],
+        heartrate=heartrate[30:],
+        cadence=cadence[30:],
+        power=power[30:],
     )
 
     ride_3.tracks.extend(
@@ -222,6 +234,7 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
                 content=track_with_extensions.get_xml().encode(),
                 added=datetime(this_year, 8, 2, 18),
                 is_enhanced=True,
+                overviews=initialize_overviews(track_with_extensions),
             ),
         ]
     )

@@ -166,6 +166,7 @@ class TrackOverview(Base):
     bounds_max_lat: Mapped[float] = mapped_column(db.Float, nullable=False)
     bounds_min_lng: Mapped[float] = mapped_column(db.Float, nullable=False)
     bounds_max_lng: Mapped[float] = mapped_column(db.Float, nullable=False)
+    of_interest: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=True)
 
 
 class DatabaseTrack(Base):
@@ -354,6 +355,8 @@ class Ride(Base):
                 fill_overview = overview
             else:
                 segment_overviews.append(overview)
+
+        segment_overviews = sorted(segment_overviews, key=lambda o: o.id_segment)
 
         if fill_overview is None:
             raise RuntimeError("No overview for full track available")

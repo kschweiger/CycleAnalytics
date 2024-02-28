@@ -2,7 +2,7 @@ from typing import Literal
 
 from cycle_analytics.model.goal import AggregationType
 
-from .model import DatabaseGoal, DatabaseSegment
+from .model import DatabaseGoal, DatabaseSegment, TrackOverview
 from .model import db as orm_db
 
 
@@ -62,4 +62,16 @@ def modify_segment_visited_flag(id_segment: int, visited: bool) -> bool:
     segment.visited = visited
     orm_db.session.add(segment)
     orm_db.session.commit()
+    return True
+
+
+def switch_overview_of_interest_flag(id_overview: int) -> bool:
+    overview: TrackOverview | None = orm_db.session.get(TrackOverview, id_overview)
+    if not overview:
+        return False
+
+    overview.of_interest = not overview.of_interest
+    orm_db.session.add(overview)
+    orm_db.session.commit()
+
     return True

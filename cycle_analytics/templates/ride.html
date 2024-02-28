@@ -174,31 +174,85 @@
         {% if segment_table is not none %}
         <div class="accordion-item">
             <h2 class="accordion-header" id="segment_data_heading">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#collapse_segment_data" aria-expanded="true" aria-controls="collapse_segment_data">
-                    Segments / Laps
+                <button
+                    class="accordion-button {%if not(show_all_segments_clicked or modify_segments_clicked) %}collapsed{%endif%}"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#collapse_segment_data" aria-expanded="true"
+                    aria-controls="collapse_segment_data">
+                    Laps
                 </button>
             </h2>
-            <div id="collapse_segment_data" class="accordion-collapse collapse" aria-labelledby="segment_data_heading">
+            <div id="collapse_segment_data"
+                class="accordion-collapse collapse {%if show_all_segments_clicked or modify_segments_clicked %}show{%endif%}"
+                aria-labelledby="segment_data_heading">
                 <div class="accordion-body">
-                    <table class="table mt-3">
-                        <thead>
-                            <th scope="col">#</th>
-                            {% for heading in segment_table[0]%}
-                            <th scope="col">{{heading}}</th>
-                            {% endfor %}
-                        </thead>
-                        <tbody>
-                            {% for row in segment_table[1]%}
-                            <tr>
-                                <th scope="col">{{loop.index0}} </th>
-                                {% for element in row %}
-                                <td>{{element}}</td>
+                    <div class="container text-end">
+                        <form id="hidden_state_toggle_form" method="POST">
+                            <div class="row">
+                                <div class="col"></div>
+                                <div class="col-auto">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                    <input type="hidden" name="hidden_state_toggle_form" value="1" />
+                                    <input type="checkbox" class="btn-check" id="show_all_btn" name="show_all_btn"
+                                        autocomplete="off" {%if show_all_segments_clicked%}checked{%endif%}>
+                                    <label class="btn btn-outline-secondary" for="show_all_btn">Show all</label><br>
+
+                                </div>
+                                <div class="col-auto">
+                                    <input type="checkbox" class="btn-check" id="mod_interest_btn"
+                                        name="mod_interest_btn" autocomplete="off" {%if
+                                        modify_segments_clicked%}checked{%endif%}>
+                                    <label class="btn btn-outline-secondary" for="mod_interest_btn">Modfiy
+                                        Interest</label><br>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <input type="hidden" name="updated_hidden_state" value="1" />
+                        <table class="table mt-3">
+                            <thead>
+                                {% for heading in segment_table[0]%}
+                                <th scope="col">{{heading}}</th>
                                 {% endfor %}
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                {% if modify_segments_clicked%}
+                                <th scope="col">Of interest</th>
+                                {%endif%}
+                            </thead>
+                            <tbody>
+                                {% for row in segment_table[1]%}
+                                <tr>
+                                    {% for element in row %}
+                                    {% if not loop.last %}
+                                    <td>{{element}}</td>
+                                    {% endif %}
+                                    {% endfor %}
+                                    {% if modify_segments_clicked%}
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input type="hidden" name="current_value_segment_hide_{{row[-1][0]}}" value="{%if
+                                                row[-1][1]%}1{%else%}0{%endif%}"">
+                                            <input class=" form-check-input" type="checkbox" role="switch"
+                                                id="segment_hide_checkbox_{{row[-1][0]}}"
+                                                name="segment_hide_checkbox_{{row[-1][0]}}" {%if
+                                                row[-1][1]%}checked{%endif%}>
+                                            {# <label class="form-check-label"
+                                                for="segment_hide_checkbox_{{row[-1][0]}}">Default switch checkbox
+                                                input</label> #}
+                                        </div>
+
+                                    </td>
+                                    {%endif%}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% if modify_segments_clicked%}
+                        <div class="container text-end">
+                            <button type="submit" class="btn btn-secondary">Update hidden state</button>
+                        </div>
+                        {%endif%}
+                    </form>
                 </div>
             </div>
         </div>
@@ -275,7 +329,9 @@
     </div>
     {% endif %}
     {% endif %}
+    <div id="test_table"></div>
 </div>
+
 {% endblock %}
 
 {% block body_scripts %}
@@ -383,4 +439,30 @@
         document.getElementById("track_replace_form").setAttribute("class", "");
     }
 </script>
+<script>
+    // Get the checkbox element
+    var checkbox = document.getElementById('show_all_btn');
+
+    // Add event listener for change event
+    checkbox.addEventListener('change', function () {
+
+        document.getElementById('hidden_state_toggle_form').submit();
+
+    });
+</script>
+<script>
+    // Get the checkbox element
+    var checkbox = document.getElementById('mod_interest_btn');
+
+    // Add event listener for change event
+    checkbox.addEventListener('change', function () {
+        // Check if checkbox is checked
+        if (this.checked) {
+            // If checked, submit the form
+            document.getElementById('hidden_state_toggle_form').submit();
+        }
+    });
+</script>
+
+
 {% endblock %}

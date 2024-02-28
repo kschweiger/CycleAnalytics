@@ -21,6 +21,7 @@ from cycle_analytics.database.model import (
 )
 from cycle_analytics.database.model import db as orm_db
 from cycle_analytics.database.retriever import get_unique_model_objects_in_db
+from cycle_analytics.utils.base import unwrap
 
 
 @pytest.mark.parametrize(
@@ -169,8 +170,8 @@ def test_enhance_track(
         ],
     )
     with app.app_context():
-        bike_0 = orm_db.session.scalars(select(Bike)).first()
-        terrain_type = orm_db.session.scalars(select(TerrainType)).first()
+        bike_0 = unwrap(orm_db.session.scalars(select(Bike)).first())
+        terrain_type = unwrap(orm_db.session.scalars(select(TerrainType)).first())
         new_ride = Ride(
             ride_date=date(this_year, 2, 27),
             start_time=time(8, 8, 8),
