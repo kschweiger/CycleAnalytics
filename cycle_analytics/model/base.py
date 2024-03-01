@@ -23,11 +23,12 @@ class LastRide:
 class MapPathData:
     latitudes: str
     longitudes: str
+    color: str = "#20c997"
 
 
 @dataclass
 class MapData:
-    path: MapPathData
+    paths: list[MapPathData]
 
 
 @dataclass

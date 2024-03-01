@@ -136,7 +136,7 @@ def per_month_overview_plots(
 def get_track_elevation_plot(
     track: Track,
     include_velocity: bool,
-    segment: None | int = None,
+    segment: None | int | list[int] = None,
     pois: Optional[list[tuple[float, float]]] = None,
     color_elevation: Optional[str] = None,
     color_velocity: Optional[str] = None,
@@ -172,7 +172,7 @@ def get_track_elevation_plot(
 def get_track_elevation_extension_plot(
     track: Track,
     plot_extension: Literal["heartrate", "cadence", "power"],
-    segment: None | int = None,
+    segment: None | int | list[int] = None,
     color_elevation: Optional[str] = None,
     color_extention: Optional[str] = None,
     slider: bool = False,
@@ -210,7 +210,7 @@ def get_track_elevation_slope_plot(
     color_max: str,
     intervals: int = 200,
     slider: bool = False,
-    segment: None | int = None,
+    segment: None | int | list[int] = None,
 ) -> go.Figure:
     fig = track.plot(
         kind="profile-slope",

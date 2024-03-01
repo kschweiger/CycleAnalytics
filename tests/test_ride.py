@@ -117,3 +117,17 @@ def test_laps_modification(
         )
         for o, e in zip(overviews, expected):
             assert o.of_interest == e
+
+
+def test_visualize_segments(
+    app: Flask,
+    client: FlaskClient,
+    ride_id_and_overview_ids: tuple[int, list[int]],
+) -> None:
+    id_ride, _ = ride_id_and_overview_ids
+    response = client.post(
+        f"/ride/{id_ride}",
+        data=MultiDict([("segment_control_form", "1"), ("visualize_segments", "on")]),
+        follow_redirects=True,
+    )
+    assert response.status_code == 200

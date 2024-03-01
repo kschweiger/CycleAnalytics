@@ -1,5 +1,6 @@
 import json
 import logging
+from collections import deque
 from datetime import datetime, timedelta
 
 import plotly
@@ -64,14 +65,17 @@ def display(id_ride: int) -> str | Response:
     raw_form_processed = False
     show_all_segments_clicked = False
     modify_segments_clicked = False
+    visualize_segments = False
     if request.method == "POST":
         # Deal with the show all segment form
-        if request.form.get("hidden_state_toggle_form") is not None:
+        if request.form.get("segment_control_form") is not None:
             raw_form_processed = True
             if request.form.get("show_all_btn") is not None:
                 show_all_segments_clicked = True
             if request.form.get("mod_interest_btn") is not None:
                 modify_segments_clicked = True
+            if request.form.get("visualize_segments") is not None:
+                visualize_segments = True
 
         # Deal with the hide/unhide form
         if request.form.get("updated_hidden_state") is not None:
@@ -167,8 +171,11 @@ def display(id_ride: int) -> str | Response:
             ("Uphill [m]", none_or_round(track_overview.uphill_elevation, 2)),
             ("Downhill [m]", none_or_round(track_overview.downhill_elevation, 2)),
         ]
+    colors = current_app.config.style.color_sequence
 
     segment_table = None
+    plot_segments = None
+    segment_colors = None
     if segment_overviews and len(segment_overviews) > 1:
         segment_table_header = [
             "#",
@@ -178,6 +185,9 @@ def display(id_ride: int) -> str | Response:
             "Duration",
         ]
         segment_table_data = []
+        plot_segments = []
+        segment_colors = []
+        color_deque = deque(colors)
         for idx_segment, segment_overview in enumerate(segment_overviews):
             if not show_all_segments_clicked and not segment_overview.of_interest:
                 continue
@@ -193,10 +203,13 @@ def display(id_ride: int) -> str | Response:
                     (segment_overview.id, segment_overview.of_interest),
                 ]
             )
-
+            plot_segments.append(idx_segment)
+            segment_colors.append(color_deque[0])
+            color_deque.rotate(-1)
         segment_table = (
             segment_table_header,
             segment_table_data,
+            segment_colors,
         )
 
     if track and database_track:
@@ -206,12 +219,46 @@ def display(id_ride: int) -> str | Response:
             show_track_enhance_from = True
         id_track = database_track.id
         track_segment_data = track.get_track_data()
+        if visualize_segments and plot_segments is not None:
+            n_pre = len(track_segment_data)
+            track_segment_data = track_segment_data[
+                track_segment_data.segment.isin(plot_segments)
+            ]
+            logger.debug(
+                "Selection segments %s -> Dropped %s points",
+                plot_segments,
+                n_pre - len(track_segment_data),
+            )
+            paths = []
+            color_deque = deque(colors)
+            for plot_idx_segment in plot_segments:
+                lats = track_segment_data[
+                    (track_segment_data.moving)
+                    & (track_segment_data.segment == plot_idx_segment)
+                ].latitude.to_list()
+                lats = ",".join([str(l) for l in lats])  # noqa: E741
+                longs = track_segment_data[
+                    (track_segment_data.moving)
+                    & (track_segment_data.segment == plot_idx_segment)
+                ].longitude.to_list()
+                longs = ",".join([str(l) for l in longs])  # noqa: E741
+                paths.append(
+                    MapPathData(latitudes=lats, longitudes=longs, color=color_deque[0])
+                )
+                color_deque.rotate(-1)
+        else:
+            lats = track_segment_data[track_segment_data.moving].latitude.to_list()
+            lats = ",".join([str(l) for l in lats])  # noqa: E741
+            longs = track_segment_data[track_segment_data.moving].longitude.to_list()
+            longs = ",".join([str(l) for l in longs])  # noqa: E741
+            paths = [MapPathData(latitudes=lats, longitudes=longs)]
 
-        colors = current_app.config.style.color_sequence
+        map_data = MapData(paths=paths)
 
         plot2d = get_track_elevation_plot(
             track,
             not track_segment_data.speed.isna().all(),
+            segment=None if not visualize_segments else plot_segments,
             color_elevation=colors[0],
             color_velocity=colors[1],
             slider=True,
@@ -221,13 +268,6 @@ def display(id_ride: int) -> str | Response:
             plot2d, cls=plotly.utils.PlotlyJSONEncoder
         )
 
-        lats = track_segment_data[track_segment_data.moving].latitude.to_list()
-        lats = ",".join([str(l) for l in lats])  # noqa: E741
-        longs = track_segment_data[track_segment_data.moving].longitude.to_list()
-        longs = ",".join([str(l) for l in longs])  # noqa: E741
-
-        map_data = MapData(path=MapPathData(latitudes=lats, longitudes=longs))
-
         slope_colors = current_app.config.style.slope_colors
         slope_figure = get_track_elevation_slope_plot(
             track=track,
@@ -235,6 +275,7 @@ def display(id_ride: int) -> str | Response:
             color_min=slope_colors.min,
             color_max=slope_colors.max,
             slider=True,
+            segment=None if not visualize_segments else plot_segments,
         )
         slope_plot = json.dumps(slope_figure, cls=plotly.utils.PlotlyJSONEncoder)
 
@@ -243,6 +284,7 @@ def display(id_ride: int) -> str | Response:
             hr_figure = get_track_elevation_extension_plot(
                 track,
                 "heartrate",
+                segment=None if not visualize_segments else plot_segments,
                 color_elevation=colors[0],
                 color_extention=colors[1],
                 slider=True,
@@ -256,6 +298,7 @@ def display(id_ride: int) -> str | Response:
             cad_figure = get_track_elevation_extension_plot(
                 track,
                 "cadence",
+                segment=None if not visualize_segments else plot_segments,
                 color_elevation=colors[0],
                 color_extention=colors[1],
                 slider=True,
@@ -270,6 +313,7 @@ def display(id_ride: int) -> str | Response:
             pw_figure = get_track_elevation_extension_plot(
                 track,
                 "power",
+                segment=None if not visualize_segments else plot_segments,
                 color_elevation=colors[0],
                 color_extention=colors[1],
                 slider=True,
@@ -327,6 +371,7 @@ def display(id_ride: int) -> str | Response:
         segment_table=segment_table,
         show_all_segments_clicked=show_all_segments_clicked,
         modify_segments_clicked=modify_segments_clicked,
+        visualize_segments_clicked=visualize_segments,
         plot_elevation_and_velocity=plot_elevation_and_velocity,
         slope_plot=slope_plot,
         heartrate_plot=hr_plot,

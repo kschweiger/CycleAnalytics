@@ -332,7 +332,7 @@ def add_event() -> str | Response:
             longs = track_segment_data[track_segment_data.moving].longitude.to_list()
             longs = ",".join([str(l) for l in longs])  # noqa: E741
 
-            map_data = MapData(path=MapPathData(latitudes=lats, longitudes=longs))
+            map_data = MapData(paths=[MapPathData(latitudes=lats, longitudes=longs)])
         else:
             map_data = None
 

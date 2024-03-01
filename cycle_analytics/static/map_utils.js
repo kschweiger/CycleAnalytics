@@ -7,7 +7,35 @@ class EventMarker {
     }
 }
 
-function set_path_on_map(map, lats, longs) {
+
+function show_polyline(map, points, color = '#20c997') {
+    var polyline = L.polyline([points], { color: color }).addTo(map);
+
+    map.fitBounds(polyline.getBounds());
+
+    return polyline;
+}
+
+
+class PolyLineData {
+    constructor(lats, longs, color) {
+        this.lats = lats;
+        this.longs = longs;
+        this.color = color;
+    }
+
+    set_path_on_map(map) {
+        let points = [];
+
+        for (let i = 0; i < this.lats.length; i++) {
+            points.push([this.lats[i], this.longs[i]]);
+        }
+
+        return show_polyline(map, points, this.color);
+    }
+}
+
+function set_path_on_map(map, lats, longs, color = '#20c997') {
     const lat_points = lats.split(",");
     const long_points = longs.split(",");
 
@@ -17,15 +45,7 @@ function set_path_on_map(map, lats, longs) {
         points.push([lat_points[i], long_points[i]])
     }
 
-    return show_polyline(map, points);
-}
-
-function show_polyline(map, points) {
-    var polyline = L.polyline([points], { color: '#20c997' }).addTo(map);
-
-    map.fitBounds(polyline.getBounds());
-
-    return polyline;
+    return show_polyline(map, points, color = color);
 }
 
 function get_map_layer(type) {
@@ -89,7 +109,7 @@ function show_map_for_form_path(div_id, btn_id, height, lats, longs) {
 }
 
 
-function show_map_with_path_and_markers(div_id, lats, longs, markers) {
+function show_map_with_path_and_markers(div_id, line_datas, markers) {
     let map = L.map(div_id);
     let carto = get_map_layer("carto");
     let osm = get_map_layer("osm");
@@ -103,9 +123,13 @@ function show_map_with_path_and_markers(div_id, lats, longs, markers) {
     L.control.layers(baseMaps).addTo(map);
 
     let objects = [];
-    objects.push(set_path_on_map(map, lats, longs));
 
-    for (marker of markers) {
+    for (let line_data of line_datas) {
+        objects.push(line_data.set_path_on_map(map));
+    }
+
+
+    for (let marker of markers) {
         objects.push(add_marker_to_map(map, marker.lat, marker.long, marker.icon, marker.popup_text))
     }
 }

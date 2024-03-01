@@ -71,8 +71,8 @@
         <button id="btn_open_map" type="button" class="btn btn-success" {% if map_data is none %}
             onclick="show_map_for_form('map','btn_open_map','400',{{init_map_view[0]}},{{init_map_view[1]}},{{init_map_view[2]}})"
             {% else %} onclick="show_map_for_form_path('map','btn_open_map','600',
-                                                       '{{ map_data.path.latitudes}}',
-                                                       '{{ map_data.path.longitudes }}')" {% endif %}>
+                                                       '{{ map_data.paths[0].latitudes}}',
+                                                       '{{ map_data.paths[0].longitudes }}')" {% endif %}>
             Open Map
         </button>
     </div>
