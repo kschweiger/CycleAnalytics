@@ -37,6 +37,12 @@ ride_note = db.Table(
     Column("note_id", db.Integer, db.ForeignKey("ride_note.id")),
 )
 
+location_track = db.Table(
+    "rel_location_track",
+    Column("location_id", db.Integer, db.ForeignKey("location.id")),
+    Column("track_id", db.Integer, db.ForeignKey("track.id")),
+)
+
 
 class TerrainType(Base):
     __tablename__ = "terrain_type"
@@ -420,6 +426,26 @@ class DatabaseSegment(Base):
     max_elevation: Mapped[Optional[float]] = mapped_column(db.Float, default=None)
     uphill_elevation: Mapped[Optional[float]] = mapped_column(db.Float, default=None)
     downhill_elevation: Mapped[Optional[float]] = mapped_column(db.Float, default=None)
+
+
+class DatabaseLocation(Base):
+    __tablename__: str = "location"
+
+    id: Mapped[int] = mapped_column(
+        db.Integer, primary_key=True, autoincrement=True, init=False
+    )
+    latitude: Mapped[float] = mapped_column(db.Float, nullable=False)
+    longitude: Mapped[float] = mapped_column(db.Float, nullable=False)
+    name: Mapped[str] = mapped_column(db.String, nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(db.TEXT, default=None)
+
+    tracks: Mapped[list[DatabaseTrack]] = relationship(
+        "DatabaseTrack",
+        secondary=location_track,
+        backref="location",
+        lazy=True,
+        default_factory=lambda: [],
+    )
 
 
 # @dataclass

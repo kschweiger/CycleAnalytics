@@ -67,11 +67,13 @@ function get_map_layer(type) {
 }
 
 
-function show_map_for_form(div_id, btn_id, height, view_lat, view_long, view_zoom) {
+function show_map_for_form(div_id, btn_id, height, view_lat, view_long, view_zoom, markers) {
     document.getElementById(div_id).style = "height:" + height + "px"
     document.getElementById(div_id).className = "mt-2"
 
-    document.getElementById(btn_id).setAttribute("disabled", true)
+    if (btn_id) {
+        document.getElementById(btn_id).setAttribute("disabled", true);
+    }
 
     let map = L.map(div_id).setView([view_lat, view_long], view_zoom);
 
@@ -85,6 +87,16 @@ function show_map_for_form(div_id, btn_id, height, view_lat, view_long, view_zoo
         "OpenStreetMap": osm,
     };
     L.control.layers(baseMaps).addTo(map);
+
+
+    let placed_markers = [];
+
+    for (let marker of markers) {
+        placed_markers.push(add_marker_to_map(map, marker.lat, marker.long, marker.icon, marker.popup_text))
+    }
+
+    console.log(placed_markers);
+    let group = new L.featureGroup(placed_markers);
 
     let popup = L.popup();
     function onMapClick(e) {

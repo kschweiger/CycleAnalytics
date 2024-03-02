@@ -26,6 +26,10 @@
                         href="{{url_for('events.overview')}}">Events</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {% if active_page == 'locations'%}active{% endif %}"
+                        href="{{url_for('locations.overview')}}">Locations</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {% if active_page == 'segments'%}active{% endif %}"
                         href="{{url_for('segments.main')}}">Segments</a>
                 </li>
@@ -43,6 +47,8 @@
                                 href="{{url_for('adders.add_goal')}}">Goal</a></li>
                         <li><a class="dropdown-item {% if active_page == 'add_segment'%}active{% endif %}"
                                 href="{{url_for('segments.add_segment')}}">Segment</a></li>
+                        <li><a class="dropdown-item {% if active_page == 'add_location'%}active{% endif %}"
+                                href="{{url_for('adders.add_location')}}">Location</a></li>
                     </ul>
                 </li>
                 <li class="nav-item">

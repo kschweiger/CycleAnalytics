@@ -128,6 +128,10 @@ def create_app(
 
     app.register_blueprint(events)
 
+    from cycle_analytics.locations import bp as locations
+
+    app.register_blueprint(locations)
+
     from cycle_analytics.ride import bp as ride
 
     app.register_blueprint(ride)

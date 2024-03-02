@@ -24,6 +24,7 @@ from .model import (
     CategoryModelType,
     DatabaseEvent,
     DatabaseGoal,
+    DatabaseLocation,
     DatabaseSegment,
     DatabaseTrack,
     Difficulty,
@@ -396,3 +397,7 @@ def get_segments_for_map_in_bounds(
         )
 
     return segments_for_map
+
+
+def get_locations() -> list[DatabaseLocation]:
+    return [loc for loc in db.session.execute(select(DatabaseLocation)).scalars()]

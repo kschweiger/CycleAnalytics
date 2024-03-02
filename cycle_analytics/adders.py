@@ -26,6 +26,7 @@ from cycle_analytics.database.model import (
     Bike,
     DatabaseEvent,
     DatabaseGoal,
+    DatabaseLocation,
     EventType,
     Material,
     Ride,
@@ -216,6 +217,31 @@ class BikeForm(FlaskForm):
     )
 
     purchase = DateField("Purchase Date", validators=[DataRequired()])
+
+
+class LocationForm(FlaskForm):
+    name = StringField(
+        "Name",
+        validators=[DataRequired()],
+        description="Unique identifier for the bike",
+    )
+    description = TextAreaField(
+        "Description",
+        default=None,
+        description="Optional details on the event",
+    )
+    latitude = DecimalField(
+        "Latitude of event",
+        description="Optional position",
+        default=None,
+        validators=[Optional()],
+    )
+    longitude = DecimalField(
+        "Longitude of event",
+        description="Optional position",
+        default=None,
+        validators=[Optional()],
+    )
 
 
 @bp.route("/ride", methods=("GET", "POST"))
@@ -529,3 +555,38 @@ def add_bike() -> str | Response:
     elif request.method == "POST":
         flash_form_error(form)
     return render_template("adders/bike.html", active_page="settings", form=form)
+
+
+@bp.route("/location", methods=("GET", "POST"))
+def add_location() -> str | Response:
+    config = current_app.config
+
+    form = LocationForm()
+    print(request.form)
+    if form.validate_on_submit():
+        location = DatabaseLocation(
+            name=unwrap(form.name.data),
+            latitude=float(unwrap(form.latitude.data)),
+            longitude=float(unwrap(form.longitude.data)),
+            description=None if form.description.data == "" else form.description.data,
+        )
+        orm_db.session.add(location)
+        try:
+            orm_db.session.commit()
+        except IntegrityError as e:
+            flash("Error: %s" % e, "alert-danger")
+        else:
+            flash("Location added", "alert-success")
+    elif request.method == "POST":
+        flash_form_error(form)
+
+    return render_template(
+        "adders/location.html",
+        active_page="settings",
+        form=form,
+        init_map_view=(
+            config.adders.event.init_map_view_lat,
+            config.adders.event.init_map_view_long,
+            config.adders.event.init_map_zoom,
+        ),
+    )

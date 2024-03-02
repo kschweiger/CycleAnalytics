@@ -12,6 +12,7 @@ from cycle_analytics.database.model import (
     Bike,
     DatabaseEvent,
     DatabaseGoal,
+    DatabaseLocation,
     DatabaseSegment,
     DatabaseTrack,
     Difficulty,
@@ -397,6 +398,19 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
                 aggregation_type="duration",
                 threshold=60,
                 is_upper_bound=True,
+            ),
+        ]
+    )
+    database.session.commit()
+
+    database.session.add_all(
+        [
+            DatabaseLocation(latitude=40, longitude=9, name="Location 1"),
+            DatabaseLocation(
+                latitude=41,
+                longitude=9.5,
+                name="Location 2",
+                description="Description for location 2",
             ),
         ]
     )

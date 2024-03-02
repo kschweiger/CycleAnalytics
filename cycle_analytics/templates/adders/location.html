@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block head_scripts %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+<script src="{{ url_for('static', filename='map_utils.js') }}"></script>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="m-1 p-1 border rounded-3">
+    <h4> Add Location to database</h4>
+    <form method="POST">
+        {{ form.csrf_token }}
+        <div class="row  mt-2">
+            <div class="col">
+                {{form.name.label(class_="form-label") }}
+                {{form.name(class_="form-control")}}
+            </div>
+            <div class="col">
+                {{form.latitude.label(class_="form-label") }}
+                {{form.latitude(class_="form-control", placeholder_=form.latitude.description)}}
+            </div>
+            <div class="col">
+                {{form.longitude.label(class_="form-label") }}
+                {{form.longitude(class_="form-control", placeholder_=form.longitude.description)}}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                {{form.description.label(class_="form-label") }}
+                {{form.description(class_="form-control", placeholder_=form.description.description)}}
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col text-end"><input type="submit" value="Submit" class="btn btn-success"></div>
+        </div>
+    </form>
+</div>
+
+<div class="m-1 p-3 border rounded-3">
+    <div id="map"></div>
+</div>
+
+{% endblock %}
+
+{% block body_scripts %}
+<script>
+    show_map_for_form('map', null, '400', {{ init_map_view[0]}}, {{ init_map_view[1]}}, {{ init_map_view[2]}}, [])
+    show_map_for_form('map', null, '400', {{ init_map_view[0]}}, {{ init_map_view[1]}}, {{ init_map_view[2]}}, [])
+</script>
+
+{% endblock %}
