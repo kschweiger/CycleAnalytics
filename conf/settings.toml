@@ -68,6 +68,7 @@ color_sequence = [
     "#6f42c1",
 ]
 color_marker = "#198754"
+color_border = "#e9ecef"
 [default.style.slope_colors]
 neutral = "#198754"
 min = "#0d6efd"

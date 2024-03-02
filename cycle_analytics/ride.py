@@ -262,6 +262,7 @@ def display(id_ride: int) -> str | Response:
             color_elevation=colors[0],
             color_velocity=colors[1],
             slider=True,
+            show_segment_borders=visualize_segments and plot_segments is not None,
         )
 
         plot_elevation_and_velocity = json.dumps(
@@ -276,6 +277,7 @@ def display(id_ride: int) -> str | Response:
             color_max=slope_colors.max,
             slider=True,
             segment=None if not visualize_segments else plot_segments,
+            show_segment_borders=visualize_segments and plot_segments is not None,
         )
         slope_plot = json.dumps(slope_figure, cls=plotly.utils.PlotlyJSONEncoder)
 
@@ -288,6 +290,7 @@ def display(id_ride: int) -> str | Response:
                 color_elevation=colors[0],
                 color_extention=colors[1],
                 slider=True,
+                show_segment_borders=visualize_segments and plot_segments is not None,
             )
         except VisualizationSetupError:
             hr_plot = None
@@ -302,6 +305,7 @@ def display(id_ride: int) -> str | Response:
                 color_elevation=colors[0],
                 color_extention=colors[1],
                 slider=True,
+                show_segment_borders=visualize_segments and plot_segments is not None,
             )
         except VisualizationSetupError:
             cad_plot = None
@@ -317,6 +321,7 @@ def display(id_ride: int) -> str | Response:
                 color_elevation=colors[0],
                 color_extention=colors[1],
                 slider=True,
+                show_segment_borders=visualize_segments and plot_segments is not None,
             )
         except VisualizationSetupError:
             pw_plot = None

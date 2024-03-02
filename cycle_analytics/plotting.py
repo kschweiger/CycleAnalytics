@@ -4,6 +4,7 @@ from typing import Literal, Optional
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from flask import current_app
 from geo_track_analyzer.track import Track
 
 from cycle_analytics.database.model import Ride
@@ -142,6 +143,7 @@ def get_track_elevation_plot(
     color_velocity: Optional[str] = None,
     color_poi: Optional[str] = None,
     slider: bool = False,
+    show_segment_borders: bool = False,
 ) -> go.Figure:
     elevation_plot = track.plot(
         kind="profile",
@@ -154,6 +156,8 @@ def get_track_elevation_plot(
         color_additional_trace=color_velocity,
         color_poi=color_poi,
         slider=slider,
+        show_segment_borders=show_segment_borders,
+        color_segment_border=current_app.config.style.color_border,
     )
 
     elevation_plot.update_layout(
@@ -176,6 +180,7 @@ def get_track_elevation_extension_plot(
     color_elevation: Optional[str] = None,
     color_extention: Optional[str] = None,
     slider: bool = False,
+    show_segment_borders: bool = False,
 ) -> go.Figure:
     elevation_plot = track.plot(
         kind="profile",
@@ -188,6 +193,8 @@ def get_track_elevation_extension_plot(
         include_heartrate=plot_extension == "heartrate",
         include_cadence=plot_extension == "cadence",
         include_power=plot_extension == "power",
+        show_segment_borders=show_segment_borders,
+        color_segment_border=current_app.config.style.color_border,
     )
 
     elevation_plot.update_layout(
@@ -211,6 +218,7 @@ def get_track_elevation_slope_plot(
     intervals: int = 200,
     slider: bool = False,
     segment: None | int | list[int] = None,
+    show_segment_borders: bool = False,
 ) -> go.Figure:
     fig = track.plot(
         kind="profile-slope",
@@ -220,6 +228,8 @@ def get_track_elevation_slope_plot(
         height=None,
         width=None,
         slider=slider,
+        show_segment_borders=show_segment_borders,
+        color_segment_border=current_app.config.style.color_border,
     )
 
     fig.update_layout(
