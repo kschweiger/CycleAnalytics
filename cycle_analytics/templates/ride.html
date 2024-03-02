@@ -171,9 +171,117 @@
             </div>
         </div>
         {% endif %}
+        {% if segment_table is not none %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="segment_data_heading">
+                <button
+                    class="accordion-button {%if not(show_all_segments_clicked or modify_segments_clicked) %}collapsed{%endif%}"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#collapse_segment_data" aria-expanded="true"
+                    aria-controls="collapse_segment_data">
+                    Laps
+                </button>
+            </h2>
+            <div id="collapse_segment_data"
+                class="accordion-collapse collapse {%if show_all_segments_clicked or modify_segments_clicked %}show{%endif%}"
+                aria-labelledby="segment_data_heading">
+                <div class="accordion-body">
+                    <div class="container text-end">
+                        <form id="segment_control_form" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <input type="hidden" name="segment_control_form" value="1" />
+                            <div class="row">
+                                <div class="col-auto">
+                                    <input type="checkbox" class="btn-check" id="visualize_segments"
+                                        name="visualize_segments" autocomplete="off" {%if
+                                        visualize_segments_clicked%}checked{%endif%}>
+                                    <label class="btn btn-outline-success" for="visualize_segments">Visualize
+                                        laps</label><br>
+                                </div>
+                                <div class="col"></div>
+                                <div class="col-auto">
+                                    <input type="checkbox" class="btn-check" id="show_all_btn" name="show_all_btn"
+                                        autocomplete="off" {%if show_all_segments_clicked%}checked{%endif%}>
+                                    <label class="btn btn-outline-secondary" for="show_all_btn">Show all</label><br>
 
+                                </div>
+                                <div class="col-auto">
+                                    <input type="checkbox" class="btn-check" id="mod_interest_btn"
+                                        name="mod_interest_btn" autocomplete="off" {%if
+                                        modify_segments_clicked%}checked{%endif%}>
+                                    <label class="btn btn-outline-secondary" for="mod_interest_btn">Modfiy
+                                        Interest</label><br>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <input type="hidden" name="updated_hidden_state" value="1" />
+                        <table class="table mt-3">
+                            <thead>
+                                {% for heading in segment_table[0]%}
+                                <th scope="col">
+                                    <div {% if loop.index==1%}class="text-center" {%endif%}>{{heading}}</div>
+                                </th>
+                                {% endfor %}
+                                {% if modify_segments_clicked%}
+                                <th scope="col">Of interest</th>
+                                {%endif%}
+                            </thead>
+                            <tbody>
+                                {% for row in segment_table[1]%}
+                                {% set row_color = segment_table[2][loop.index0]%}
+                                <tr>
+                                    {% for element in row %}
+                                    {% if not loop.last %}
+                                    {% if loop.index == 1%}
+                                    <td>
+                                        <div class="rounded-1 text-center {%if
+                                            visualize_segments_clicked%}text-dark"
+                                            style="background-color: {{row_color}};" {%else%}"{%endif%}>
+                                            {{element}}
+                                        </div>
+                                    </td>
+                                    {%else%}
+                                    <td>{{element}}</td>
+                                    {%endif%}
+                                    {% endif %}
+                                    {% endfor %}
+                                    {% if modify_segments_clicked%}
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input type="hidden" name="current_value_segment_hide_{{row[-1][0]}}" value="{%if
+                                                row[-1][1]%}1{%else%}0{%endif%}"">
+                                            <input class=" form-check-input" type="checkbox" role="switch"
+                                                id="segment_hide_checkbox_{{row[-1][0]}}"
+                                                name="segment_hide_checkbox_{{row[-1][0]}}" {%if
+                                                row[-1][1]%}checked{%endif%}>
+                                            {# <label class="form-check-label"
+                                                for="segment_hide_checkbox_{{row[-1][0]}}">Default switch checkbox
+                                                input</label> #}
+                                        </div>
+
+                                    </td>
+                                    {%endif%}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% if modify_segments_clicked%}
+                        <div class="container text-end">
+                            <button type="submit" class="btn btn-secondary">Update hidden state</button>
+                        </div>
+                        {%endif%}
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
 
     </div>
+
+
 
     {% if map_data is not none%}
     <div class="m-2 p-2 border rounded-3">
@@ -241,7 +349,9 @@
     </div>
     {% endif %}
     {% endif %}
+    <div id="test_table"></div>
 </div>
+
 {% endblock %}
 
 {% block body_scripts %}
@@ -293,7 +403,12 @@
 
 {% if map_data is not none%}
 <script>
-    show_map_with_path_and_markers('map', "{{ map_data.path.latitudes }}", "{{ map_data.path.longitudes }}", [{% for marker in located_events %}
+    show_map_with_path_and_markers('map',
+        [{%for path in map_data.paths %}
+    new PolyLineData([{{ path.latitudes }}],
+        [{{ path.longitudes }}], "{{ path.color | safe }}"){% if loop.index < (map_data.paths | length) %}, {% endif %}
+    {% endfor %}],
+    [{% for marker in located_events %}
     new EventMarker({{ marker.latitude }}, {{ marker.longitude }}, "{{marker.color}}", {{ marker.color_idx }}, "{{marker.popup_text | safe}}")
     {% if loop.index < (located_events | length) %}, {% endif %}
     {% endfor %}])
@@ -349,4 +464,38 @@
         document.getElementById("track_replace_form").setAttribute("class", "");
     }
 </script>
+<script>
+    // Get the checkbox element
+    var checkbox = document.getElementById('show_all_btn');
+
+    // Add event listener for change event
+    checkbox.addEventListener('change', function () {
+
+        document.getElementById('segment_control_form').submit();
+
+    });
+</script>
+<script>
+    // Get the checkbox element
+    var checkbox = document.getElementById('mod_interest_btn');
+
+    // Add event listener for change event
+    checkbox.addEventListener('change', function () {
+        // Check if checkbox is checked
+        document.getElementById('segment_control_form').submit();
+
+    });
+</script>
+<script>
+    // Get the checkbox element
+    var checkbox = document.getElementById('visualize_segments');
+
+    // Add event listener for change event
+    checkbox.addEventListener('change', function () {
+        // Check if checkbox is checked
+        document.getElementById('segment_control_form').submit();
+
+    });
+</script>
+
 {% endblock %}
