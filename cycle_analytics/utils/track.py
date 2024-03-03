@@ -8,10 +8,16 @@ from geo_track_analyzer.exceptions import (
     APIHealthCheckFailedError,
     APIResponseError,
 )
+from geo_track_analyzer.model import Position2D
 from geo_track_analyzer.track import Track
+from geo_track_analyzer.utils.base import (
+    get_latitude_at_distance,
+    get_longitude_at_distance,
+)
 
 from cycle_analytics.database.converter import initialize_overviews
-from cycle_analytics.database.model import DatabaseTrack
+from cycle_analytics.database.model import DatabaseLocation, DatabaseTrack
+from cycle_analytics.utils.base import unwrap
 from cycle_analytics.utils.debug import log_timing
 
 numeric = int | float
@@ -62,6 +68,62 @@ def get_enhanced_db_track(track: Track) -> None | DatabaseTrack:
         is_enhanced=True,
         overviews=initialize_overviews(track, None),
     )
+
+
+def check_location_in_track(
+    track: Track, locations: list[DatabaseLocation], max_distance: float
+) -> list[bool]:
+    bounds = unwrap(track.track.get_bounds())
+    bounds_min_lat = unwrap(bounds.min_latitude)
+    bounds_max_lat = unwrap(bounds.max_latitude)
+    bounds_min_lng = unwrap(bounds.min_longitude)
+    bounds_max_lng = unwrap(bounds.max_longitude)
+
+    # +---------+ < max_lat
+    # |         |
+    # +---------+ < min_lat
+    # ^         ^
+    # min_long  max_long
+    max_lng_ext = get_longitude_at_distance(
+        Position2D(latitude=bounds_max_lat, longitude=bounds_max_lng),
+        max_distance,
+        True,
+    )
+    min_lng_ext = get_longitude_at_distance(
+        Position2D(latitude=bounds_max_lat, longitude=bounds_min_lng),
+        max_distance,
+        False,
+    )
+
+    max_lat_ext = get_latitude_at_distance(
+        Position2D(latitude=bounds_max_lat, longitude=bounds_max_lng),
+        max_distance,
+        True,
+    )
+    min_lat_ext = get_latitude_at_distance(
+        Position2D(latitude=bounds_min_lat, longitude=bounds_max_lng),
+        max_distance,
+        False,
+    )
+
+    match = []
+    for location in locations:
+        if (
+            location.longitude > max_lng_ext
+            or location.longitude < min_lng_ext
+            or location.latitude > max_lat_ext
+            or location.latitude < min_lat_ext
+        ):
+            match.append(False)
+            continue
+
+        closest_point = track.get_closest_point(
+            n_segment=None, longitude=location.longitude, latitude=location.latitude
+        )
+
+        match.append(closest_point.distance <= max_distance)
+
+    return match
 
 
 # TEMP: Something like this should be part of

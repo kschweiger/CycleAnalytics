@@ -47,7 +47,7 @@ from cycle_analytics.rest_models import (
     SegmentsInBoundsResponse,
 )
 from cycle_analytics.utils import find_closest_elem_to_poi
-from cycle_analytics.utils.base import convert_locations_to_merkers, unwrap
+from cycle_analytics.utils.base import convert_locations_to_markers, unwrap
 from cycle_analytics.utils.forms import flash_form_error
 
 logger = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ def main() -> str | Response:
         show_locations = False
 
     if show_locations:
-        location_markers = convert_locations_to_merkers(get_locations())
+        location_markers = convert_locations_to_markers(get_locations())
     else:
         location_markers = []
 
@@ -239,7 +239,7 @@ def add_segment() -> str | Response:
         show_locations = False
 
     if show_locations:
-        location_markers = convert_locations_to_merkers(get_locations())
+        location_markers = convert_locations_to_markers(get_locations())
     else:
         location_markers = []
 

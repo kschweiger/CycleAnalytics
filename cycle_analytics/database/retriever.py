@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from typing import Sequence, Type, TypeVar
 
 from geo_track_analyzer import ByteTrack, Track
-from sqlalchemy import and_, desc, func, or_, select
+from sqlalchemy import and_, desc, func, not_, or_, select
 
 from cycle_analytics.cache import cache
 from cycle_analytics.database.converter import convert_database_goals
@@ -401,3 +401,22 @@ def get_segments_for_map_in_bounds(
 
 def get_locations() -> list[DatabaseLocation]:
     return [loc for loc in db.session.execute(select(DatabaseLocation)).scalars()]
+
+
+def get_locations_for_track(track_id: int) -> list[DatabaseLocation]:
+    from cycle_analytics.database.model import TrackLocationAssociation
+
+    stmt = (
+        select(DatabaseLocation)
+        .outerjoin(
+            TrackLocationAssociation,
+            DatabaseLocation.id == TrackLocationAssociation.location_id,
+        )
+        .filter(
+            or_(
+                not_(TrackLocationAssociation.track_id == track_id),
+                TrackLocationAssociation.track_id.is_(None),
+            )
+        )
+    )
+    return [loc for loc in db.session.execute(stmt).scalars()]

@@ -37,11 +37,17 @@ ride_note = db.Table(
     Column("note_id", db.Integer, db.ForeignKey("ride_note.id")),
 )
 
-location_track = db.Table(
-    "rel_location_track",
-    Column("location_id", db.Integer, db.ForeignKey("location.id")),
-    Column("track_id", db.Integer, db.ForeignKey("track.id")),
-)
+
+class TrackLocationAssociation(Base):
+    __tablename__: str = "rel_location_track"  # Avoid naming conflicts
+
+    location_id: Mapped[int] = mapped_column(
+        db.Integer, db.ForeignKey("location.id"), primary_key=True
+    )
+    track_id: Mapped[int] = mapped_column(
+        db.Integer, db.ForeignKey("track.id"), primary_key=True
+    )
+    distance: Mapped[float] = mapped_column(db.Float, nullable=False)
 
 
 class TerrainType(Base):
@@ -441,11 +447,17 @@ class DatabaseLocation(Base):
 
     tracks: Mapped[list[DatabaseTrack]] = relationship(
         "DatabaseTrack",
-        secondary=location_track,
+        secondary=TrackLocationAssociation.__table__,
         backref="location",
         lazy=True,
         default_factory=lambda: [],
     )
+
+    def __str__(self) -> str:
+        return (
+            f"DatabaseLocation({self.id=},{self.latitude=:6f},{self.longitude=:6f},"
+            f"{self.name=},n_tracks={len(self.tracks)})".replace("self.", "")
+        )
 
 
 # @dataclass

@@ -405,6 +405,12 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
 
     database.session.add_all(
         [
+            DatabaseLocation(
+                latitude=47.940564453431236, longitude=7.867881953716279, name="Loc 1"
+            ),
+            DatabaseLocation(
+                latitude=47.938265883037424, longitude=7.866286039352418, name="Loc 2"
+            ),
             DatabaseLocation(latitude=40, longitude=9, name="Location 1"),
             DatabaseLocation(
                 latitude=41,

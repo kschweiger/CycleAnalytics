@@ -220,7 +220,7 @@ def format_seconds(
         raise NotImplementedError("formatting to %s is not supported", to)
 
 
-def convert_locations_to_merkers(locatiosn: list[DatabaseLocation]) -> list[MapMarker]:
+def convert_locations_to_markers(locatiosn: list[DatabaseLocation]) -> list[MapMarker]:
     location_markers = []
     for location in locatiosn:
         text = f"<b>{location.name}</b>"
