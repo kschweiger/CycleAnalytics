@@ -12,6 +12,15 @@
 <div class="m-1 p-1 border rounded-3">
     <h4> Segments</h4>
     <div class="container">
+        <div class="row pb-2">
+            <div class="col">
+                {% if locations_are_shown %}
+                <a href="{{url_for('segments.main')}}?show_locations=0" class="btn btn-warning">Hide locations</a>
+                {%else%}
+                <a href="{{url_for('segments.main')}}?show_locations=1" class="btn btn-success">Show locations</a>
+                {%endif%}
+            </div>
+        </div>
         <div class="row px-1">
             <div class="col p-0">
                 <div class="mb-2" id="map" style="height:600px"></div>
@@ -24,6 +33,9 @@
 {% block body_scripts %}
 <script src="{{ url_for('static', filename='map_utils.js') }}"></script>
 <script>
-    segment_map("map", '{{ csrf_token() }}')
+    segment_map("map", '{{ csrf_token() }}', [{% for marker in location_markers %}
+    new EventMarker({{ marker.latitude }}, {{ marker.longitude }}, "{{marker.color}}", {{ marker.color_idx }}, "{{marker.popup_text | safe}}")
+    {% if loop.index < (location_markers | length) %}, {% endif %}
+    {% endfor %}])
 </script>
 {% endblock %}

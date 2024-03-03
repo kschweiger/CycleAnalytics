@@ -58,6 +58,8 @@ def test_views_empty_database(
         ("/add/event", 200),
         ("/add/goal", 200),
         ("/segments/", 200),
+        ("/segments/?show_locations=1", 200),
+        ("/segments/?show_locations=A", 200),
         ("/segments/add", 200),
         ("/segments/show/6", 200),
         ("/add/bike", 200),

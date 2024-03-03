@@ -36,6 +36,7 @@ from cycle_analytics.database.model import (
 )
 from cycle_analytics.database.model import db as orm_db
 from cycle_analytics.database.retriever import (
+    get_locations,
     get_unique_model_objects_in_db,
 )
 from cycle_analytics.model.base import MapData, MapPathData
@@ -45,7 +46,7 @@ from cycle_analytics.model.goal import (
     is_acceptable_aggregation,
 )
 from cycle_analytics.utils import get_month_mapping
-from cycle_analytics.utils.base import unwrap
+from cycle_analytics.utils.base import convert_locations_to_merkers, unwrap
 from cycle_analytics.utils.forms import flash_form_error, get_track_from_form
 from cycle_analytics.utils.track import init_db_track_and_enhance
 
@@ -562,7 +563,6 @@ def add_location() -> str | Response:
     config = current_app.config
 
     form = LocationForm()
-    print(request.form)
     if form.validate_on_submit():
         location = DatabaseLocation(
             name=unwrap(form.name.data),
@@ -580,6 +580,8 @@ def add_location() -> str | Response:
     elif request.method == "POST":
         flash_form_error(form)
 
+    location_markers = convert_locations_to_merkers(get_locations())
+
     return render_template(
         "adders/location.html",
         active_page="settings",
@@ -589,4 +591,5 @@ def add_location() -> str | Response:
             config.adders.event.init_map_view_long,
             config.adders.event.init_map_zoom,
         ),
+        location_markers=location_markers,
     )

@@ -259,7 +259,7 @@ function show_map_with_markers(div_id, markers) {
     map.fitBounds(group.getBounds());
 }
 
-function segment_adder_map(div_id) {
+function segment_adder_map(div_id, markers) {
     let map = L.map(div_id).setView([48.02, 10.2], 7);;
 
     let carto = get_map_layer("carto");
@@ -284,6 +284,15 @@ function segment_adder_map(div_id) {
         )
     };
     map.on('click', onMapClick);
+
+    let placed_markers = [];
+
+    for (let marker of markers) {
+        placed_markers.push(add_marker_to_map(map, marker.lat, marker.long, marker.icon, marker.popup_text))
+    }
+
+    let group = new L.featureGroup(placed_markers);
+
     return map
 }
 
@@ -428,7 +437,7 @@ function reset_map(map) {
 }
 
 
-function segment_map(div_id, csrf_token) {
+function segment_map(div_id, csrf_token, markers) {
     let map = L.map(div_id).setView([47.598342, 7.759027], 12);;
 
     let carto = get_map_layer("carto");
@@ -475,6 +484,16 @@ function segment_map(div_id, csrf_token) {
         });
     }
     on_map_zoom();
+
+
+    let placed_markers = [];
+
+    for (let marker of markers) {
+        placed_markers.push(add_marker_to_map(map, marker.lat, marker.long, marker.icon, marker.popup_text))
+    }
+
+    let group = new L.featureGroup(placed_markers);
+
     map.on("zoomend", on_map_zoom);
     map.on("moveend", on_map_zoom);
 }

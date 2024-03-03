@@ -50,8 +50,10 @@
 
 {% block body_scripts %}
 <script>
-    show_map_for_form('map', null, '400', {{ init_map_view[0]}}, {{ init_map_view[1]}}, {{ init_map_view[2]}}, [])
-    show_map_for_form('map', null, '400', {{ init_map_view[0]}}, {{ init_map_view[1]}}, {{ init_map_view[2]}}, [])
+    show_map_for_form('map', null, '400', {{ init_map_view[0]}}, {{ init_map_view[1]}}, {{ init_map_view[2]}}, [{% for marker in location_markers %}
+    new EventMarker({{ marker.latitude }}, {{ marker.longitude }}, "{{marker.color}}", {{ marker.color_idx }}, "{{marker.popup_text | safe}}")
+    {% if loop.index < (location_markers | length) %}, {% endif %}
+    {% endfor %}])
 </script>
 
 {% endblock %}

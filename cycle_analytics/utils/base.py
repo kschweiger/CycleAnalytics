@@ -6,6 +6,9 @@ from typing import Literal, TypeVar
 import pandas as pd
 import tldextract
 
+from cycle_analytics.database.model import DatabaseLocation
+from cycle_analytics.model.base import MapMarker
+
 T = TypeVar("T")
 
 
@@ -215,3 +218,22 @@ def format_seconds(
 
     else:
         raise NotImplementedError("formatting to %s is not supported", to)
+
+
+def convert_locations_to_merkers(locatiosn: list[DatabaseLocation]) -> list[MapMarker]:
+    location_markers = []
+    for location in locatiosn:
+        text = f"<b>{location.name}</b>"
+        if location.description:
+            text += f": {location.description}"
+        location_markers.append(
+            MapMarker(
+                latitude=location.latitude,
+                longitude=location.longitude,
+                popup_text=text,
+                color="blue",
+                color_idx=0,
+            )
+        )
+
+    return location_markers
