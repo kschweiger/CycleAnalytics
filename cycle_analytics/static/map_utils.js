@@ -224,8 +224,8 @@ function get_icon(color, color_idx) {
     return icon
 }
 
-function add_marker_to_map(map, lat, long, icon, popup_text) {
-    var marker = L.marker([lat, long], { icon: icon, draggable: 'true' });
+function add_marker_to_map(map, lat, long, icon, popup_text, draggable = false) {
+    var marker = L.marker([lat, long], { icon: icon, draggable: draggable });
     marker.addTo(map);
     if (!(popup_text === "")) {
         marker.bindPopup(popup_text);
@@ -280,7 +280,8 @@ function segment_adder_map(div_id, markers) {
             e.latlng.lat,
             e.latlng.lng,
             get_icon("green", 0),
-            "Marker @ " + e.latlng.lat + " / " + e.latlng.lng
+            "Marker @ " + e.latlng.lat + " / " + e.latlng.lng,
+            draggable = true
         )
     };
     map.on('click', onMapClick);
@@ -421,7 +422,9 @@ function remove_last_marker_from_map(map) {
 function reset_map(map) {
     map.eachLayer(function (layer) {
         if (layer instanceof L.Marker) {
-            map.removeLayer(layer);
+            if (layer.options.draggable) {
+                map.removeLayer(layer);
+            }
         }
         else if (layer instanceof L.Polyline) {
             map.removeLayer(layer);
