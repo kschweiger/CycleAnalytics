@@ -2,14 +2,11 @@
 database_schema = "cycle_analytics"
 
 [development]
-database_schema = "cycle_analytics_testing"
+database_schema = "cycle_analytics"
 EXTENSIONS = ["flask_debugtoolbar:DebugToolbarExtension"]
 SQLALCHEMY_RECORD_QUERIES = true
 DEBUG_TB_INTERCEPT_REDIRECTS = false
 DEBUG_TB_PROFILER_ENABLED = true
-
-[testing]
-database_schema = "cycle_analytics"
 
 [default]
 cache_type = "SimpleCache"
@@ -138,3 +135,6 @@ dataset = "eudem25m"
 
 [default.matching]
 distance = 30
+
+[testing]
+database_schema = "cycle_analytics_testing"

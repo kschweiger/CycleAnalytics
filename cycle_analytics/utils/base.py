@@ -5,6 +5,7 @@ from typing import Literal, TypeVar
 
 import pandas as pd
 import tldextract
+from flask import url_for
 
 from cycle_analytics.database.model import DatabaseLocation
 from cycle_analytics.model.base import MapMarker
@@ -220,12 +221,18 @@ def format_seconds(
         raise NotImplementedError("formatting to %s is not supported", to)
 
 
-def convert_locations_to_markers(locatiosn: list[DatabaseLocation]) -> list[MapMarker]:
+def convert_locations_to_markers(
+    locatiosn: list[DatabaseLocation], deletable: bool = False
+) -> list[MapMarker]:
     location_markers = []
     for location in locatiosn:
         text = f"<b>{location.name}</b>"
         if location.description:
             text += f": {location.description}"
+        if deletable:
+            _href = url_for("locations.delete_location", id_location=location.id)
+            text += f"<br><a href='{_href}'>Delete</a>"
+        print(text)
         location_markers.append(
             MapMarker(
                 latitude=location.latitude,

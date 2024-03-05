@@ -233,7 +233,6 @@ function add_marker_to_map(map, lat, long, icon, popup_text, draggable = false) 
     return marker
 }
 
-
 function show_map_with_markers(div_id, markers) {
     let map = L.map(div_id);
 
@@ -250,10 +249,10 @@ function show_map_with_markers(div_id, markers) {
 
     let placed_markers = [];
 
-    for (marker of markers) {
+    for (let marker of markers) {
         placed_markers.push(add_marker_to_map(map, marker.lat, marker.long, marker.icon, marker.popup_text))
     }
-    console.log(placed_markers);
+
     let group = new L.featureGroup(placed_markers);
 
     map.fitBounds(group.getBounds());
