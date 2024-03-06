@@ -134,7 +134,9 @@ url = "http://localhost:1409/"
 dataset = "eudem25m"
 
 [default.matching]
-distance = 30
+distance = 500
 
 [testing]
 database_schema = "cycle_analytics_testing"
+[testing.matching]
+distance = 50

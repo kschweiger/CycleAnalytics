@@ -118,9 +118,7 @@ def test_match_tracks(app: Flask, client: FlaskClient) -> None:
             is_enhanced=False,
             overviews=overview_2,
         )
-        db_location = DatabaseLocation(
-            name="Feldberg location", latitude=lat, longitude=long
-        )
+        db_location = DatabaseLocation(name="Loretto KH", latitude=lat, longitude=long)
         orm_db.session.add_all([db_track_1, db_track_2, db_location])
         orm_db.session.commit()
         track_1_id = db_track_1.id

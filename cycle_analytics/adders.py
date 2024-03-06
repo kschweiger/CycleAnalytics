@@ -3,7 +3,14 @@ from datetime import date
 from typing import Sequence
 
 # from data_organizer.db.exceptions import QueryReturnedNoData
-from flask import Blueprint, current_app, flash, redirect, render_template, request
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+)
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
 from sqlalchemy.exc import IntegrityError
@@ -39,6 +46,7 @@ from cycle_analytics.database.retriever import (
     get_locations,
     get_unique_model_objects_in_db,
 )
+from cycle_analytics.locations import _match_location_to_tracks
 from cycle_analytics.model.base import MapData, MapPathData
 from cycle_analytics.model.goal import (
     AggregationType,
@@ -577,6 +585,9 @@ def add_location() -> str | Response:
             flash("Error: %s" % e, "alert-danger")
         else:
             flash("Location added", "alert-success")
+
+            _match_location_to_tracks(location.id)
+
     elif request.method == "POST":
         flash_form_error(form)
 

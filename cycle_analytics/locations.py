@@ -49,13 +49,12 @@ def delete_location(id_location: int) -> Response:
     return redirect(url_for("locations.overview"))  # type: ignore
 
 
-@bp.route("/match_tracks/<int:id_location>", methods=("GET", "POST"))
-def match_tracks(id_location: int) -> Response:
+def _match_location_to_tracks(id_location: int) -> None:
     max_distance = current_app.config.matching.distance
     loc = db.session.get(DatabaseLocation, id_location)
     if loc is None:
         flash(f"Location with id {id_location} is no valid location", "alert-danger")
-        return redirect(url_for("locations.overview"))  # type: ignore
+        return
 
     track_ids = find_possible_tracks_for_location(
         loc.latitude, loc.longitude, max_distance
@@ -86,4 +85,8 @@ def match_tracks(id_location: int) -> Response:
             "alert-success",
         )
 
+
+@bp.route("/match_tracks/<int:id_location>", methods=("GET", "POST"))
+def match_tracks(id_location: int) -> Response:
+    _match_location_to_tracks(id_location)
     return redirect(url_for("locations.overview"))  # type: ignore
