@@ -222,16 +222,16 @@ def format_seconds(
 
 
 def convert_locations_to_markers(
-    locatiosn: list[DatabaseLocation], deletable: bool = False
+    locations: list[DatabaseLocation], deletable: bool = False
 ) -> list[MapMarker]:
     location_markers = []
-    for location in locatiosn:
+    for location in locations:
         text = f"<b>{location.name}</b>"
         if location.description:
             text += f": {location.description}"
+        _href = url_for("locations.show", id_location=location.id)
+        text += f"<br><div><a href='{_href}'>Details</a></div> "
         if deletable:
-            _href = url_for("locations.show", id_location=location.id)
-            text += f"<br><div><a href='{_href}'>Details</a></div> "
             _href = url_for("locations.delete_location", id_location=location.id)
             text += f"<div><a href='{_href}'>Delete</a></div>"
         location_markers.append(

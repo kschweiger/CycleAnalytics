@@ -17,6 +17,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
 from geo_track_analyzer import ByteTrack
 from geo_track_analyzer.exceptions import VisualizationSetupError
+from sqlalchemy import select
 from werkzeug import Response
 from wtforms import (
     RadioField,
@@ -24,7 +25,12 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired
 
-from cycle_analytics.database.model import Ride, RideNote
+from cycle_analytics.database.model import (
+    DatabaseLocation,
+    Ride,
+    RideNote,
+    TrackLocationAssociation,
+)
 from cycle_analytics.database.model import db as orm_db
 from cycle_analytics.database.modifier import switch_overview_of_interest_flag
 from cycle_analytics.model.base import MapData, MapMarker, MapPathData
@@ -34,7 +40,12 @@ from cycle_analytics.plotting import (
     get_track_elevation_slope_plot,
 )
 from cycle_analytics.track import _match_locations
-from cycle_analytics.utils.base import format_timedelta, none_or_round, unwrap
+from cycle_analytics.utils.base import (
+    convert_locations_to_markers,
+    format_timedelta,
+    none_or_round,
+    unwrap,
+)
 from cycle_analytics.utils.forms import get_track_from_form
 from cycle_analytics.utils.track import init_db_track_and_enhance
 
@@ -215,6 +226,7 @@ def display(id_ride: int) -> str | Response:
             segment_colors,
         )
 
+    location_markers = []
     if track and database_track:
         show_track_add_from = False
         if not has_enhanced_track:
@@ -331,6 +343,19 @@ def display(id_ride: int) -> str | Response:
         else:
             pw_plot = json.dumps(pw_figure, cls=plotly.utils.PlotlyJSONEncoder)
 
+        assoications = orm_db.session.execute(
+            select(TrackLocationAssociation).filter(
+                TrackLocationAssociation.track_id == database_track.id
+            )
+        ).scalars()
+
+        database_locations = []
+        for assoication in assoications:
+            database_locations.append(
+                orm_db.get_or_404(DatabaseLocation, assoication.location_id)
+            )
+        location_markers = convert_locations_to_markers(database_locations)
+
     else:
         id_track = None  # type: ignore
         plot_elevation_and_velocity = None
@@ -386,7 +411,7 @@ def display(id_ride: int) -> str | Response:
         cadence_plot=cad_plot,
         power_plot=pw_plot,
         map_data=map_data,
-        located_events=located_events,
+        map_markers=located_events + location_markers,
         form=form,
         show_track_add_from=show_track_add_from,
         show_track_enhance_from=show_track_enhance_from,
