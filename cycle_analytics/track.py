@@ -55,7 +55,9 @@ def match_locations(id_track: int) -> Response:
         if match:
             orm_db.session.add(
                 TrackLocationAssociation(
-                    track_id=database_track.id, location_id=loc.id, distance=100
+                    track_id=database_track.id,
+                    location_id=loc.id,
+                    distance=max_distance,
                 )
             )
             orm_db.session.commit()

@@ -2,7 +2,9 @@ import hashlib
 import logging
 from datetime import datetime
 
+import pandas as pd
 from flask import current_app, flash
+from geo_track_analyzer import ByteTrack
 from geo_track_analyzer.enhancer import get_enhancer
 from geo_track_analyzer.exceptions import (
     APIHealthCheckFailedError,
@@ -14,9 +16,16 @@ from geo_track_analyzer.utils.base import (
     get_latitude_at_distance,
     get_longitude_at_distance,
 )
+from gpxpy.gpx import GPXBounds
+from sqlalchemy import select
 
 from cycle_analytics.database.converter import initialize_overviews
-from cycle_analytics.database.model import DatabaseLocation, DatabaseTrack
+from cycle_analytics.database.model import (
+    DatabaseLocation,
+    DatabaseTrack,
+    TrackOverview,
+    db,
+)
 from cycle_analytics.utils.base import unwrap
 from cycle_analytics.utils.debug import log_timing
 
@@ -70,14 +79,13 @@ def get_enhanced_db_track(track: Track) -> None | DatabaseTrack:
     )
 
 
-def check_location_in_track(
-    track: Track, locations: list[DatabaseLocation], max_distance: float
-) -> list[bool]:
-    bounds = unwrap(track.track.get_bounds())
-    bounds_min_lat = unwrap(bounds.min_latitude)
-    bounds_max_lat = unwrap(bounds.max_latitude)
-    bounds_min_lng = unwrap(bounds.min_longitude)
-    bounds_max_lng = unwrap(bounds.max_longitude)
+def get_extended_bounds(
+    bounds: GPXBounds, extend_by: float
+) -> tuple[float, float, float, float]:
+    bounds_min_lat: float = unwrap(bounds.min_latitude)
+    bounds_max_lat: float = unwrap(bounds.max_latitude)
+    bounds_min_lng: float = unwrap(bounds.min_longitude)
+    bounds_max_lng: float = unwrap(bounds.max_longitude)
 
     # +---------+ < max_lat
     # |         |
@@ -86,26 +94,36 @@ def check_location_in_track(
     # min_long  max_long
     max_lng_ext = get_longitude_at_distance(
         Position2D(latitude=bounds_max_lat, longitude=bounds_max_lng),
-        max_distance,
+        extend_by,
         True,
     )
     min_lng_ext = get_longitude_at_distance(
         Position2D(latitude=bounds_max_lat, longitude=bounds_min_lng),
-        max_distance,
+        extend_by,
         False,
     )
 
     max_lat_ext = get_latitude_at_distance(
         Position2D(latitude=bounds_max_lat, longitude=bounds_max_lng),
-        max_distance,
+        extend_by,
         True,
     )
     min_lat_ext = get_latitude_at_distance(
         Position2D(latitude=bounds_min_lat, longitude=bounds_max_lng),
-        max_distance,
+        extend_by,
         False,
     )
 
+    return min_lat_ext, max_lat_ext, min_lng_ext, max_lng_ext
+
+
+def check_location_in_track(
+    track: Track, locations: list[DatabaseLocation], max_distance: float
+) -> list[bool]:
+    bounds: GPXBounds = unwrap(track.track.get_bounds())
+    min_lat_ext, max_lat_ext, min_lng_ext, max_lng_ext = get_extended_bounds(
+        bounds, max_distance
+    )
     match = []
     for location in locations:
         if (
@@ -159,3 +177,77 @@ def get_identifier(track: Track) -> str:
     if ele_extremenes.minimum:
         m.update(str(ele_extremenes.minimum).encode())
     return m.hexdigest()
+
+
+def find_possible_tracks_for_location(
+    latitude: float, longitude: float, max_distance: float
+) -> list[int]:
+    stmt = select(
+        TrackOverview.id,
+        TrackOverview.id_track,
+        TrackOverview.bounds_min_lat,
+        TrackOverview.bounds_max_lat,
+        TrackOverview.bounds_min_lng,
+        TrackOverview.bounds_max_lng,
+    ).filter(TrackOverview.id_segment.is_(None))
+
+    data = pd.DataFrame(db.session.execute(stmt).all())
+
+    data["bounds_min_lat_ext"] = data.apply(
+        lambda r: get_latitude_at_distance(
+            Position2D(latitude=r["bounds_min_lat"], longitude=r["bounds_max_lng"]),
+            max_distance,
+            False,
+        ),
+        axis=1,
+    )
+    data["bounds_max_lat_ext"] = data.apply(
+        lambda r: get_latitude_at_distance(
+            Position2D(latitude=r["bounds_max_lat"], longitude=r["bounds_max_lng"]),
+            max_distance,
+            True,
+        ),
+        axis=1,
+    )
+    data["bounds_min_lng_ext"] = data.apply(
+        lambda r: get_longitude_at_distance(
+            Position2D(latitude=r["bounds_max_lat"], longitude=r["bounds_min_lng"]),
+            max_distance,
+            False,
+        ),
+        axis=1,
+    )
+    data["bounds_max_lng_ext"] = data.apply(
+        lambda r: get_longitude_at_distance(
+            Position2D(latitude=r["bounds_max_lat"], longitude=r["bounds_max_lng"]),
+            max_distance,
+            True,
+        ),
+        axis=1,
+    )
+
+    relevant_data = data[
+        (longitude < data.bounds_max_lng_ext)
+        & (longitude > data.bounds_min_lng_ext)
+        & (latitude < data.bounds_max_lat_ext)
+        & (latitude > data.bounds_min_lat_ext)
+    ]
+
+    logger.debug("%s tracks are selected as relevant", len(relevant_data))
+
+    matching_tracks = []
+
+    for id_track in map(int, relevant_data.id_track.unique()):
+        logger.debug("Matching track %s", id_track)
+        track = ByteTrack(unwrap(db.session.get(DatabaseTrack, id_track)).content)
+
+        closest_point = track.get_closest_point(
+            n_segment=None, longitude=longitude, latitude=latitude
+        )
+
+        if closest_point.distance <= max_distance:
+            matching_tracks.append(id_track)
+
+    logger.debug("Mached %s tracks", len(matching_tracks))
+
+    return matching_tracks
