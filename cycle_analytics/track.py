@@ -48,14 +48,14 @@ def _match_locations(database_track: DatabaseTrack) -> None:
     location_matches = check_location_in_track(
         track, locations, max_distance=max_distance
     )
-    for loc, match in zip(locations, location_matches):
+    for loc, (match, distance) in zip(locations, location_matches):
         logger.debug("Match: %s = %s", loc, match)
         if match:
             orm_db.session.add(
                 TrackLocationAssociation(
                     track_id=database_track.id,
                     location_id=loc.id,
-                    distance=max_distance,
+                    distance=distance,
                 )
             )
             orm_db.session.commit()

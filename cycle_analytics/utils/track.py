@@ -119,7 +119,7 @@ def get_extended_bounds(
 
 def check_location_in_track(
     track: Track, locations: list[DatabaseLocation], max_distance: float
-) -> list[bool]:
+) -> list[tuple[bool, float]]:
     bounds: GPXBounds = unwrap(track.track.get_bounds())
     min_lat_ext, max_lat_ext, min_lng_ext, max_lng_ext = get_extended_bounds(
         bounds, max_distance
@@ -132,14 +132,14 @@ def check_location_in_track(
             or location.latitude > max_lat_ext
             or location.latitude < min_lat_ext
         ):
-            match.append(False)
+            match.append((False, -1))
             continue
 
         closest_point = track.get_closest_point(
             n_segment=None, longitude=location.longitude, latitude=location.latitude
         )
 
-        match.append(closest_point.distance <= max_distance)
+        match.append((closest_point.distance <= max_distance, closest_point.distance))
 
     return match
 
@@ -181,7 +181,7 @@ def get_identifier(track: Track) -> str:
 
 def find_possible_tracks_for_location(
     latitude: float, longitude: float, max_distance: float
-) -> list[int]:
+) -> list[tuple[int, float]]:
     stmt = select(
         TrackOverview.id,
         TrackOverview.id_track,
@@ -246,7 +246,7 @@ def find_possible_tracks_for_location(
         )
 
         if closest_point.distance <= max_distance:
-            matching_tracks.append(id_track)
+            matching_tracks.append((id_track, closest_point.distance))
 
     logger.debug("Mached %s tracks", len(matching_tracks))
 

@@ -24,6 +24,7 @@ def pytest_collection_modifyitems(items: list) -> None:
     run_last = [
         "tests.test_views.test_view_all_rides",
         "tests.test_views.test_view_all_bikes",
+        "tests.test_views.test_view_all_locations"
         "tests.test_views.test_view_all_segments",
     ]
     full_path = {

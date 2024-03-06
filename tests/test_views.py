@@ -14,6 +14,7 @@ from werkzeug.datastructures import MultiDict
 
 from cycle_analytics.database.model import (
     Bike,
+    DatabaseLocation,
     DatabaseSegment,
     DatabaseTrack,
     Ride,
@@ -240,6 +241,14 @@ def test_view_all_segments(app: Flask, client: FlaskClient) -> None:
     for segment_id in segment_ids:
         response = client.get(f"segments/show/{segment_id}")
         assert response.status_code == 200
+
+
+def test_view_all_locations(app: Flask, client: FlaskClient) -> None:
+    with app.app_context():
+        for location in get_unique_model_objects_in_db(DatabaseLocation):
+            location_id = location.id
+            response = client.get(f"/locations/show/{location_id}")
+            assert response.status_code == 200
 
 
 def test_view_location_empty_database(

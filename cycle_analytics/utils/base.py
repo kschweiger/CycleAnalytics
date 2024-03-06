@@ -232,7 +232,6 @@ def convert_locations_to_markers(
         if deletable:
             _href = url_for("locations.delete_location", id_location=location.id)
             text += f"<br><a href='{_href}'>Delete</a>"
-        print(text)
         location_markers.append(
             MapMarker(
                 latitude=location.latitude,

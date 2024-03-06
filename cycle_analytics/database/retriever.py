@@ -47,7 +47,7 @@ M = TypeVar(
     DatabaseEvent,
     DatabaseGoal,
     DatabaseSegment,
-    DatabaseSegment,
+    DatabaseLocation,
     TerrainType,
     TypeSpecification,
     Material,
