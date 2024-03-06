@@ -33,6 +33,7 @@ from cycle_analytics.plotting import (
     get_track_elevation_plot,
     get_track_elevation_slope_plot,
 )
+from cycle_analytics.track import _match_locations
 from cycle_analytics.utils.base import format_timedelta, none_or_round, unwrap
 from cycle_analytics.utils.forms import get_track_from_form
 from cycle_analytics.utils.track import init_db_track_and_enhance
@@ -112,6 +113,8 @@ def display(id_ride: int) -> str | Response:
             tracks_to_insert = init_db_track_and_enhance(
                 track=track, is_enhanced=not bool(form.enhance_elevation.data)
             )
+            for track in tracks_to_insert:
+                _match_locations(track)
             if form.replace.data == "1":
                 for tr_ in ride.tracks:
                     orm_db.session.delete(tr_)

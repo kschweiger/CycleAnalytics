@@ -53,6 +53,7 @@ from cycle_analytics.model.goal import (
     GoalType,
     is_acceptable_aggregation,
 )
+from cycle_analytics.track import _match_locations
 from cycle_analytics.utils import get_month_mapping
 from cycle_analytics.utils.base import convert_locations_to_markers, unwrap
 from cycle_analytics.utils.forms import flash_form_error, get_track_from_form
@@ -312,6 +313,8 @@ def add_ride() -> str | Response:
                     flash("Error: %s" % e, "alert-danger")
                 else:
                     flash(f"{len(tracks_to_insert)} tracks added", "alert-success")
+                    for track in tracks_to_insert:
+                        _match_locations(track)
 
         return redirect("/overview")
 

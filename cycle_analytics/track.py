@@ -36,17 +36,15 @@ def enhance_track(id_ride: int) -> Response:
     ride.tracks.append(new_db_track)
     orm_db.session.commit()
     flash("Track enhanced", "alert-success")
+    _match_locations(new_db_track)
     return redirect(url_for("ride.display", id_ride=id_ride))
 
 
-@bp.route("match_locations/<int:id_track>", methods=("GET", "POST"))
-def match_locations(id_track: int) -> Response:
+def _match_locations(database_track: DatabaseTrack) -> None:
     max_distance = current_app.config.matching.distance
-    database_track = orm_db.get_or_404(DatabaseTrack, id_track)
-
     track = ByteTrack(database_track.content)
 
-    locations = get_locations_for_track(id_track)
+    locations = get_locations_for_track(database_track.id)
     location_matches = check_location_in_track(
         track, locations, max_distance=max_distance
     )
@@ -63,7 +61,14 @@ def match_locations(id_track: int) -> Response:
             orm_db.session.commit()
             flash(
                 f"Matched location '{loc.name}' @ "
-                f"({loc.latitude:.4f},{loc.longitude:.4f}) to track {id_track}",
+                f"({loc.latitude:.4f},{loc.longitude:.4f}) to "
+                f"track {database_track.id}",
                 "alert-success",
             )
+
+
+@bp.route("match_locations/<int:id_track>", methods=("GET", "POST"))
+def match_locations(id_track: int) -> Response:
+    database_track = orm_db.get_or_404(DatabaseTrack, id_track)
+    _match_locations(database_track)
     return redirect(url_for("landing_page"))
