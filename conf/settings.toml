@@ -8,9 +8,6 @@ SQLALCHEMY_RECORD_QUERIES = true
 DEBUG_TB_INTERCEPT_REDIRECTS = false
 DEBUG_TB_PROFILER_ENABLED = true
 
-[testing]
-database_schema = "cycle_analytics_testing"
-
 [default]
 cache_type = "SimpleCache"
 cache_default_timeout = 300
@@ -135,3 +132,11 @@ name = "OpenTopoElevation"
 url = "http://localhost:1409/"
 [default.external.track_enhancer.kwargs]
 dataset = "eudem25m"
+
+[default.matching]
+distance = 500
+
+[testing]
+database_schema = "cycle_analytics_testing"
+[testing.matching]
+distance = 50

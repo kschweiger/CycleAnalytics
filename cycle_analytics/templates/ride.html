@@ -408,9 +408,9 @@
     new PolyLineData([{{ path.latitudes }}],
         [{{ path.longitudes }}], "{{ path.color | safe }}"){% if loop.index < (map_data.paths | length) %}, {% endif %}
     {% endfor %}],
-    [{% for marker in located_events %}
+    [{% for marker in map_markers %}
     new EventMarker({{ marker.latitude }}, {{ marker.longitude }}, "{{marker.color}}", {{ marker.color_idx }}, "{{marker.popup_text | safe}}")
-    {% if loop.index < (located_events | length) %}, {% endif %}
+    {% if loop.index < (map_markers | length) %}, {% endif %}
     {% endfor %}])
 </script>
 {% endif %}

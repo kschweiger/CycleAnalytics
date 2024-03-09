@@ -2,8 +2,9 @@ import logging
 from datetime import date, timedelta
 from typing import Sequence, Type, TypeVar
 
+import pandas as pd
 from geo_track_analyzer import ByteTrack, Track
-from sqlalchemy import and_, desc, func, or_, select
+from sqlalchemy import and_, desc, extract, func, not_, or_, select
 
 from cycle_analytics.cache import cache
 from cycle_analytics.database.converter import convert_database_goals
@@ -24,6 +25,7 @@ from .model import (
     CategoryModelType,
     DatabaseEvent,
     DatabaseGoal,
+    DatabaseLocation,
     DatabaseSegment,
     DatabaseTrack,
     Difficulty,
@@ -33,8 +35,10 @@ from .model import (
     SegmentType,
     Severity,
     TerrainType,
+    TrackLocationAssociation,
     TypeSpecification,
     db,
+    ride_track,
 )
 
 logger = logging.getLogger(__name__)
@@ -46,7 +50,7 @@ M = TypeVar(
     DatabaseEvent,
     DatabaseGoal,
     DatabaseSegment,
-    DatabaseSegment,
+    DatabaseLocation,
     TerrainType,
     TypeSpecification,
     Material,
@@ -396,3 +400,58 @@ def get_segments_for_map_in_bounds(
         )
 
     return segments_for_map
+
+
+def get_locations() -> list[DatabaseLocation]:
+    return [loc for loc in db.session.execute(select(DatabaseLocation)).scalars()]
+
+
+def get_locations_for_track(track_id: int) -> list[DatabaseLocation]:
+    from cycle_analytics.database.model import TrackLocationAssociation
+
+    stmt = (
+        select(DatabaseLocation)
+        .outerjoin(
+            TrackLocationAssociation,
+            DatabaseLocation.id == TrackLocationAssociation.location_id,
+        )
+        .filter(
+            or_(
+                not_(TrackLocationAssociation.track_id == track_id),
+                TrackLocationAssociation.track_id.is_(None),
+            )
+        )
+    )
+    return [loc for loc in db.session.execute(stmt).scalars()]
+
+
+def resolve_track_location_association(year: str) -> pd.DataFrame:
+    year_filter = None
+    try:
+        year_filter = extract("year", Ride.ride_date) == int(year)
+    except ValueError:
+        if year not in ["All", "Any"]:
+            raise ValueError(f"Year {year} not supported")
+
+    stmt = (
+        select(
+            TrackLocationAssociation.location_id,
+            TrackLocationAssociation.distance,
+            Ride.id.label("ride_id"),
+            Ride.ride_date.label("date"),
+            TerrainType.text.label("ride_type"),
+            Bike.name.label("bike_name"),
+        )
+        .join(
+            ride_track,
+            ride_track.columns["track_id"] == TrackLocationAssociation.track_id,
+        )
+        .join(Ride, Ride.id == ride_track.columns["track_id"])
+        .join(Bike, Bike.id == Ride.id_bike)
+        .join(TerrainType, TerrainType.id == Ride.id_terrain_type)
+    )
+    if year_filter is not None:
+        stmt = stmt.where(year_filter)
+
+    data = db.session.execute(stmt).all()
+    return pd.DataFrame(data)

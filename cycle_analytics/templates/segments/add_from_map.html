@@ -15,6 +15,19 @@
 <div class="m-1 p-1 border rounded-3">
     <h4> Add a new Segment</h4>
     <div class="container">
+        <div class="row">
+            <div class="row">
+                <div class="col p-1">
+                    {% if locations_are_shown %}
+                    <a href="{{url_for('segments.add_segment')}}?show_locations=0" class="btn btn-warning">Hide
+                        locations</a>
+                    {%else%}
+                    <a href="{{url_for('segments.add_segment')}}?show_locations=1" class="btn btn-success">Show
+                        locations</a>
+                    {%endif%}
+                </div>
+            </div>
+        </div>
         <div class="row px-1">
             <div class="col p-0">
                 <div class="mb-2" id="map" style="height:600px"></div>
@@ -41,9 +54,9 @@
                     {{ map_segment_form.segment_latitudes() }}
                     {{ map_segment_form.segment_longitudes() }}
                     {{ map_segment_form.segment_elevations() }}
-                    <div class="row  align-items-end">
+                    <div class="row align-items-end">
                         <div class="col">
-                            <button id="get_path" type="button" class="w-100 align-bottom  btn btn-success"
+                            <button id="get_path" type="button" class="w-100 align-bottom btn btn-success"
                                 onclick="calc_route('{{ csrf_token() }}', map)">
                                 Find path
                                 <div id="get_path_spinner" role="status"></div>
@@ -113,6 +126,9 @@
     const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
 </script>
 <script>
-    let map = segment_adder_map("map");
+    let map = segment_adder_map("map", [{% for marker in location_markers %}
+    new EventMarker({{ marker.latitude }}, {{ marker.longitude }}, "{{marker.color}}", {{ marker.color_idx }}, "{{marker.popup_text | safe}}")
+    {% if loop.index < (location_markers | length) %}, {% endif %}
+    {% endfor %}]);
 </script>
 {%endblock%}

@@ -67,11 +67,13 @@ function get_map_layer(type) {
 }
 
 
-function show_map_for_form(div_id, btn_id, height, view_lat, view_long, view_zoom) {
+function show_map_for_form(div_id, btn_id, height, view_lat, view_long, view_zoom, markers) {
     document.getElementById(div_id).style = "height:" + height + "px"
     document.getElementById(div_id).className = "mt-2"
 
-    document.getElementById(btn_id).setAttribute("disabled", true)
+    if (btn_id) {
+        document.getElementById(btn_id).setAttribute("disabled", true);
+    }
 
     let map = L.map(div_id).setView([view_lat, view_long], view_zoom);
 
@@ -85,6 +87,16 @@ function show_map_for_form(div_id, btn_id, height, view_lat, view_long, view_zoo
         "OpenStreetMap": osm,
     };
     L.control.layers(baseMaps).addTo(map);
+
+
+    let placed_markers = [];
+
+    for (let marker of markers) {
+        placed_markers.push(add_marker_to_map(map, marker.lat, marker.long, marker.icon, marker.popup_text))
+    }
+
+    console.log(placed_markers);
+    let group = new L.featureGroup(placed_markers);
 
     let popup = L.popup();
     function onMapClick(e) {
@@ -212,15 +224,14 @@ function get_icon(color, color_idx) {
     return icon
 }
 
-function add_marker_to_map(map, lat, long, icon, popup_text) {
-    var marker = L.marker([lat, long], { icon: icon, draggable: 'true' });
+function add_marker_to_map(map, lat, long, icon, popup_text, draggable = false) {
+    var marker = L.marker([lat, long], { icon: icon, draggable: draggable });
     marker.addTo(map);
     if (!(popup_text === "")) {
         marker.bindPopup(popup_text);
     }
     return marker
 }
-
 
 function show_map_with_markers(div_id, markers) {
     let map = L.map(div_id);
@@ -238,16 +249,16 @@ function show_map_with_markers(div_id, markers) {
 
     let placed_markers = [];
 
-    for (marker of markers) {
+    for (let marker of markers) {
         placed_markers.push(add_marker_to_map(map, marker.lat, marker.long, marker.icon, marker.popup_text))
     }
-    console.log(placed_markers);
+
     let group = new L.featureGroup(placed_markers);
 
     map.fitBounds(group.getBounds());
 }
 
-function segment_adder_map(div_id) {
+function segment_adder_map(div_id, markers) {
     let map = L.map(div_id).setView([48.02, 10.2], 7);;
 
     let carto = get_map_layer("carto");
@@ -268,10 +279,20 @@ function segment_adder_map(div_id) {
             e.latlng.lat,
             e.latlng.lng,
             get_icon("green", 0),
-            "Marker @ " + e.latlng.lat + " / " + e.latlng.lng
+            "Marker @ " + e.latlng.lat + " / " + e.latlng.lng,
+            draggable = true
         )
     };
     map.on('click', onMapClick);
+
+    let placed_markers = [];
+
+    for (let marker of markers) {
+        placed_markers.push(add_marker_to_map(map, marker.lat, marker.long, marker.icon, marker.popup_text))
+    }
+
+    let group = new L.featureGroup(placed_markers);
+
     return map
 }
 
@@ -400,7 +421,9 @@ function remove_last_marker_from_map(map) {
 function reset_map(map) {
     map.eachLayer(function (layer) {
         if (layer instanceof L.Marker) {
-            map.removeLayer(layer);
+            if (layer.options.draggable) {
+                map.removeLayer(layer);
+            }
         }
         else if (layer instanceof L.Polyline) {
             map.removeLayer(layer);
@@ -416,7 +439,7 @@ function reset_map(map) {
 }
 
 
-function segment_map(div_id, csrf_token) {
+function segment_map(div_id, csrf_token, markers) {
     let map = L.map(div_id).setView([47.598342, 7.759027], 12);;
 
     let carto = get_map_layer("carto");
@@ -463,6 +486,16 @@ function segment_map(div_id, csrf_token) {
         });
     }
     on_map_zoom();
+
+
+    let placed_markers = [];
+
+    for (let marker of markers) {
+        placed_markers.push(add_marker_to_map(map, marker.lat, marker.long, marker.icon, marker.popup_text))
+    }
+
+    let group = new L.featureGroup(placed_markers);
+
     map.on("zoomend", on_map_zoom);
     map.on("moveend", on_map_zoom);
 }

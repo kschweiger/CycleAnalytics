@@ -7,6 +7,7 @@ from typing import final
 import numpy as np
 import pandas as pd
 
+from cycle_analytics.model.exceptions import GoalSetupError
 from cycle_analytics.utils.base import format_float, format_seconds
 
 
@@ -33,6 +34,7 @@ class TemporalType(str, Enum):
 class GoalType(str, Enum):
     MANUAL = "manual"
     RIDE = "ride"
+    LOCATION = "location"
 
 
 class AggregationType(str, Enum):
@@ -109,6 +111,13 @@ def agg_manual_goal(value: float, agg: AggregationType) -> float:
         raise NotImplementedError("Type %s not yet implemented" % agg)
 
 
+def agg_location_goal(data: pd.DataFrame, agg: AggregationType) -> float:
+    if agg in [AggregationType.COUNT]:
+        return len(data)
+    else:
+        raise NotImplementedError("Type %s not yet implemented" % agg)
+
+
 def is_acceptable_aggregation(goal_type: GoalType, agg: AggregationType) -> bool:
     if goal_type == GoalType.MANUAL:
         return agg in [AggregationType.COUNT, AggregationType.DURATION]
@@ -120,6 +129,8 @@ def is_acceptable_aggregation(goal_type: GoalType, agg: AggregationType) -> bool
             AggregationType.MAX_DISTANCE,
             AggregationType.DURATION,
         ]
+    elif goal_type == GoalType.LOCATION:
+        return agg in [AggregationType.COUNT]
     else:
         raise NotImplementedError
 
@@ -136,7 +147,7 @@ class Goal(ABC):
         year: int,
         month: None | int,
         reached: bool,
-        constraints: None | dict[str, list[str]],
+        constraints: None | dict[str, list[str] | float | int],
         active: bool,
         value: None | float,
     ) -> None:
@@ -200,6 +211,28 @@ class Goal(ABC):
     def goal_type(self) -> GoalType:
         ...
 
+    def _filter_date_dataframe(self, data: pd.DataFrame) -> pd.DataFrame:
+        if "date" not in data.columns:
+            raise RuntimeError
+
+        if self.temporal_type is TemporalType.MONTHLY:
+            if self.month is None:
+                raise RuntimeError
+            month_start = date(self.year, self.month, 1)
+            if self.month == 12:
+                next_month_start = date(self.year + 1, 1, 1)
+            else:
+                next_month_start = date(self.year, self.month + 1, 1)
+
+            return data[(data.date >= month_start) & (data.date < next_month_start)]
+        elif self.temporal_type is TemporalType.YEARLY:
+            year_begin = date(self.year, 1, 1)
+            year_end = date(self.year, 12, 31)
+
+            return data[(data.date >= year_begin) & (data.date <= year_end)]
+        else:
+            raise NotImplementedError
+
     def _apply_constraints(self, data: pd.DataFrame) -> pd.DataFrame:
         if self.constraints is None:
             return data
@@ -255,23 +288,7 @@ class RideGoal(Goal):
         )
 
     def _relevant_data(self, data: pd.DataFrame) -> pd.DataFrame:
-        if self.temporal_type is TemporalType.MONTHLY:
-            if self.month is None:
-                raise RuntimeError
-            month_start = date(self.year, self.month, 1)
-            if self.month == 12:
-                next_month_start = date(self.year + 1, 1, 1)
-            else:
-                next_month_start = date(self.year, self.month + 1, 1)
-
-            return data[(data.date >= month_start) & (data.date < next_month_start)]
-        elif self.temporal_type is TemporalType.YEARLY:
-            year_begin = date(self.year, 1, 1)
-            year_end = date(self.year, 12, 31)
-
-            return data[(data.date >= year_begin) & (data.date <= year_end)]
-        else:
-            raise NotImplementedError
+        return self._filter_date_dataframe(data)
 
     @property
     def goal_type_repr(self) -> str:
@@ -293,7 +310,7 @@ class ManualGoal(Goal):
             )
 
         if self.month is not None and self.month == 0:
-            raise NotImplementedError(
+            raise GoalSetupError(
                 "Implicit monthly goals are not supported for manual goals"
             )
 
@@ -321,6 +338,76 @@ class ManualGoal(Goal):
     @property
     def goal_type(self) -> GoalType:
         return GoalType.MANUAL
+
+
+@final
+class LocationGoal(Goal):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+
+        if not is_acceptable_aggregation(GoalType.MANUAL, self.aggregation_type):
+            raise NotImplementedError(
+                f"Aggregation {self.aggregation_type} is not supported for ManualGoals"
+            )
+
+        if self.constraints is None or "id_location" not in self.constraints.keys():
+            raise GoalSetupError(
+                "Constraints must be set and contain *id_location* as key"
+            )
+
+        if not isinstance(self.constraints["id_location"], int):
+            raise GoalSetupError("id_location constraint must be int")
+
+        if "max_distance" in self.constraints:
+            if not isinstance(self.constraints["max_distance"], (float, int)):
+                raise GoalSetupError("max_distance constraint must be float or int")
+
+    def has_been_reached(self, data: pd.DataFrame) -> bool:
+        return self.evaluate(data).reached
+
+    def evaluate(self, data: pd.DataFrame) -> GoalEvaluation:
+        """Evaluate the goal gainst the passed location data.
+
+        :param data: Dataframe with columns location_id, distance, ride_id, year,
+            month, terrain_type, and bike_name
+        :return: _description_
+        """
+        if self.constraints is None:
+            raise RuntimeError
+
+        if data.empty:
+            return GoalEvaluation(False, 0, 0 if self.is_upper_bound else np.nan)
+
+        mask = data.location_id == self.constraints["id_location"]
+        max_distance: None | float = self.constraints.get("max_distance", None)  # type: ignore
+        ride_types: None | list[str] = self.constraints.get("ride_type", None)  # type: ignore
+        bikes: None | list[str] = self.constraints.get("bike", None)  # type: ignore
+        if max_distance is not None:
+            mask = mask & (data.distance <= max_distance)
+        if ride_types is not None:
+            mask = mask & data.ride_type.isin(ride_types)
+        if bikes is not None:
+            mask = mask & data.bike_name.isin(bikes)
+
+        relevant_data = self._filter_date_dataframe(data[mask])
+        if relevant_data.empty:
+            return GoalEvaluation(False, 0, 0 if self.is_upper_bound else np.nan)
+
+        aggregated_value = agg_location_goal(relevant_data, self.aggregation_type)
+
+        return GoalEvaluation(
+            self._check(aggregated_value),
+            aggregated_value,
+            self._calc_progress(aggregated_value),
+        )
+
+    @property
+    def goal_type_repr(self) -> str:
+        return f"{self.temporal_type.value}LocationGoal"
+
+    @property
+    def goal_type(self) -> GoalType:
+        return GoalType.LOCATION
 
 
 def format_goals_concise(goals: list[Goal]) -> list[ConciseGoal]:

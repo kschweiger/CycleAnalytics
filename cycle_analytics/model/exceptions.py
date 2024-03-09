@@ -1,0 +1,2 @@
+class GoalSetupError(Exception):
+    pass

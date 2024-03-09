@@ -171,6 +171,34 @@ from cycle_analytics.model.goal import GoalType
             "/add/goal/manual",
             GoalType.MANUAL,
         ),
+        # ~~~~~~~~~~~~~~ LOCATION GOALS ~~~~~~~~~~~~~~~~~~~
+        (
+            [
+                ("location", "Loc 1"),
+                ("month", "12"),
+                ("aggregation_type", "count"),
+                ("threshold", "2"),
+                ("boundary", "1"),
+                ("max_distance", "22.2"),
+                ("bike", "Bike 1"),
+                ("bike", "Bike 2"),
+                ("ride_types", "MTB"),
+                ("ride_types", "Road"),
+            ],
+            {
+                "constraints": {
+                    "bike": ["Bike 1", "Bike 2"],
+                    "ride_type": ["MTB", "Road"],
+                    "max_distance": 22.2,
+                    "id_location": 1,
+                },
+                "aggregation_type": "count",
+                "is_upper_bound": True,
+                "threshold": 2.0,
+            },
+            "/add/goal/location",
+            GoalType.LOCATION,
+        ),
     ],
 )
 def test_add_goal(

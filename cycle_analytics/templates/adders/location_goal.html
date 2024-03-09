@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div class="m-1 p-2 border rounded-3">
+<div class="m-1 p-1 border rounded-3">
     <h4>{{ title }}</h4>
     <form method="POST" enctype="multipart/form-data">
         {{ form.csrf_token }}
@@ -30,21 +30,7 @@
                 {% endfor %}
             </div>
         </div>
-        {% if goal_type == "location"%}
-        <div class="row mt-2">
-            <div class="col">
-                {{form.location.label(class_="form-label") }}
-                {{form.location(class_="form-control", placeholder_=form.location.description,
-                list="location_datalist")}}
-                <datalist id="location_datalist">
-                    {% for location in locations %}
-                    <option value="{{ location.name }}"></option>
-                    {% endfor %}
-                </datalist>
-            </div>
-        </div>
-        {%endif%}
-        <div class=" row mt-2">
+        <div class="row  mt-2">
             <div class="col">
                 {{form.aggregation_type.label(class_="form-label") }}
                 {{form.aggregation_type(class_="form-select")}}
@@ -58,33 +44,7 @@
                 {{form.boundary(class_="form-select")}}
             </div>
         </div>
-        <div class="row mt-2">
-            <div class="col">
-                {{form.description.label(class_="form-label") }}
-                {{form.description(class_="form-control", placeholder_=form.description.description)}}
-            </div>
-        </div>
-        {% if goal_type == "ride" or goal_type == "location"%}
-        <div class="row">
-            <div class="text-success">
-                <hr>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col fw-lighter">Constraints</div>
-        </div>
-        {% endif %}
-        {% if goal_type == "location" %}
-        <div class="row mt-2">
-            <div class="col">
-                {{form.max_distance.label(class_="form-label") }}
-                {{form.max_distance(class_="form-control", placeholder_=form.max_distance.description)}}
-            </div>
-
-            <div class="col"></div>
-        </div>
-        {% endif %}
-        {% if goal_type == "ride" or goal_type == "location"%}
+        {% if goal_type == "ride" %}
         <div class="row  mt-2">
             <div class="col">
                 {{form.bike.label(class_="form-label") }}
@@ -95,7 +55,7 @@
         </div>
         <div class="row">
             <div class="col form-label fw-lighter">
-                {{form.bike.description}}
+                Optional constrain on the bike. Separate multiple bikes via commas.
             </div>
             <div class="col form-label fw-lighter">
                 {{form.ride_types.description}}
@@ -103,20 +63,22 @@
         </div>
         <div class="row">
             <div class="col">
-                {{form.bike(class_="form-control", size_="{{form.bike.choices|length}}")}}
+                {{form.bike(class_="form-control", size_="3")}}
             </div>
             <div class="col">
-                {{form.ride_types(class_="form-select", size_="{{form.ride_types.choices|length}}")}}
+                {{form.ride_types(class_="form-select", size_="3")}}
             </div>
         </div>
         {% endif %}
-
-
-
+        <div class="col"></div>
         <div class="row mt-2">
             <div class="col">
-                <input type="submit" value="Submit" class="btn btn-success w-100">
+                {{form.description.label(class_="form-label") }}
+                {{form.description(class_="form-control", placeholder_=form.description.description)}}
             </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col text-end"><input type="submit" value="Submit" class="btn btn-success"></div>
         </div>
     </form>
 </div>

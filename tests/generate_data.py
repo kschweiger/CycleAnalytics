@@ -12,6 +12,7 @@ from cycle_analytics.database.model import (
     Bike,
     DatabaseEvent,
     DatabaseGoal,
+    DatabaseLocation,
     DatabaseSegment,
     DatabaseTrack,
     Difficulty,
@@ -22,6 +23,7 @@ from cycle_analytics.database.model import (
     SegmentType,
     Severity,
     TerrainType,
+    TrackLocationAssociation,
     TypeSpecification,
 )
 
@@ -228,16 +230,14 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
         power=power[30:],
     )
 
-    ride_3.tracks.extend(
-        [
-            DatabaseTrack(
-                content=track_with_extensions.get_xml().encode(),
-                added=datetime(this_year, 8, 2, 18),
-                is_enhanced=True,
-                overviews=initialize_overviews(track_with_extensions),
-            ),
-        ]
+    extension_db_track = DatabaseTrack(
+        content=track_with_extensions.get_xml().encode(),
+        added=datetime(this_year, 8, 2, 18),
+        is_enhanced=True,
+        overviews=initialize_overviews(track_with_extensions),
     )
+
+    ride_3.tracks.extend([extension_db_track])
 
     database.session.add_all([ride_0, ride_1, ride_2, ride_3])
     database.session.commit()
@@ -399,5 +399,55 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
                 is_upper_bound=True,
             ),
         ]
+    )
+    database.session.commit()
+
+    database.session.add_all(
+        [
+            DatabaseLocation(
+                latitude=47.940564453431236, longitude=7.867881953716279, name="Loc 1"
+            ),
+            DatabaseLocation(
+                latitude=47.938265883037424, longitude=7.866286039352418, name="Loc 2"
+            ),
+            DatabaseLocation(latitude=40, longitude=9, name="Location 1"),
+            DatabaseLocation(
+                latitude=41,
+                longitude=9.5,
+                name="Location 2",
+                description="Description for location 2",
+            ),
+        ]
+    )
+    database.session.commit()
+    location_for_goal = DatabaseLocation(
+        latitude=47.99609 + 0.0002,
+        longitude=7.849401 + 0.0002,
+        name="Goal Location",
+    )
+
+    database.session.add(location_for_goal)
+    database.session.commit()
+
+    database.session.add(
+        DatabaseGoal(
+            year=this_year,
+            month=None,
+            name="Default location goal",
+            goal_type="location",
+            aggregation_type="count",
+            threshold=1,
+            is_upper_bound=True,
+            constraints={"id_location": location_for_goal.id},
+        ),
+    )
+    database.session.commit()
+
+    database.session.add(
+        TrackLocationAssociation(
+            location_id=location_for_goal.id,
+            track_id=extension_db_track.id,
+            distance=10,
+        )
     )
     database.session.commit()

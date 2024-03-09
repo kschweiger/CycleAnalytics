@@ -8,12 +8,13 @@ from flask import Flask
 from flask.testing import FlaskClient
 from geo_track_analyzer import PyTrack
 from gpxpy.gpx import GPXTrack
-from pytest_mock import MockerFixture
+from pytest_mock import MockerFixture, MockFixture
 from sqlalchemy import select
 from werkzeug.datastructures import MultiDict
 
 from cycle_analytics.database.model import (
     Bike,
+    DatabaseLocation,
     DatabaseSegment,
     DatabaseTrack,
     Ride,
@@ -30,6 +31,7 @@ from cycle_analytics.utils.base import unwrap
         ("/", 200),
         ("/overview/", 200),
         ("/goals/", 200),
+        ("/locations/", 200),
         ("/events/", 200),
         ("/segments/", 200),
         ("/settings/", 200),
@@ -51,11 +53,14 @@ def test_views_empty_database(
         ("/overview/journal", 200),
         ("/overview/heatmap", 200),
         ("/goals/", 200),
+        ("/locations/", 200),
         ("/events/", 200),
         ("/add/ride", 200),
         ("/add/event", 200),
         ("/add/goal", 200),
         ("/segments/", 200),
+        ("/segments/?show_locations=1", 200),
+        ("/segments/?show_locations=A", 200),
         ("/segments/add", 200),
         ("/segments/show/6", 200),
         ("/add/bike", 200),
@@ -236,3 +241,20 @@ def test_view_all_segments(app: Flask, client: FlaskClient) -> None:
     for segment_id in segment_ids:
         response = client.get(f"segments/show/{segment_id}")
         assert response.status_code == 200
+
+
+def test_view_all_locations(app: Flask, client: FlaskClient) -> None:
+    with app.app_context():
+        for location in get_unique_model_objects_in_db(DatabaseLocation):
+            location_id = location.id
+            response = client.get(f"/locations/show/{location_id}")
+            assert response.status_code == 200
+
+
+def test_view_location_empty_database(
+    mocker: MockFixture, app: Flask, client: FlaskClient
+) -> None:
+    mocker.patch("cycle_analytics.locations.get_locations", return_value=[])
+
+    response = client.get("/locations/")
+    assert response.status_code == 200

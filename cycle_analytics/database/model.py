@@ -38,6 +38,18 @@ ride_note = db.Table(
 )
 
 
+class TrackLocationAssociation(Base):
+    __tablename__: str = "rel_location_track"  # Avoid naming conflicts
+
+    location_id: Mapped[int] = mapped_column(
+        db.Integer, db.ForeignKey("location.id"), primary_key=True
+    )
+    track_id: Mapped[int] = mapped_column(
+        db.Integer, db.ForeignKey("track.id"), primary_key=True
+    )
+    distance: Mapped[float] = mapped_column(db.Float, nullable=False)
+
+
 class TerrainType(Base):
     __tablename__ = "terrain_type"
 
@@ -420,6 +432,32 @@ class DatabaseSegment(Base):
     max_elevation: Mapped[Optional[float]] = mapped_column(db.Float, default=None)
     uphill_elevation: Mapped[Optional[float]] = mapped_column(db.Float, default=None)
     downhill_elevation: Mapped[Optional[float]] = mapped_column(db.Float, default=None)
+
+
+class DatabaseLocation(Base):
+    __tablename__: str = "location"
+
+    id: Mapped[int] = mapped_column(
+        db.Integer, primary_key=True, autoincrement=True, init=False
+    )
+    latitude: Mapped[float] = mapped_column(db.Float, nullable=False)
+    longitude: Mapped[float] = mapped_column(db.Float, nullable=False)
+    name: Mapped[str] = mapped_column(db.String, nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(db.TEXT, default=None)
+
+    tracks: Mapped[list[DatabaseTrack]] = relationship(
+        "DatabaseTrack",
+        secondary=TrackLocationAssociation.__table__,
+        backref="location",
+        lazy=True,
+        default_factory=lambda: [],
+    )
+
+    def __str__(self) -> str:
+        return (
+            f"DatabaseLocation({self.id=},{self.latitude=:6f},{self.longitude=:6f},"
+            f"{self.name=},n_tracks={len(self.tracks)})".replace("self.", "")
+        )
 
 
 # @dataclass

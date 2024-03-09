@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block head_scripts %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+<script src="{{ url_for('static', filename='map_utils.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="m-1 p-2 border rounded-3">
+    <div class="row">
+        <h4>Locations</h4>
+    </div>
+
+    {% if location_markers|length > 0 %}
+    <div id="map" style="height:600px"></div>
+    {% else %}
+    <div>
+        <p> No locations found in database. A map will be displayed here once locations are added. </br> Go to:
+        <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='%236c757d'/%3E%3C/svg%3E&#34;);"
+            aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">Add</li>
+                <li class="breadcrumb-item" aria-current="page">
+                    <a href="{{url_for('adders.add_location')}}">Location</a>
+                </li>
+            </ol>
+        </nav>
+        </p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+
+{% block body_scripts %}
+{% if location_markers|length > 0 %}
+<script>
+    show_map_with_markers("map",
+        [{% for marker in location_markers %}
+    new EventMarker({{ marker.latitude }}, {{ marker.longitude }}, "{{marker.color}}", {{ marker.color_idx }}, "{{marker.popup_text | safe}}")
+    {% if loop.index < (location_markers | length) %}, {% endif %}
+    {% endfor %}])
+</script>
+{%endif%}
+{% endblock %}

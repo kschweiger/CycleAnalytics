@@ -7,8 +7,14 @@ from wtforms import RadioField, SelectField
 from wtforms.validators import DataRequired
 
 from cycle_analytics.database.modifier import update_manual_goal_value
+from cycle_analytics.database.retriever import resolve_track_location_association
 from cycle_analytics.model.base import GoalDisplayData, GoalInfoData, ManualGoalSetting
-from cycle_analytics.model.goal import AggregationType, ManualGoal, RideGoal
+from cycle_analytics.model.goal import (
+    AggregationType,
+    LocationGoal,
+    ManualGoal,
+    RideGoal,
+)
 from cycle_analytics.utils import get_month_mapping
 from cycle_analytics.utils.base import format_description, unwrap
 
@@ -145,7 +151,7 @@ def overview() -> str:
     month_goals = [g for g in goals if g.month == load_month]
 
     data = convert_rides_to_df(get_rides_in_timeframe(load_year))
-
+    data_location = resolve_track_location_association(str(load_year))
     year_goal_displays = []
     month_goal_displays = []
     # TODO: Add update of has_been_reached column
@@ -164,7 +170,8 @@ def overview() -> str:
                 manual_setting.decreasable = True
                 if goal.value is None or goal.value < 1:
                     manual_setting.decreasable = False
-
+        elif isinstance(goal, LocationGoal):
+            evaluation = goal.evaluate(data_location)
         # status, current_value, progress = goal.evaluate(data)
         goal_data = GoalDisplayData(
             goal_id=str(goal.id),

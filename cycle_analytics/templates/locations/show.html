@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-1 m-1 border rounded-3">
+    <h3>Location {{location.name}}</h3>
+    {% if location.description is not none%}
+    <p class="text-body-secondary">
+        {{location.description}}
+    </p>
+    {%endif%}
+
+    {% if contained_ride_table[1]|length > 0 %}
+    <h4> Rides associated with this location</h4>
+    <div class="mt-3 p-2 ">
+        <table class="table">
+            <thead>
+                {% for heading in contained_ride_table[0]%}
+                <th scope="col">
+                    <div>{{heading}}</div>
+                </th>
+                {% endfor %}
+                {% if modify_segments_clicked%}
+                <th scope="col">Of interest</th>
+                {%endif%}
+            </thead>
+            <tbody>
+                {% for row in contained_ride_table[1]%}
+                <tr>
+                    {% for element in row %}
+                    {% if loop.index == 1 %}
+                    <td>
+                        <a href="{{url_for('ride.display', id_ride=element[0])}}">{{element[1]}}</a>
+                    </td>
+                    {%else%}
+                    <td>{{element}}</td>
+                    {%endif%}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+
+    </div>
+    {%endif%}
+
+
+</div>
+
+{% endblock %}

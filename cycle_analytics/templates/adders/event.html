@@ -59,7 +59,7 @@
             </div>
         </div>
         <div class="row mt-2">
-            <div class="col text-end"><input type="submit" value="Submit" class="btn btn-success"></div>
+            <div class="col"><input type="submit" value="Submit" class="btn btn-success  w-100"></div>
         </div>
     </form>
 </div>
@@ -68,7 +68,7 @@
         The location can be inserted by hand or selected via the map available after clicking the button below.
     </div>
     <div>
-        <button id="btn_open_map" type="button" class="btn btn-success" {% if map_data is none %}
+        <button id="btn_open_map" type="button" class="btn btn-success w-100" {% if map_data is none %}
             onclick="show_map_for_form('map','btn_open_map','400',{{init_map_view[0]}},{{init_map_view[1]}},{{init_map_view[2]}})"
             {% else %} onclick="show_map_for_form_path('map','btn_open_map','600',
                                                        '{{ map_data.paths[0].latitudes}}',

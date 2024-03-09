@@ -32,6 +32,7 @@ from cycle_analytics.database.model import DatabaseSegment, Difficulty, SegmentT
 from cycle_analytics.database.model import db as orm_db
 from cycle_analytics.database.modifier import modify_segment_visited_flag
 from cycle_analytics.database.retriever import (
+    get_locations,
     get_segments_for_map_in_bounds,
     get_unique_model_objects_in_db,
 )
@@ -46,7 +47,7 @@ from cycle_analytics.rest_models import (
     SegmentsInBoundsResponse,
 )
 from cycle_analytics.utils import find_closest_elem_to_poi
-from cycle_analytics.utils.base import unwrap
+from cycle_analytics.utils.base import convert_locations_to_markers, unwrap
 from cycle_analytics.utils.forms import flash_form_error
 
 logger = logging.getLogger(__name__)
@@ -80,7 +81,22 @@ class AddMapSegmentForm(FlaskForm):
 
 @bp.route("/", methods=("GET", "POST"))
 def main() -> str | Response:
-    return render_template("segments/overview.html", active_page="segments")
+    try:
+        show_locations = bool(int(request.args.get("show_locations", 0)))
+    except ValueError:
+        show_locations = False
+
+    if show_locations:
+        location_markers = convert_locations_to_markers(get_locations())
+    else:
+        location_markers = []
+
+    return render_template(
+        "segments/overview.html",
+        active_page="segments",
+        location_markers=location_markers,
+        locations_are_shown=show_locations,
+    )
 
 
 @bp.route("/show/<int:id_segment>", methods=("GET", "POST"))
@@ -217,10 +233,22 @@ def add_segment() -> str | Response:
     elif request.method == "POST":
         flash_form_error(map_segment_form)
 
+    try:
+        show_locations = bool(int(request.args.get("show_locations", 0)))
+    except ValueError:
+        show_locations = False
+
+    if show_locations:
+        location_markers = convert_locations_to_markers(get_locations())
+    else:
+        location_markers = []
+
     return render_template(
         "segments/add_from_map.html",
         active_page="add_segment",
         map_segment_form=map_segment_form,
+        location_markers=location_markers,
+        locations_are_shown=show_locations,
     )
 
 
