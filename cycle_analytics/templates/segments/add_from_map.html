@@ -54,9 +54,9 @@
                     {{ map_segment_form.segment_latitudes() }}
                     {{ map_segment_form.segment_longitudes() }}
                     {{ map_segment_form.segment_elevations() }}
-                    <div class="row  align-items-end">
+                    <div class="row align-items-end">
                         <div class="col">
-                            <button id="get_path" type="button" class="w-100 align-bottom  btn btn-success"
+                            <button id="get_path" type="button" class="w-100 align-bottom btn btn-success"
                                 onclick="calc_route('{{ csrf_token() }}', map)">
                                 Find path
                                 <div id="get_path_spinner" role="status"></div>

@@ -181,7 +181,7 @@ def summarize_rides_in_month(
 
 
 def convert_database_goals(data: list[DatabaseGoal]) -> list[Goal]:
-    from cycle_analytics.model.goal import GoalType, ManualGoal, RideGoal
+    from cycle_analytics.model.goal import GoalType, LocationGoal, ManualGoal, RideGoal
 
     def generate_goals(goal_type: Type[Goal], data: dict) -> list[Goal]:
         goals = []
@@ -203,9 +203,10 @@ def convert_database_goals(data: list[DatabaseGoal]) -> list[Goal]:
         _type = GoalType(goal_dict.pop("goal_type"))
         if _type == GoalType.RIDE:
             goals.extend(generate_goals(RideGoal, goal_dict))
-
         elif _type == GoalType.MANUAL:
             goals.extend(generate_goals(ManualGoal, goal_dict))
+        elif _type == GoalType.LOCATION:
+            goals.extend(generate_goals(LocationGoal, goal_dict))
         else:
             raise NotImplementedError
 

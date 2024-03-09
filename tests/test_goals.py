@@ -9,6 +9,7 @@ from cycle_analytics.model.goal import (
     ConciseGoal,
     Goal,
     GoalEvaluation,
+    LocationGoal,
     ManualGoal,
     RideGoal,
     TemporalType,
@@ -309,3 +310,53 @@ def test_constraints(constraints: dict[str, list[str]], exp_len: int) -> None:
     )
 
     assert len(goal._apply_constraints(data)) == exp_len
+
+
+@pytest.mark.parametrize(
+    ("constraints", "exp_count"),
+    [
+        ({"id_location": 1}, 3),
+        ({"id_location": 1, "max_distance": 50}, 2),
+        ({"id_location": 1, "ride_type": ["MTB"]}, 2),
+        ({"id_location": 1, "bike": ["Name 1"]}, 2),
+        ({"id_location": 1, "bike": ["Name 1"], "ride_type": ["Road"]}, 1),
+    ],
+)
+def test_location_goal(constraints: dict, exp_count: int) -> None:
+    kwargs = {
+        "id": 1,
+        "year": 2023,
+        "month": None,
+        "name": "YearlyGoal",
+        "aggregation_type": AggregationType.COUNT,
+        "threshold": 5,
+        "is_upper_bound": True,
+        "description": "Description Location Goal",
+        "reached": False,
+        "constraints": constraints,
+        "active": True,
+        "value": None,
+    }
+
+    goal = LocationGoal(**kwargs)
+
+    goal_evaluation = goal.evaluate(
+        pd.DataFrame(
+            {
+                "location_id": [2, 1, 1, 1, 4],
+                "distance": [19, 100, 10, 50, 10],
+                "ride_id": [10, 1, 2, 3, 22],
+                "date": [
+                    date(2023, 1, 1),
+                    date(2023, 1, 1),
+                    date(2023, 2, 1),
+                    date(2023, 3, 1),
+                    date(2024, 3, 1),
+                ],
+                "ride_type": ["MTB", "MTB", "Road", "MTB", "MTB"],
+                "bike_name": ["Name 1", "Name 1", "Name 1", "Name 2", "Name 2"],
+            }
+        )
+    )
+
+    assert goal_evaluation.current == exp_count

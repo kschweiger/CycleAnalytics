@@ -22,7 +22,7 @@ def test_match_locations_to_track(app: Flask, client: FlaskClient) -> None:
     with app.app_context():
         stmt = select(TrackLocationAssociation)
         track_locations_matches = orm_db.session.scalars(stmt).unique().all()
-        assert len(track_locations_matches) == 0
+        len_pre = len(track_locations_matches)
 
     # NOTE: Track 2 should be from freiburg to Schauinsland from the
     # NOTE: Freiburger_Münster_nach_Schau_Ins_Land.gpx file
@@ -32,7 +32,7 @@ def test_match_locations_to_track(app: Flask, client: FlaskClient) -> None:
     with app.app_context():
         stmt = select(TrackLocationAssociation)
         track_locations_matches = orm_db.session.scalars(stmt).unique().all()
-        assert len(track_locations_matches) == 1
+        assert len(track_locations_matches) == len_pre + 1
 
 
 def test_remove_location(app: Flask, client: FlaskClient) -> None:

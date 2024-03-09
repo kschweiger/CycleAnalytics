@@ -13,6 +13,7 @@ from flask import (
 )
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from werkzeug import Response
 from wtforms import (
@@ -190,6 +191,28 @@ class ManualGoalForm(GoalBaseForm):
             for g in AggregationType
             if is_acceptable_aggregation(GoalType.MANUAL, g)
         ],
+    )
+
+
+class LocationGoalFrom(RideGoalForm):
+    location = StringField(
+        "Location",
+        validators=[DataRequired()],
+        description="Select a locations by name from the locations in the database",
+    )
+    aggregation_type = SelectField(
+        "Type",
+        validators=[DataRequired()],
+        choices=[
+            (g.value, g.description)
+            for g in AggregationType
+            if is_acceptable_aggregation(GoalType.LOCATION, g)
+        ],
+    )
+    max_distance = DecimalField(
+        "Max distance from track",
+        validators=[Optional()],
+        description="Optional constrain on the distance between track and location",
     )
 
 
@@ -425,70 +448,94 @@ def add_goal() -> str | Response:
 def add_goal_by_type(type: GoalType) -> RideGoalForm | ManualGoalForm:
     if type == GoalType.RIDE:
         form = RideGoalForm()
+
+    elif type == GoalType.MANUAL:
+        form = ManualGoalForm()
+    elif type == GoalType.LOCATION:
+        form = LocationGoalFrom()
+        form.max_distance.validators.append(
+            NumberRange(10, current_app.config.matching.distance)
+        )
+    else:
+        raise NotImplementedError
+
+    if type == GoalType.RIDE or type == GoalType.LOCATION:
         form.ride_types.choices = [
             (tt.text, tt.text) for tt in get_unique_model_objects_in_db(TerrainType)
         ]
         form.bike.choices = [
             (b.name, b.name) for b in get_unique_model_objects_in_db(Bike)
         ]
-    elif type == GoalType.MANUAL:
-        form = ManualGoalForm()
-    else:
-        raise NotImplementedError
 
     if form.validate_on_submit():
         constraints = {}
-        if isinstance(form, (RideGoalForm)):
+        if isinstance(form, (RideGoalForm, LocationGoalFrom)):
             if form.bike.data:
                 constraints["bike"] = form.bike.data
             if form.ride_types.data:
                 constraints["ride_type"] = form.ride_types.data
+        if isinstance(form, LocationGoalFrom):
+            if form.max_distance.data:
+                constraints["max_distance"] = float(form.max_distance.data)
+            location_name: str = unwrap(form.location.data)
+            stmt = select(DatabaseLocation).filter(
+                DatabaseLocation.name == location_name
+            )
+
+            location = orm_db.session.execute(stmt).first()
+            if location is None:
+                flash(f"Cannot load location {location_name}", "alert-danger")
+                return form
+            constraints["id_location"] = next(iter(location)).id
+
         if not constraints:
             constraints = None
+
         if form.month.data not in [None] + list(
             map(str, [-1, -2, 0] + list(range(1, 13)))
         ):
             flash(f"Invalid month value {form.month.data}", "alert-danger")
-        else:
-            month_values: list[None | int] = []
-            # Yearly goal
-            if form.month.data == "-1":
-                month_values = [None]
-            # Current and future month
-            elif form.month.data == "-2":
-                month_values = list(range(date.today().month, 13))
-            # All month
-            elif form.month.data == "0":
-                if form.multi_month_explicit.data is not None:
-                    month_values = list(range(1, 13))
-                else:
-                    month_values = [0]
-            else:
-                month_values = [int(form.month.data)]
+            return form
 
-            goals = [
-                DatabaseGoal(
-                    year=int(unwrap(form.year.data)),
-                    month=month_value,
-                    name=unwrap(form.name.data),
-                    goal_type=type,
-                    aggregation_type=form.aggregation_type.data,
-                    threshold=float(unwrap(form.threshold.data)),
-                    is_upper_bound=bool(int(form.boundary.data)),
-                    constraints=constraints,
-                    description=None
-                    if form.description.data == ""
-                    else form.description.data,
-                )
-                for month_value in month_values
-            ]
-            orm_db.session.add_all(goals)
-            try:
-                orm_db.session.commit()
-            except IntegrityError as e:
-                flash("Error: %s" % e, "alert-danger")
+        month_values: list[None | int] = []
+        # Yearly goal
+        if form.month.data == "-1":
+            month_values = [None]
+        # Current and future month
+        elif form.month.data == "-2":
+            month_values = list(range(date.today().month, 13))
+        # All month
+        elif form.month.data == "0":
+            if form.multi_month_explicit.data is not None:
+                month_values = list(range(1, 13))
             else:
-                flash("Goal Added", "alert-success")
+                month_values = [0]
+        else:
+            month_values = [int(form.month.data)]
+
+        goals = [
+            DatabaseGoal(
+                year=int(unwrap(form.year.data)),
+                month=month_value,
+                name=unwrap(form.name.data),
+                goal_type=type,
+                aggregation_type=form.aggregation_type.data,
+                threshold=float(unwrap(form.threshold.data)),
+                is_upper_bound=bool(int(form.boundary.data)),
+                constraints=constraints,
+                description=None
+                if form.description.data == ""
+                else form.description.data,
+            )
+            for month_value in month_values
+        ]
+        orm_db.session.add_all(goals)
+        try:
+            orm_db.session.commit()
+        except IntegrityError as e:
+            flash("Error: %s" % e, "alert-danger")
+        else:
+            flash("Goal Added", "alert-success")
 
     return form
 
@@ -522,6 +569,23 @@ def add_goal_manual() -> str | Response:
         goal_type=GoalType.MANUAL,
         title="Add a new manual goal",
         form=form,
+    )
+
+
+@bp.route("/goal/location", methods=("GET", "POST"))
+def add_goal_location() -> str | Response:
+    form = add_goal_by_type(GoalType.LOCATION)
+    locations = get_locations()
+    if request.method == "POST":
+        flash_form_error(form)
+
+    return render_template(
+        "adders/goal.html",
+        active_page="add_goal",
+        goal_type=GoalType.LOCATION,
+        title="Add a new location goal",
+        form=form,
+        locations=locations,
     )
 
 

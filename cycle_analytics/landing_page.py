@@ -16,9 +16,15 @@ from cycle_analytics.database.retriever import (
     get_ride_years_in_database,
     get_rides_in_timeframe,
     load_goals,
+    resolve_track_location_association,
 )
 from cycle_analytics.forms import YearAndRideTypeForm
-from cycle_analytics.model.goal import ManualGoal, RideGoal, format_goals_concise
+from cycle_analytics.model.goal import (
+    LocationGoal,
+    ManualGoal,
+    RideGoal,
+    format_goals_concise,
+)
 from cycle_analytics.utils import get_month_mapping
 from cycle_analytics.utils.base import unwrap
 
@@ -93,6 +99,7 @@ def render_landing_page() -> str:
     # -----------------------------------------------------------------------------
     # TODO: Check if this takes too long with more data. Maybe add an update button
     data = convert_rides_to_df(get_rides_in_timeframe(goal_year_selected))
+    data_locations = resolve_track_location_association(goal_year_selected)
     for goal in display_goals:
         # TODO: This should really work with a list of rides instead of the
         # TODO: dataframe
@@ -100,6 +107,8 @@ def render_landing_page() -> str:
             this_evaluation = goal.evaluate(data)
         elif isinstance(goal, ManualGoal):
             this_evaluation = goal.evaluate()
+        elif isinstance(goal, LocationGoal):
+            this_evaluation = goal.evaluate(data_locations)
         else:
             raise NotImplementedError
         goal.reached = this_evaluation.reached
