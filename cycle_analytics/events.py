@@ -47,11 +47,10 @@ def overview() -> str:
     overview_form.event_type.choices = [(c, c) for c in type_choices]
 
     curr_year = date.today().year
-    overview_form.year.choices = (
-        [(str(curr_year), str(curr_year))]
-        + [(str(y), str(y)) for y in avail_event_years if y != curr_year]
-        + [("All", "All")]
-    )
+
+    years = [curr_year] + avail_event_years
+    year_choices = map(str, ["All"] + sorted(set(years), reverse=True))
+    overview_form.year.choices = [(y, y) for y in year_choices]
 
     # Format the values from the form so it can be used in the queries
     load_year = overview_form.year.data

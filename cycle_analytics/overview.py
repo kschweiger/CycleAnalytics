@@ -130,11 +130,11 @@ def main() -> str:
     ] + [(c, c) for c in type_choices]
 
     curr_year = date.today().year
-    overview_form.year.choices = (
-        [(str(curr_year), str(curr_year))]
-        + [(str(y), str(y)) for y in get_ride_years_in_database() if y != curr_year]
-        + [("All", "All")]
-    )
+
+    years = [curr_year] + get_ride_years_in_database()
+    year_choices = map(str, ["All"] + sorted(set(years), reverse=True))
+    overview_form.year.choices = [(y, y) for y in year_choices]
+
     selected_year = overview_form.year.data
 
     table_headings = [

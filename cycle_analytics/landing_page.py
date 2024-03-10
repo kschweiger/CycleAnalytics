@@ -73,7 +73,9 @@ def render_landing_page() -> str:
     # --------------------- GOALS ---------------------
     goal_years = [
         str(g)
-        for g in sorted(get_goal_years_in_database() + [date_today.year], reverse=True)
+        for g in sorted(
+            set(get_goal_years_in_database() + [date_today.year]), reverse=True
+        )
     ]
     month_mapping = get_month_mapping()
     goal_year_selected = str(date_today.year)
@@ -101,8 +103,6 @@ def render_landing_page() -> str:
     data = convert_rides_to_df(get_rides_in_timeframe(goal_year_selected))
     data_locations = resolve_track_location_association(goal_year_selected)
     for goal in display_goals:
-        # TODO: This should really work with a list of rides instead of the
-        # TODO: dataframe
         if isinstance(goal, RideGoal):
             this_evaluation = goal.evaluate(data)
         elif isinstance(goal, ManualGoal):
@@ -124,11 +124,9 @@ def render_landing_page() -> str:
     ] + [(c, c) for c in config.adders.ride.type_choices]
 
     curr_year = date.today().year
-    summary_form.year.choices = (
-        [(str(curr_year), str(curr_year))]
-        + [(str(y), str(y)) for y in get_ride_years_in_database() if y != curr_year]
-        + [("All", "All")]
-    )
+    years = [curr_year] + get_ride_years_in_database()
+    year_choices = map(str, ["All"] + sorted(set(years), reverse=True))
+    summary_form.year.choices = [(y, y) for y in year_choices]
     summary_year_selected = summary_form.year.data
     select_ride_types_ = summary_form.ride_type.data
     if select_ride_types_ == "Default":
