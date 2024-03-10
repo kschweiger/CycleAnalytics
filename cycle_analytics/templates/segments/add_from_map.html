@@ -55,14 +55,34 @@
                     {{ map_segment_form.segment_longitudes() }}
                     {{ map_segment_form.segment_elevations() }}
                     <div class="row align-items-end">
-                        <div class="col">
+                        <div class="col-3">
                             <button id="get_path" type="button" class="w-100 align-bottom btn btn-success"
                                 onclick="calc_route('{{ csrf_token() }}', map)">
                                 Find path
                                 <div id="get_path_spinner" role="status"></div>
                             </button>
                         </div>
-                        <div class="col">
+                        <div class="col-9"></div>
+                    </div>
+                    <div class="row align-items-end  align-items-center ">
+                        <div class="col ">
+                            <div class="row">
+                                <div class="col">
+                                    <select class="form-select" id="transport_selection" onchange="setStartingValues()">
+                                        {% for mode in transport_modes %}
+                                        <option value="{{mode.mode_name}}"">{{mode.display_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class=" col">
+                                            <button id="show_customize_btn" type="button"
+                                                class="w-100 align-bottom btn btn-success"
+                                                onclick="showSliders()">Customize</button>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class=" col">
                             <div class="form-floating">
                                 {{ map_segment_form.segment_name(class_="form-control",
                                 placeholder_=map_segment_form.segment_name.description, disabled=True)}}
@@ -107,8 +127,34 @@
 
                         </div>
                     </div>
+
                 </form>
             </div>
+        </div>
+        <div class="row py-3 px-1 visually-hidden" id="sliders">
+            <div class="row">
+                <h5>Transport settings</h5>
+            </div>
+
+            {% for i in range(transport_modes[0].weight_names|length)%}
+            <div class="row">
+                <div class="col">
+                    <label for="slider_{{transport_modes[0].weight_names[i]}}"
+                        class="form-label">{{transport_modes[0].weight_display_names[i]}}</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <input type="range" class="form-range" id="slider_{{transport_modes[0].weight_names[i]}}" min="0"
+                        max="10" step="0.1" value="0">
+                </div>
+                <div class="col-1">
+                    <output id="output_{{transport_modes[0].weight_names[i]}}"></output><br>
+                </div>
+            </div>
+            {%endfor%}
+
+
         </div>
     </div>
 </div>
@@ -130,5 +176,53 @@
     new EventMarker({{ marker.latitude }}, {{ marker.longitude }}, "{{marker.color}}", {{ marker.color_idx }}, "{{marker.popup_text | safe}}")
     {% if loop.index < (location_markers | length) %}, {% endif %}
     {% endfor %}]);
+</script>
+<script>
+    function showSliders() {
+        var slidersDiv = document.getElementById("sliders");
+        slidersDiv.classList.remove("visually-hidden");
+        var customizeBtn = document.getElementById("show_customize_btn");
+        customizeBtn.disabled = true;
+    }
+</script>
+<script>
+    var sliders = document.querySelectorAll('input[type="range"]');
+    var outputs = document.querySelectorAll('output');
+
+    function setStartingValues() {
+        var selectedDictionary = document.getElementById("transport_selection").value;
+        var startingValues = getStartingValues(selectedDictionary);
+
+        sliders.forEach(function (slider, index) {
+            slider.value = startingValues[index];
+            outputs[index].textContent = slider.value;
+        });
+    }
+
+
+    function getStartingValues(dictionary) {
+        switch (dictionary) {
+            {% for mode in transport_modes %}
+            case "{{ mode.mode_name }}":
+        return JSON.parse("{{ mode.weight_values }}");
+        {% endfor %}
+
+            default:
+        console.log("Unimplemented mode")
+    }
+    }
+
+    sliders.forEach(function (slider, index) {
+        var output = outputs[index];
+
+        output.textContent = slider.value;
+
+        slider.addEventListener('input', function () {
+            output.textContent = this.value;
+        });
+    });
+
+    // Set starting values on page load
+    setStartingValues();
 </script>
 {%endblock%}

@@ -136,6 +136,88 @@ dataset = "eudem25m"
 [default.matching]
 distance = 500
 
+[default.routing]
+valid_tags = [
+    "primary",
+    "trunk",
+    "secondary",
+    "tertiary",
+    "unclassified",
+    "cycleway",
+    "residential",
+    "living_street",
+    "track",
+    "service",
+    "bridleway",
+    "footway",
+    "steps",
+    "path",
+]
+access = ["access", "vehicle", "bicycle"]
+[default.routing.offroad]
+name = "Offroad"
+[default.routing.offroad.weights]
+primary = 0.05
+trunk = 0.05
+secondary = 0.05
+tertiary = 1
+unclassified = 1
+cycleway = 1
+residential = 1.5
+living_street = 1
+track = 1
+service = 1
+bridleway = 1.5
+footway = 1
+steps = 0.5
+path = 2
+[default.routing.allroad]
+name = "All Road"
+[default.routing.allroad.weights]
+primary = 0.3
+trunk = 0.05
+secondary = 0.9
+tertiary = 1
+unclassified = 1
+cycleway = 2
+residential = 2.5
+living_street = 1
+track = 1
+service = 1
+bridleway = 0.8
+footway = 0.8
+steps = 0.5
+path = 1
+[default.routing.road]
+name = "Road"
+[default.routing.road.weights]
+primary = 0.3
+trunk = 0.1
+secondary = 0.9
+tertiary = 1
+unclassified = 1
+cycleway = 2
+residential = 2.5
+living_street = 1
+track = 0.1
+service = 1
+bridleway = 0.1
+footway = 0.8
+steps = 0.2
+path = 0.01
+
+#############################################################
+#   _____                                                   #
+#  |  __ \                                                  #
+#  | |  | | __ _ _ __   __ _  ___ _ __ _______  _ __   ___  #
+#  | |  | |/ _` | '_ \ / _` |/ _ \ '__|_  / _ \| '_ \ / _ \ #
+#  | |__| | (_| | | | | (_| |  __/ |   / / (_) | | | |  __/ #
+#  |_____/ \__,_|_| |_|\__, |\___|_|  /___\___/|_| |_|\___| #
+#                       __/ |                               #
+#                      |___/                                #
+#                                                           #
+#############################################################
+
 [testing]
 database_schema = "cycle_analytics_testing"
 [testing.matching]

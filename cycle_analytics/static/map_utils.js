@@ -297,6 +297,14 @@ function segment_adder_map(div_id, markers) {
 }
 
 async function calc_route(csrf_token, map) {
+
+    var transport_settings = {};
+    var sliders = document.querySelectorAll('input[type="range"]');
+    sliders.forEach(function (slider) {
+        var sliderID = slider.id.replace('slider_', ''); // Remove the "slider_" prefix
+        transport_settings[sliderID] = parseFloat(slider.value);
+    });
+
     let waypoints = [];
 
     map.eachLayer(function (layer) {
@@ -342,6 +350,7 @@ async function calc_route(csrf_token, map) {
         },
         body: JSON.stringify({
             "waypoints": waypoints,
+            "transport_settings": transport_settings,
         }),
     }
     ).then((response) => response.json()).then((data) => {
