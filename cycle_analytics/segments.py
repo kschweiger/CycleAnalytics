@@ -1,6 +1,8 @@
 import json
 import logging
 from collections import defaultdict
+from copy import deepcopy
+from dataclasses import dataclass
 
 from flask import (
     Blueprint,
@@ -77,6 +79,16 @@ class AddMapSegmentForm(FlaskForm):
     )
     segment_type = SelectField("Type of the segment")
     segment_difficulty = SelectField("Difficulty of the segment", default=0)
+
+
+@dataclass
+class TransportMode:
+    mode_name: str
+    display_name: str
+
+    weight_names: list[str]
+    weight_display_names: list[str]
+    weight_values: list[float]
 
 
 @bp.route("/", methods=("GET", "POST"))
@@ -161,6 +173,33 @@ def add_segment() -> str | Response:
     map_segment_form.segment_difficulty.choices = [
         (d.id, d.text) for d in get_unique_model_objects_in_db(Difficulty)
     ]
+
+    transport_settings = get_transport_settings()
+    transport_modes: list[TransportMode] = []
+    for key, value in transport_settings.items():
+        weights = []
+        names = []
+        values = []
+
+        for weight_name, weight_value in value["weights"].items():
+            weights.append(weight_name)
+            names.append(current_app.config.routing.display_names[weight_name])
+            values.append(weight_value)
+
+        transport_modes.append(
+            TransportMode(
+                mode_name=key,
+                display_name=value["name"],  # type: ignore
+                weight_names=weights,
+                weight_display_names=names,
+                weight_values=values,
+            )
+        )
+
+    n_modes_per_col = 2
+    mode_indices_per_row = []
+    for i in range(0, len(transport_modes[0].weight_names), n_modes_per_col):
+        mode_indices_per_row.append(list(range(i, i + n_modes_per_col)))
 
     if map_segment_form.validate_on_submit():
         points = [
@@ -249,20 +288,62 @@ def add_segment() -> str | Response:
         map_segment_form=map_segment_form,
         location_markers=location_markers,
         locations_are_shown=show_locations,
+        transport_modes=transport_modes,
+        mode_indices_per_row=mode_indices_per_row,
     )
 
 
-def get_router() -> Router:
+def get_default_routing_transport_settings() -> dict:
+    return {
+        "name": None,
+        "access": None,
+        "weights": {t: 0 for t in current_app.config.routing["valid_tags"]},
+    }
+
+
+def get_transport_settings() -> (
+    dict[str, dict[str, str | list[str] | dict[str, float]]]
+):
+    routing_cfg = current_app.config.routing
+
+    default_settings = get_default_routing_transport_settings()
+
+    settings = {}
+    for name in [
+        k
+        for k in routing_cfg.keys()
+        if k not in ["valid_tags", "access", "display_names"]
+    ]:
+        this_settings = deepcopy(default_settings)
+        this_settings["name"] = routing_cfg[name]["name"]
+        this_settings["access"] = routing_cfg["access"]
+        for tag, weight in routing_cfg[name]["weights"].items():
+            this_settings["weights"][tag] = weight
+
+        settings[name] = this_settings
+
+    return settings
+
+
+def get_router(transport: str | dict) -> Router:
     if "osm_router" not in g:
         logger.debug("Initializing router")
-        g.osm_router = Router("cycle")
+        g.osm_router = Router(transport)
     return g.osm_router
 
 
 @bp.route("/calc-route", methods=["POST"])
 def calcualte_route() -> dict | tuple[dict, int]:
     config = current_app.config
-    router = get_router()
+
+    request_transport_settings = request.json["transport_settings"]  # type: ignore
+
+    transport_settings = get_default_routing_transport_settings()
+    transport_settings["name"] = "RequestedMode"
+    transport_settings["access"] = current_app.config.routing.access
+    transport_settings["weights"] = request_transport_settings
+
+    router = get_router(transport_settings)
     waypoints = request.json["waypoints"]  # type: ignore
     calc_route_for = [(waypoints[0], waypoints[1])]
     for waypoint in waypoints[2::]:

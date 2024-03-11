@@ -12,6 +12,29 @@ from werkzeug.datastructures import MultiDict
 from cycle_analytics.segments import merge_route_segments
 
 
+@pytest.fixture()
+def routing_settings() -> dict[str, float]:
+    return {
+        t: 1
+        for t in [
+            "primary",
+            "trunk",
+            "secondary",
+            "tertiary",
+            "unclassified",
+            "cycleway",
+            "residential",
+            "living_street",
+            "track",
+            "service",
+            "bridleway",
+            "footway",
+            "steps",
+            "path",
+        ]
+    }
+
+
 @pytest.mark.parametrize(
     "waypoints",
     [
@@ -19,11 +42,17 @@ from cycle_analytics.segments import merge_route_segments
         [[47.9684, 7.843532], [47.968891, 7.840834], [47.968132, 7.840869]],
     ],
 )
-def test_calc_route(client: FlaskClient, waypoints: list[list[float]]) -> None:
+def test_calc_route(
+    client: FlaskClient,
+    routing_settings: dict[str, float],
+    waypoints: list[list[float]],
+) -> None:
     response = client.post(
         "segments/calc-route",
         headers={"Content-Type": "application/json"},
-        data=json.dumps({"waypoints": waypoints}),
+        data=json.dumps(
+            {"waypoints": waypoints, "transport_settings": routing_settings}
+        ),
     )
     assert response.status_code == 200
     assert response.json is not None
@@ -31,7 +60,11 @@ def test_calc_route(client: FlaskClient, waypoints: list[list[float]]) -> None:
     assert isinstance(response.json["route"], list)
 
 
-def test_calc_route_elevation(mocker: MockerFixture, client: FlaskClient) -> None:
+def test_calc_route_elevation(
+    mocker: MockerFixture,
+    client: FlaskClient,
+    routing_settings: dict[str, float],
+) -> None:
     mock_enhancer = MagicMock
 
     def update_elevation(aa: Any, track: GPXTrack, inplace: bool) -> None:
@@ -47,7 +80,9 @@ def test_calc_route_elevation(mocker: MockerFixture, client: FlaskClient) -> Non
     response = client.post(
         "segments/calc-route",
         headers={"Content-Type": "application/json"},
-        data=json.dumps({"waypoints": waypoints}),
+        data=json.dumps(
+            {"waypoints": waypoints, "transport_settings": routing_settings}
+        ),
     )
 
     assert response.status_code == 200
