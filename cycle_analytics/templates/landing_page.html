@@ -24,6 +24,6 @@
 
 {% block body_scripts %}
 {% for goal in goals%}
-<script>style_goal_indicator("goal_check_{{loop.index}}", {{ goal[3] }})</script>
+<script>style_goal_indicator("goal_check_{{loop.index}}", {{ goal.reached }})</script>
 {% endfor %}
 {% endblock %}
