@@ -154,11 +154,26 @@ valid_tags = [
     "path",
 ]
 access = ["access", "vehicle", "bicycle"]
+[default.routing.display_names]
+primary = "Primary roads"
+trunk = "Motorway-like roads"
+secondary = "Secondary roads"
+tertiary = "Tertiary roads"
+unclassified = "Unclassified roads"
+cycleway = "Cycleways"
+residential = "Residential roads"
+living_street = "Living street"
+track = "Tracks for agricultural or forestry"
+service = "Service roads"
+bridleway = "Tracks (for horse riders and similar)"
+footway = "Designated foot paths"
+steps = "Stairs"
+path = "Path"
 [default.routing.offroad]
 name = "Offroad"
 [default.routing.offroad.weights]
 primary = 0.05
-trunk = 0.05
+trunk = 0.01
 secondary = 0.05
 tertiary = 1
 unclassified = 1
@@ -175,7 +190,7 @@ path = 2
 name = "All Road"
 [default.routing.allroad.weights]
 primary = 0.3
-trunk = 0.05
+trunk = 0.01
 secondary = 0.9
 tertiary = 1
 unclassified = 1
@@ -192,7 +207,7 @@ path = 1
 name = "Road"
 [default.routing.road.weights]
 primary = 0.3
-trunk = 0.1
+trunk = 0.05
 secondary = 0.9
 tertiary = 1
 unclassified = 1

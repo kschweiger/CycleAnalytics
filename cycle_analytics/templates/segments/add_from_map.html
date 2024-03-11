@@ -9,6 +9,14 @@
 
 {% endblock %}
 
+{% block style %}
+<style>
+    .custom-range input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        background-color: #1a8754;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 
@@ -131,26 +139,32 @@
                 </form>
             </div>
         </div>
-        <div class="row py-3 px-1 visually-hidden" id="sliders">
+        <div class="row mt-3 mx-1 py-3 px-2 border rounded-3 bg-body visually-hidden" id="sliders">
             <div class="row">
                 <h5>Transport settings</h5>
             </div>
 
-            {% for i in range(transport_modes[0].weight_names|length)%}
+            {% for row_indices in mode_indices_per_row%}
             <div class="row">
+                {% for idx in row_indices%}
                 <div class="col">
                     <label for="slider_{{transport_modes[0].weight_names[i]}}"
-                        class="form-label">{{transport_modes[0].weight_display_names[i]}}</label>
+                        class="form-label">{{transport_modes[0].weight_display_names[idx]}}</label>
                 </div>
+                {%endfor%}
             </div>
             <div class="row">
+                {% for idx in row_indices%}
                 <div class="col">
-                    <input type="range" class="form-range" id="slider_{{transport_modes[0].weight_names[i]}}" min="0"
-                        max="10" step="0.1" value="0">
+                    <div class="custom-range">
+                        <input type="range" class="form-range" id="slider_{{transport_modes[0].weight_names[idx]}}"
+                            min="0" max="10" step="0.1" value="0">
+                    </div>
                 </div>
                 <div class="col-1">
-                    <output id="output_{{transport_modes[0].weight_names[i]}}"></output><br>
+                    <output id="output_{{transport_modes[0].weight_names[idx]}}"></output><br>
                 </div>
+                {%endfor%}
             </div>
             {%endfor%}
 

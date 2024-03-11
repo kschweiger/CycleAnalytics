@@ -173,8 +173,9 @@ def add_segment() -> str | Response:
     map_segment_form.segment_difficulty.choices = [
         (d.id, d.text) for d in get_unique_model_objects_in_db(Difficulty)
     ]
+
     transport_settings = get_transport_settings()
-    transport_modes = []
+    transport_modes: list[TransportMode] = []
     for key, value in transport_settings.items():
         weights = []
         names = []
@@ -182,7 +183,7 @@ def add_segment() -> str | Response:
 
         for weight_name, weight_value in value["weights"].items():
             weights.append(weight_name)
-            names.append(weight_name)
+            names.append(current_app.config.routing.display_names[weight_name])
             values.append(weight_value)
 
         transport_modes.append(
@@ -194,6 +195,11 @@ def add_segment() -> str | Response:
                 weight_values=values,
             )
         )
+
+    n_modes_per_col = 2
+    mode_indices_per_row = []
+    for i in range(0, len(transport_modes[0].weight_names), n_modes_per_col):
+        mode_indices_per_row.append(list(range(i, i + n_modes_per_col)))
 
     if map_segment_form.validate_on_submit():
         points = [
@@ -283,6 +289,7 @@ def add_segment() -> str | Response:
         location_markers=location_markers,
         locations_are_shown=show_locations,
         transport_modes=transport_modes,
+        mode_indices_per_row=mode_indices_per_row,
     )
 
 
@@ -302,7 +309,11 @@ def get_transport_settings() -> (
     default_settings = get_default_routing_transport_settings()
 
     settings = {}
-    for name in [k for k in routing_cfg.keys() if k not in ["valid_tags", "access"]]:
+    for name in [
+        k
+        for k in routing_cfg.keys()
+        if k not in ["valid_tags", "access", "display_names"]
+    ]:
         this_settings = deepcopy(default_settings)
         this_settings["name"] = routing_cfg[name]["name"]
         this_settings["access"] = routing_cfg["access"]
