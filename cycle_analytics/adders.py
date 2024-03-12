@@ -445,13 +445,13 @@ def add_goal() -> str | Response:
     return render_template("adders/goal_selection.html", active_page="add_goal")
 
 
-def add_goal_by_type(type: GoalType) -> RideGoalForm | ManualGoalForm:
-    if type == GoalType.RIDE:
+def add_goal_by_type(goal_type: GoalType) -> RideGoalForm | ManualGoalForm:
+    if goal_type == GoalType.RIDE:
         form = RideGoalForm()
 
-    elif type == GoalType.MANUAL:
+    elif goal_type == GoalType.MANUAL:
         form = ManualGoalForm()
-    elif type == GoalType.LOCATION:
+    elif goal_type == GoalType.LOCATION:
         form = LocationGoalFrom()
         form.max_distance.validators.append(
             NumberRange(10, current_app.config.matching.distance)
@@ -459,7 +459,7 @@ def add_goal_by_type(type: GoalType) -> RideGoalForm | ManualGoalForm:
     else:
         raise NotImplementedError
 
-    if type == GoalType.RIDE or type == GoalType.LOCATION:
+    if goal_type == GoalType.RIDE or goal_type == GoalType.LOCATION:
         form.ride_types.choices = [
             (tt.text, tt.text) for tt in get_unique_model_objects_in_db(TerrainType)
         ]
@@ -518,7 +518,7 @@ def add_goal_by_type(type: GoalType) -> RideGoalForm | ManualGoalForm:
                 year=int(unwrap(form.year.data)),
                 month=month_value,
                 name=unwrap(form.name.data),
-                goal_type=type,
+                goal_type=goal_type,
                 aggregation_type=form.aggregation_type.data,
                 threshold=float(unwrap(form.threshold.data)),
                 is_upper_bound=bool(int(form.boundary.data)),
