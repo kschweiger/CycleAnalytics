@@ -67,7 +67,7 @@ def get_ride_years_in_database() -> list[int]:
         db.session.query(func.extract("year", Ride.ride_date)).distinct().all()
     )
 
-    return [year[0] for year in distinct_years]
+    return [int(year[0]) for year in distinct_years]
 
 
 def get_goal_years_in_database() -> list[int]:
