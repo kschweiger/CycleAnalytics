@@ -506,8 +506,8 @@ def journal() -> str:
         for cat in present_categories_
     ]
 
-    print(month, year)
-
+    overview_form.month.data = month
+    overview_form.year.data = year
     return render_template(
         "journal.html",
         active_page="journal",
