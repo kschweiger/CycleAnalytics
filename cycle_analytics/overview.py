@@ -384,6 +384,7 @@ def journal() -> str:
             curr_year = int(unwrap(request.form.get("curr_year")))
             button_used = True
             month = curr_month + 1
+            year = int(curr_year)
             if month == 13:
                 month = 1
                 year = curr_year + 1
@@ -394,8 +395,9 @@ def journal() -> str:
             curr_year = int(unwrap(request.form.get("curr_year")))
             button_used = True
             month = curr_month - 1
+            year = int(curr_year)
             if month == 0:
-                month = 1
+                month = 12
                 year = curr_year - 1
 
         if request.form.get("today", None) == "today":
@@ -503,6 +505,8 @@ def journal() -> str:
         JournalCategory(name=cat, btn_class=ride_type_btn_class_map[cat])
         for cat in present_categories_
     ]
+
+    print(month, year)
 
     return render_template(
         "journal.html",
