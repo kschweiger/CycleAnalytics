@@ -46,7 +46,7 @@ def test_add_ride_no_track(app: Flask, client: FlaskClient) -> None:
 def test_add_ride_with_track(
     mocker: MockerFixture, app: Flask, client: FlaskClient, is_enhanced: bool
 ) -> None:
-    spy_get_track = mocker.spy(adders, "get_track_from_form")
+    spy_get_track = mocker.spy(adders, "get_track_from_wtf_form")
     spy_init_db_track = mocker.spy(adders, "init_db_track_and_enhance")
 
     spy_get_enhancer = mocker.spy(track_utils, "get_enhancer")
@@ -98,7 +98,7 @@ def test_add_ride_with_track(
 def test_add_ride_with_track_and_enhancer(
     mocker: MockerFixture, app: Flask, client: FlaskClient
 ) -> None:
-    spy_get_track = mocker.spy(adders, "get_track_from_form")
+    spy_get_track = mocker.spy(adders, "get_track_from_wtf_form")
     spy_init_db_track = mocker.spy(adders, "init_db_track_and_enhance")
 
     mock_enhancer = MagicMock

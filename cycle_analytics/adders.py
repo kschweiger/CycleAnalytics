@@ -57,7 +57,7 @@ from cycle_analytics.model.goal import (
 from cycle_analytics.track import _match_locations
 from cycle_analytics.utils import get_month_mapping
 from cycle_analytics.utils.base import convert_locations_to_markers, unwrap
-from cycle_analytics.utils.forms import flash_form_error, get_track_from_form
+from cycle_analytics.utils.forms import flash_form_error, get_track_from_wtf_form
 from cycle_analytics.utils.track import init_db_track_and_enhance
 
 logger = logging.getLogger(__name__)
@@ -319,7 +319,7 @@ def add_ride() -> str | Response:
 
         if form.track.data is not None and insert_succ:
             try:
-                track = get_track_from_form(form, "track")
+                track = get_track_from_wtf_form(form, "track")
             except RuntimeError as e:
                 flash("Error: %s" % e, "alert-danger")
             else:

@@ -1,0 +1,15 @@
+<div class="row mb-2 justify-content-between" id="{{row_id}}">
+    <div class="col">
+        <input class="form-control" list="tracks" name="track_choice" required />
+        <datalist id="tracks">
+            {% for data in ride_data %}
+            <option value="{{data[0]}}">{{data[1]}}</option>
+            {% endfor %}
+        </datalist>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-danger" type="button" onclick="delete_row('{{row_id}}')">
+            <i class="bi bi-trash"></i> Delete
+        </button>
+    </div>
+</div>

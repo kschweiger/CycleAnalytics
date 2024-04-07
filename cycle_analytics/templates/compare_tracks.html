@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="m-1 p-2 border rounded-3">
+    <div class="row">
+        <h4>Compare tracks</h4>
+    </div>
+
+    {% if map_plot is not none%}
+    <div>
+        <div id="map_plot" class="my-3"></div>
+    </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div id="new_file_row"></div>
+        <div id="new_track_row"></div>
+        {% set row_id = "file_row_0" %}
+        {% include "utils/compare_track_file_input.html" %}
+        {% set row_id = "track_row_0" %}
+        {% include "utils/compare_track_track_input.html" %}
+
+
+        <div class="row mb-2 justify-content-between">
+            <div class="col">
+                <button id="track_adder" type="button" class="w-100 btn btn-secondary" onclick="add_track_row()">
+                    <span class="bi bi-plus-square-dotted">
+                    </span> Add Track
+                </button>
+            </div>
+            <div class="col">
+                <button id="file_adder" type="button" class="w-100 btn btn-secondary" onclick="add_file_row()">
+                    <span class="bi bi-plus-square-dotted">
+                    </span> Add File
+                </button>
+            </div>
+            <div class="col">
+                <input type="submit" value="Compare" class="w-100 btn btn-success">
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
+
+
+{% block body_scripts %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script type="text/javascript">
+    function findAndIncrementDivIds(base) {
+        var divs = document.querySelectorAll("div[id^='" + base + "_']"); // Select all divs with IDs starting with the specified base
+        var highestNumber = -1; // Initialize the highest number found
+
+        // Loop through each div
+        divs.forEach(function (div) {
+            var id = div.id;
+            var match = id.match(new RegExp(base + "_(\\d+)")); // Match the number after the specified base
+
+            if (match && match[1]) {
+                var number = parseInt(match[1]); // Extract the number
+                if (number > highestNumber) {
+                    highestNumber = number; // Update the highest number found
+                }
+            }
+        });
+
+        // Increment the highest number found
+        var nextNumber = highestNumber + 1;
+        return base + "_" + nextNumber;
+    };
+
+    function add_file_row() {
+        added_row_id = findAndIncrementDivIds("file_row")
+        console.log(added_row_id);
+        $('#new_file_row').append(
+            `
+            {% set row_id = "${added_row_id}" %}
+            {% include "utils/compare_track_file_input.html" %}
+        `
+        );
+    };
+
+    function add_track_row() {
+        added_row_id = findAndIncrementDivIds("track_row")
+        console.log(added_row_id);
+        $('#new_file_row').append(
+            `
+            {% set row_id = "${added_row_id}" %}
+            {% include "utils/compare_track_track_input.html" %}
+        `
+        );
+    };
+
+    function delete_row(row_id) {
+        var div = document.getElementById(row_id);
+        console.log("deleting " + row_id)
+
+        if (div) { // Check if the div exists
+            div.parentNode.removeChild(div); // Remove the div from its parent
+        } else {
+            console.log("Div with ID '" + row_id + "' not found.");
+        }
+    };
+
+    {% if map_plot is not none %}
+
+    var chart = {{ map_plot | safe}};
+    var data = chart["data"];
+    var layout = chart["layout"];
+    var config = { displayModeBar: false, responsive: true };
+    Plotly.newPlot("map_plot", data, layout, config);
+
+    {% endif %}
+
+</script>
+{% endblock %}
