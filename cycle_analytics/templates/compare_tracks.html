@@ -17,11 +17,6 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div id="new_file_row"></div>
         <div id="new_track_row"></div>
-        {% set row_id = "file_row_0" %}
-        {% include "utils/compare_track_file_input.html" %}
-        {% set row_id = "track_row_0" %}
-        {% include "utils/compare_track_track_input.html" %}
-
 
         <div class="row mb-2 justify-content-between">
             <div class="col">
