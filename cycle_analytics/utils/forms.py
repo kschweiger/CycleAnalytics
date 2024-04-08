@@ -17,13 +17,16 @@ def allowed_file(filename: str) -> bool:
     )
 
 
-def get_track_from_form(form: FlaskForm, field_name: str) -> Track:
+def get_track_from_wtf_form(form: FlaskForm, field_name: str) -> Track:
     field: Field = getattr(form, field_name)
 
     if not isinstance(field.data, FileStorage):
         raise RuntimeError("Field %s is not File", field_name)
 
-    data: FileStorage = field.data
+    return get_track_from_file_storage(field.data)
+
+
+def get_track_from_file_storage(data: FileStorage) -> Track:
     filename = data.filename
 
     if data is None or filename is None:
@@ -37,7 +40,6 @@ def get_track_from_form(form: FlaskForm, field_name: str) -> Track:
 
     if filename.endswith(".fit"):
         return FITTrack(source=data.stream.read())
-
     else:
         return ByteTrack(data.stream.read())
 

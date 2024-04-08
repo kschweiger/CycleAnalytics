@@ -4,7 +4,7 @@ from typing import Sequence, Type, TypeVar
 
 import pandas as pd
 from geo_track_analyzer import ByteTrack, Track
-from sqlalchemy import and_, desc, extract, func, not_, or_, select
+from sqlalchemy import and_, desc, distinct, extract, func, not_, or_, select
 
 from cycle_analytics.cache import cache
 from cycle_analytics.database.converter import convert_database_goals
@@ -455,3 +455,14 @@ def resolve_track_location_association(year: str) -> pd.DataFrame:
 
     data = db.session.execute(stmt).all()
     return pd.DataFrame(data)
+
+
+def get_rides_with_tracks() -> list[tuple[int, date, float, str]]:
+    stmt = (
+        select(Ride.id, Ride.ride_date, Ride.distance, Bike.name)
+        .join(Bike)
+        .where(Ride.id.in_(select(distinct(ride_track.columns["ride_id"]))))
+        .order_by(desc(Ride.id))
+    )
+
+    return db.session.execute(stmt).all()  # type: ignore

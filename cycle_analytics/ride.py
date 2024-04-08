@@ -46,7 +46,7 @@ from cycle_analytics.utils.base import (
     none_or_round,
     unwrap,
 )
-from cycle_analytics.utils.forms import get_track_from_form
+from cycle_analytics.utils.forms import get_track_from_wtf_form
 from cycle_analytics.utils.track import init_db_track_and_enhance
 
 bp = Blueprint("ride", __name__, url_prefix="/ride")
@@ -117,7 +117,7 @@ def display(id_ride: int) -> str | Response:
     show_track_add_from = True
     if form.validate_on_submit() and not raw_form_processed:
         try:
-            track = get_track_from_form(form, "track")
+            track = get_track_from_wtf_form(form, "track")
         except RuntimeError as e:
             flash("Error: %s" % e, "alert-danger")
         else:

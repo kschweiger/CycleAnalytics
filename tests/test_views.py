@@ -64,7 +64,8 @@ def test_views_empty_database(
         ("/segments/add", 200),
         ("/segments/show/6", 200),
         ("/add/bike", 200),
-        ("ride/add_note/1", 200),
+        ("/ride/add_note/1", 200),
+        ("/track/compare/", 200),
     ],
 )
 def test_views(client: FlaskClient, route: str, exp_status_code: int) -> None:
