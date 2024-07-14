@@ -63,6 +63,13 @@ def simple_coordinate_plot(
     return fig
 
 
+def update_elevation_axis(fig: go.Figure, min_elevation: float = 200) -> None:
+    range_min, range_max = fig.layout.yaxis.range
+    orig_range_diff = range_max - range_min
+    if orig_range_diff < 200:
+        fig.update_layout(yaxis=dict(range=[range_min, range_min + 200]))
+
+
 def per_month_overview_plots(
     rides: list[Ride],
     plot_values: list[tuple[str, str, str, str, bool]],
@@ -159,6 +166,7 @@ def get_track_elevation_plot(
         show_segment_borders=show_segment_borders,
         color_segment_border=current_app.config.style.color_border,
     )
+    update_elevation_axis(elevation_plot, 200)
 
     elevation_plot.update_layout(
         autosize=True,
@@ -197,6 +205,8 @@ def get_track_elevation_extension_plot(
         color_segment_border=current_app.config.style.color_border,
     )
 
+    update_elevation_axis(elevation_plot, 200)
+
     elevation_plot.update_layout(
         autosize=True,
         paper_bgcolor="rgba(0,0,0,0)",
@@ -231,6 +241,8 @@ def get_track_elevation_slope_plot(
         show_segment_borders=show_segment_borders,
         color_segment_border=current_app.config.style.color_border,
     )
+
+    update_elevation_axis(fig, 200)
 
     fig.update_layout(
         autosize=True,
