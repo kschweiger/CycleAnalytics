@@ -446,7 +446,7 @@ def resolve_track_location_association(year: str) -> pd.DataFrame:
             ride_track,
             ride_track.columns["track_id"] == TrackLocationAssociation.track_id,
         )
-        .join(Ride, Ride.id == ride_track.columns["track_id"])
+        .join(Ride, Ride.id == ride_track.columns["ride_id"])
         .join(Bike, Bike.id == Ride.id_bike)
         .join(TerrainType, TerrainType.id == Ride.id_terrain_type)
     )
