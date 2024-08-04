@@ -15,8 +15,11 @@ from geo_track_analyzer.utils.base import center_geolocation
 from wtforms import SelectField
 from wtforms.validators import DataRequired
 
-from cycle_analytics.database.converter import convert_rides_to_df
+from cycle_analytics.database.converter import (
+    convert_ride_overview_container_to_df,
+)
 from cycle_analytics.database.retriever import (
+    get_overview,
     get_ride_years_in_database,
     get_rides_in_timeframe,
 )
@@ -153,44 +156,41 @@ def main() -> str:
     else:
         select_ride_types = select_ride_types_
 
-    rides = get_rides_in_timeframe(selected_year, ride_type=select_ride_types)
+    overview_data = get_overview(selected_year, ride_type=select_ride_types)
 
-    for ride in rides:
+    for ride_data in overview_data:
         this_ride_data = [
             (
-                ride.ride_date.isoformat(),
-                url_for("ride.display", id_ride=ride.id),
+                ride_data.ride_date.date().isoformat(),
+                url_for("ride.display", id_ride=ride_data.id_ride),
             ),
-            "" if ride.ride_duration is None else format_timedelta(ride.ride_duration),
-            format_timedelta(ride.total_duration),
-            ride.distance,
+            ""
+            if ride_data.ride_duration is None
+            else format_timedelta(ride_data.ride_duration),
+            format_timedelta(ride_data.total_duration),
+            ride_data.distance_raw,
         ]
-        try:
-            overview = ride.track_overview
-        except RuntimeError:
-            overview = None
-
-        if overview is not None:
+        if ride_data.overview_distance is None:
+            this_ride_data.extend(["", "", ""])
+        else:
             this_ride_data.extend(
                 [
-                    round(overview.avg_velocity_kmh, 2),
+                    round(ride_data.overview_distance, 2),
                     ""
-                    if overview.uphill_elevation is None
-                    else round(overview.uphill_elevation, 2),
+                    if ride_data.overview_uphill is None
+                    else round(ride_data.overview_uphill, 2),
                     ""
-                    if overview.downhill_elevation is None
-                    else round(overview.downhill_elevation, 2),
+                    if ride_data.overview_downhill is None
+                    else round(ride_data.overview_downhill, 2),
                 ]
             )
-        else:
-            this_ride_data.extend(["", "", ""])
         # thumbnails = get_thumbnails_for_id(rcrd["id_ride"])
         table_data.append(tuple(this_ride_data))
 
     plots_ = []
-    if rides:
+    if overview_data:
         plots_ = per_month_overview_plots(
-            rides,
+            overview_data,
             [
                 ("id_ride", "count", "Number of rides per Month", "Count", False),
                 ("distance", "sum", "Distance per Month", "Distance [km]", False),
@@ -208,6 +208,7 @@ def main() -> str:
                     "Distance [km]",
                     True,
                 ),
+                # TODO: Add metrics for ride_time
             ],
             width=1200,
             color_sequence=current_app.config.style.color_sequence,
@@ -420,16 +421,15 @@ def journal() -> str:
     ride_type_btn_class_map = {}
     last_btn_class_add = None
     for week in weeks:
-        rides = convert_rides_to_df(
-            get_rides_in_timeframe(week.get_date_range(), ride_type=select_ride_types)
+        week_data = convert_ride_overview_container_to_df(
+            get_overview(week.get_date_range(), ride_type=select_ride_types)
         )
-
         total_distance = 0
-        total_duration = pd.Timedelta(seconds=0)
+        total_duration = 0
         total_uphill = 0
         total_downhill = 0
 
-        for row in rides.to_dict("records"):
+        for row in week_data.to_dict("records"):
             for day in week.days:
                 if day.date == row["date"]:
                     this_ride_type = row["ride_type"]
@@ -460,34 +460,30 @@ def journal() -> str:
 
                     total_distance += row["distance"]
                     total_duration += row["total_time"]
-                    if row["uphill_elevation"] is not None:
-                        total_uphill += row["uphill_elevation"]
-                    if row["downhill_elevation"] is not None:
-                        total_downhill += row["downhill_elevation"]
+                    if row["uphill"] is not None:
+                        total_uphill += row["uphill"]
+                    if row["downhill"] is not None:
+                        total_downhill += row["downhill"]
 
                     day.rides.append(
                         JournalRide(
                             id_ride=row["id_ride"],
-                            duration=format_timedelta(row["total_time"]),
+                            duration=format_timedelta(
+                                pd.Timedelta(seconds=row["total_time"])
+                            ),
                             distance=f"{row['distance']:0.2f} km",
                             uphill=None
-                            if (
-                                row["uphill_elevation"] is None
-                                or np.isnan(row["uphill_elevation"])
-                            )
-                            else f"{int(row['uphill_elevation'])} m",
+                            if (row["uphill"] is None or np.isnan(row["uphill"]))
+                            else f"{int(row['uphill'])} m",
                             downhill=None
-                            if (
-                                row["downhill_elevation"] is None
-                                or np.isnan(row["downhill_elevation"])
-                            )
-                            else f"{int(row['downhill_elevation'])} m",
+                            if (row["downhill"] is None or np.isnan(row["downhill"]))
+                            else f"{int(row['downhill'])} m",
                             avg_velocity=None
                             if (
-                                row["avg_velocity_kmh"] is None
-                                or np.isnan(row["avg_velocity_kmh"])
+                                row["avg_velocity"] is None
+                                or np.isnan(row["avg_velocity"])
                             )
-                            else f"{int(row['avg_velocity_kmh']):0.2f} km/h",
+                            else f"{int(row['avg_velocity']):0.2f} km/h",
                             btn_class=ride_cat_btn_class,
                         )
                     )
@@ -496,7 +492,9 @@ def journal() -> str:
         if total_distance > 0:
             week.summary = JournalWeekSummary(
                 distance=f"{total_distance:0.2f} km",
-                duration=get_nice_timedelta_isoformat(total_duration.isoformat()),
+                duration=get_nice_timedelta_isoformat(
+                    pd.Timedelta(seconds=total_duration).isoformat()
+                ),
                 uphill=f"{int(total_uphill)} m" if total_uphill > 0 else None,
                 downhill=f"{int(total_downhill)} m" if total_downhill > 0 else None,
             )

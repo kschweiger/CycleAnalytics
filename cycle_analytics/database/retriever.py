@@ -8,7 +8,7 @@ from sqlalchemy import and_, desc, distinct, extract, func, not_, or_, select
 
 from cycle_analytics.cache import cache
 from cycle_analytics.database.converter import convert_database_goals
-from cycle_analytics.model.base import LastRide
+from cycle_analytics.model.base import LastRide, RideOverviewContainer
 from cycle_analytics.model.goal import Goal
 from cycle_analytics.plotting import convert_fig_to_base64, get_track_thumbnails
 from cycle_analytics.rest_models import SegmentForMap
@@ -36,6 +36,7 @@ from .model import (
     Severity,
     TerrainType,
     TrackLocationAssociation,
+    TrackOverview,
     TypeSpecification,
     db,
     ride_track,
@@ -112,6 +113,100 @@ def convert_to_indices(
         raise RuntimeError
 
     return [e.id for e in relevant_elements]
+
+
+def get_ride_with_latest_track_id(
+    timeframe: int | str | list[int] | tuple[date, date],
+    ride_type: str | list[str] = "Any",
+):
+    if timeframe == "All" or timeframe == "Any":
+        timeframe = get_ride_years_in_database()
+
+    date_ranges: list[tuple[date, date]] = []
+    if isinstance(timeframe, list):
+        for year in timeframe:
+            date_ranges.append((date(year, 1, 1), date(year, 12, 31)))
+
+    elif isinstance(timeframe, tuple):
+        date_ranges.append(timeframe)
+    else:
+        year = int(timeframe)
+        date_ranges.append((date(year, 1, 1), date(year, 12, 31)))
+
+    if ride_type == "Any" or ride_type == "All":
+        ride_types = get_possible_values(TerrainType)
+    else:
+        if isinstance(ride_type, str):
+            ride_types = [ride_type]
+        else:
+            ride_types = ride_type
+
+    select_terrain_indices = convert_to_indices(ride_types, TerrainType)
+
+    subquery = (
+        db.session.query(
+            ride_track.columns["ride_id"],
+            ride_track.columns["track_id"],
+            DatabaseTrack.added,
+            func.row_number()
+            .over(
+                partition_by=ride_track.columns["ride_id"],
+                order_by=desc(DatabaseTrack.added),
+            )
+            .label("rn"),
+        )
+        .join(DatabaseTrack, ride_track.columns["track_id"] == DatabaseTrack.id)
+        .join(Ride, ride_track.columns["ride_id"] == Ride.id)
+        .filter(
+            and_(
+                *(
+                    Ride.ride_date.between(start_date, end_date)
+                    for start_date, end_date in date_ranges
+                )
+            )
+        )
+        .filter(Ride.id_terrain_type.in_(select_terrain_indices))
+        .subquery()
+    )
+    query = (
+        db.session.query(
+            subquery.c.ride_id,
+            # subquery.c.track_id,
+            # subquery.c.added,
+            Ride.ride_date,
+            Ride.ride_duration,
+            Ride.total_duration,
+            Ride.distance,
+            TerrainType.text,
+            Bike.name,
+            TrackOverview.total_distance_km,
+            TrackOverview.avg_velocity_kmh,
+            TrackOverview.uphill_elevation,
+            TrackOverview.downhill_elevation,
+        )
+        .join(Ride, subquery.c.ride_id == Ride.id)
+        .join(TrackOverview, subquery.c.track_id == TrackOverview.id_track)
+        .join(TerrainType, Ride.id_terrain_type == TerrainType.id)
+        .join(Bike, Ride.id_bike == Bike.id)
+        .filter(and_(subquery.c.rn == 1, TrackOverview.id_segment.is_(None)))
+    )
+
+    return db.session.execute(query).all()
+
+
+def get_overview(
+    timeframe: int | str | list[int] | tuple[date, date],
+    ride_type: str | list[str] = "Any",
+) -> list[RideOverviewContainer]:
+    data = get_ride_with_latest_track_id(timeframe, ride_type)
+
+    data = [
+        RideOverviewContainer(
+            **dict(zip(RideOverviewContainer.model_json_schema()["properties"], row))
+        )
+        for row in data
+    ]
+    return data
 
 
 def get_rides_in_timeframe(

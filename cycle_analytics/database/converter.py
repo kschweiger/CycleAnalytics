@@ -7,6 +7,7 @@ import pandas as pd
 from geo_track_analyzer import Track
 from geo_track_analyzer.model import SegmentOverview
 
+from cycle_analytics.model.base import RideOverviewContainer
 from cycle_analytics.model.goal import AggregationType, Goal
 from cycle_analytics.utils.base import compare_values
 
@@ -284,3 +285,45 @@ def initialize_overviews(
             )
 
     return overviews
+
+
+def convert_ride_overview_container_to_df(
+    data: list[RideOverviewContainer],
+) -> pd.DataFrame:
+    data_dict = {
+        "id_ride": [],
+        "date": [],
+        "year": [],
+        "month": [],
+        "distance": [],
+        "ride_time": [],
+        "total_time": [],
+        "ride_type": [],
+        "bike": [],
+        "uphill": [],
+        "downhill": [],
+        "avg_velocity": [],
+    }
+    for row in data:
+        data_dict["id_ride"].append(row.id_ride)
+        data_dict["date"].append(row.ride_date.date())
+        data_dict["year"].append(row.ride_date.year)
+        data_dict["month"].append(row.ride_date.month)
+        data_dict["distance"].append(row.distance_raw)
+        data_dict["total_time"].append(row.total_duration.total_seconds())
+        data_dict["ride_time"].append(
+            row.total_duration.total_seconds()
+            if row.ride_duration is None
+            else row.ride_duration.total_seconds()
+        )
+        data_dict["ride_type"].append(row.terrain_type)
+        data_dict["bike"].append(row.bike)
+        data_dict["uphill"].append(
+            0 if row.overview_uphill is None else row.overview_uphill
+        )
+        data_dict["downhill"].append(
+            0 if row.overview_downhill is None else row.overview_downhill
+        )
+        data_dict["avg_velocity"].append(row.overview_avg_vel)
+
+    return pd.DataFrame(data_dict)

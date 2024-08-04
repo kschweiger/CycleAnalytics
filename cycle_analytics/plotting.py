@@ -7,7 +7,8 @@ import plotly.graph_objects as go
 from flask import current_app
 from geo_track_analyzer.track import Track
 
-from cycle_analytics.database.model import Ride
+from cycle_analytics.database.converter import convert_ride_overview_container_to_df
+from cycle_analytics.model.base import RideOverviewContainer
 from cycle_analytics.utils.debug import log_timing
 
 month_label_order = dict(
@@ -71,7 +72,7 @@ def update_elevation_axis(fig: go.Figure, min_elevation: float = 200) -> None:
 
 
 def per_month_overview_plots(
-    rides: list[Ride],
+    rides: list[RideOverviewContainer],
     plot_values: list[tuple[str, str, str, str, bool]],
     width: int = 1000,
     height: int = 600,
@@ -90,9 +91,9 @@ def per_month_overview_plots(
     :param height:
     :return: List of base64 encoded pngs for each passed plot_value element
     """
-    from cycle_analytics.database.converter import convert_rides_to_df
 
-    data = convert_rides_to_df(rides)
+    data = convert_ride_overview_container_to_df(rides)
+
     plots = []
     years = list(data.year.unique())
     if not years:

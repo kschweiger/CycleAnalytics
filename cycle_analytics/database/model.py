@@ -303,7 +303,7 @@ class Ride(Base):
         "DatabaseTrack",
         backref="ride",
         secondary=ride_track,
-        lazy=False,
+        lazy=True,
         order_by="DatabaseTrack.added",
         default_factory=lambda: [],
     )
