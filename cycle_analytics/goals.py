@@ -9,7 +9,7 @@ from wtforms.validators import DataRequired
 from cycle_analytics.database.converter import convert_ride_overview_container_to_df
 from cycle_analytics.database.modifier import update_manual_goal_value
 from cycle_analytics.database.retriever import (
-    get_overview,
+    get_ride_and_latest_track_overview,
     resolve_track_location_association,
 )
 from cycle_analytics.model.base import GoalDisplayData, GoalInfoData, ManualGoalSetting
@@ -152,7 +152,9 @@ def overview() -> str:
     year_goals = [g for g in goals if g.month is None]
     month_goals = [g for g in goals if g.month == load_month]
 
-    data = convert_ride_overview_container_to_df(get_overview(load_year))
+    data = convert_ride_overview_container_to_df(
+        get_ride_and_latest_track_overview(load_year)
+    )
     data_location = resolve_track_location_association(str(load_year))
     year_goal_displays = []
     month_goal_displays = []

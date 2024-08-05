@@ -19,7 +19,7 @@ from cycle_analytics.database.converter import (
     convert_ride_overview_container_to_df,
 )
 from cycle_analytics.database.retriever import (
-    get_overview,
+    get_ride_and_latest_track_overview,
     get_ride_years_in_database,
     get_rides_in_timeframe,
 )
@@ -156,7 +156,9 @@ def main() -> str:
     else:
         select_ride_types = select_ride_types_
 
-    overview_data = get_overview(selected_year, ride_type=select_ride_types)
+    overview_data = get_ride_and_latest_track_overview(
+        selected_year, ride_type=select_ride_types
+    )
 
     for ride_data in overview_data:
         this_ride_data = [
@@ -422,7 +424,9 @@ def journal() -> str:
     last_btn_class_add = None
     for week in weeks:
         week_data = convert_ride_overview_container_to_df(
-            get_overview(week.get_date_range(), ride_type=select_ride_types)
+            get_ride_and_latest_track_overview(
+                week.get_date_range(), ride_type=select_ride_types
+            )
         )
         total_distance = 0
         total_duration = 0

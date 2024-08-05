@@ -11,8 +11,8 @@ from cycle_analytics.database.converter import (
 from cycle_analytics.database.retriever import (
     get_goal_years_in_database,
     get_last_ride,
-    get_overview,
     get_recent_events,
+    get_ride_and_latest_track_overview,
     get_ride_years_in_database,
     load_goals,
     resolve_track_location_association,
@@ -99,7 +99,9 @@ def render_landing_page() -> str:
         )
     ]
     # -----------------------------------------------------------------------------
-    data = convert_ride_overview_container_to_df(get_overview(goal_year_selected))
+    data = convert_ride_overview_container_to_df(
+        get_ride_and_latest_track_overview(goal_year_selected)
+    )
     data_locations = resolve_track_location_association(goal_year_selected)
     for goal in display_goals:
         if isinstance(goal, RideGoal):
@@ -136,14 +138,18 @@ def render_landing_page() -> str:
 
     summary_data = summarize_rides_in_year(
         convert_ride_overview_container_to_df(
-            get_overview(summary_year_selected, summary_ride_type_selected)
+            get_ride_and_latest_track_overview(
+                summary_year_selected, summary_ride_type_selected
+            )
         )
         # get_rides_in_timeframe(summary_year_selected, summary_ride_type_selected)
     )
 
     summary_month = summarize_rides_in_month(
         *[
-            convert_ride_overview_container_to_df(get_overview(date_range))
+            convert_ride_overview_container_to_df(
+                get_ride_and_latest_track_overview(date_range)
+            )
             for date_range in get_curr_and_prev_month_date_ranges(
                 date_today.year, date_today.month
             )

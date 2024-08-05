@@ -207,7 +207,7 @@ def get_ride_with_latest_track_id(
     return db.session.execute(query).all()
 
 
-def get_overview(
+def get_ride_and_latest_track_overview(
     timeframe: int | str | list[int] | tuple[date, date],
     ride_type: str | list[str] = "Any",
 ) -> list[RideOverviewContainer]:
