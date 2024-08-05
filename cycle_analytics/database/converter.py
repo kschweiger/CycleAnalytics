@@ -108,8 +108,8 @@ def convert_rides_to_df(rides: list[Ride]) -> pd.DataFrame:
     return data_df
 
 
-def summarize_rides_in_year(rides: list[Ride]) -> list[tuple[str, str]]:
-    data = convert_rides_to_df(rides)
+def summarize_rides_in_year(data: pd.DataFrame) -> list[tuple[str, str]]:
+    # data = convert_rides_to_df(rides)
     if data.empty:
         summary_data_ = {
             "tot_distance": 0,
@@ -121,10 +121,10 @@ def summarize_rides_in_year(rides: list[Ride]) -> list[tuple[str, str]]:
     else:
         summary_data_ = {
             "tot_distance": str(round(data.distance.sum(), 2)),
-            "tot_time": str(data.ride_time.sum()).split(".")[0],
+            "tot_time": str(pd.Timedelta(seconds=data.ride_time.sum())).split(".")[0],
             "num_rides": str(len(data)),
             "avg_distance": str(round(data.distance.mean(), 2)),
-            "avg_ride_duration": str(data.ride_time.mean())
+            "avg_ride_duration": str(pd.Timedelta(seconds=data.ride_time.mean()))
             .split(".")[0]
             .replace("0 days ", ""),
         }
@@ -142,20 +142,20 @@ def summarize_rides_in_year(rides: list[Ride]) -> list[tuple[str, str]]:
 
 
 def summarize_rides_in_month(
-    rides_curr_month: list[Ride], rides_prev_month: list[Ride]
+    curr_month_data: pd.DataFrame,
+    last_month_data: pd.DataFrame,
+    # rides_curr_month: list[Ride], rides_prev_month: list[Ride]
 ) -> list[tuple[str, float | pd.Timedelta, Literal[-1, 0, 1]]]:
-    curr_month_data = convert_rides_to_df(rides_curr_month)
-    last_month_data = convert_rides_to_df(rides_prev_month)
+    # curr_month_data = convert_rides_to_df(rides_curr_month)
+    # last_month_data = convert_rides_to_df(rides_prev_month)
 
     curr_month_distance = curr_month_data.distance.sum()
     last_month_distance = last_month_data.distance.sum()
 
-    curr_month_ride_time = curr_month_data.ride_time.sum()
-    last_month_ride_time = last_month_data.ride_time.sum()
-    if curr_month_ride_time == 0:
-        curr_month_ride_time = pd.Timedelta(seconds=0)
-    if last_month_ride_time == 0:
-        last_month_ride_time = pd.Timedelta(seconds=0)
+    _curr_month_ride_time = curr_month_data.ride_time.sum()
+    _last_month_ride_time = last_month_data.ride_time.sum()
+    curr_month_ride_time = pd.Timedelta(seconds=_curr_month_ride_time)
+    last_month_ride_time = pd.Timedelta(seconds=_last_month_ride_time)
     curr_month_count = len(curr_month_data)
     last_month_count = len(last_month_data)
 

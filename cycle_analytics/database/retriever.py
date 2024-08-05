@@ -170,9 +170,7 @@ def get_ride_with_latest_track_id(
     )
     query = (
         db.session.query(
-            subquery.c.ride_id,
-            # subquery.c.track_id,
-            # subquery.c.added,
+            Ride.id,
             Ride.ride_date,
             Ride.ride_duration,
             Ride.total_duration,
@@ -184,13 +182,28 @@ def get_ride_with_latest_track_id(
             TrackOverview.uphill_elevation,
             TrackOverview.downhill_elevation,
         )
-        .join(Ride, subquery.c.ride_id == Ride.id)
-        .join(TrackOverview, subquery.c.track_id == TrackOverview.id_track)
+        .join(subquery, subquery.c.ride_id == Ride.id, isouter=True)
+        .join(
+            TrackOverview, subquery.c.track_id == TrackOverview.id_track, isouter=True
+        )
         .join(TerrainType, Ride.id_terrain_type == TerrainType.id)
         .join(Bike, Ride.id_bike == Bike.id)
-        .filter(and_(subquery.c.rn == 1, TrackOverview.id_segment.is_(None)))
+        .filter(
+            and_(
+                or_(subquery.c.rn == 1, subquery.c.rn.is_(None)),
+                TrackOverview.id_segment.is_(None),
+            )
+        )
+        .filter(
+            and_(
+                *(
+                    Ride.ride_date.between(start_date, end_date)
+                    for start_date, end_date in date_ranges
+                )
+            )
+        )
+        .filter(Ride.id_terrain_type.in_(select_terrain_indices))
     )
-
     return db.session.execute(query).all()
 
 
@@ -199,14 +212,12 @@ def get_overview(
     ride_type: str | list[str] = "Any",
 ) -> list[RideOverviewContainer]:
     data = get_ride_with_latest_track_id(timeframe, ride_type)
-
-    data = [
+    return [
         RideOverviewContainer(
             **dict(zip(RideOverviewContainer.model_json_schema()["properties"], row))
         )
         for row in data
     ]
-    return data
 
 
 def get_rides_in_timeframe(

@@ -6,8 +6,12 @@ from flask_wtf import FlaskForm
 from wtforms import RadioField, SelectField
 from wtforms.validators import DataRequired
 
+from cycle_analytics.database.converter import convert_ride_overview_container_to_df
 from cycle_analytics.database.modifier import update_manual_goal_value
-from cycle_analytics.database.retriever import resolve_track_location_association
+from cycle_analytics.database.retriever import (
+    get_overview,
+    resolve_track_location_association,
+)
 from cycle_analytics.model.base import GoalDisplayData, GoalInfoData, ManualGoalSetting
 from cycle_analytics.model.goal import (
     AggregationType,
@@ -51,14 +55,12 @@ bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 @bp.route("/", methods=("GET", "POST"))
 def overview() -> str:
-    from cycle_analytics.database.converter import convert_rides_to_df
     from cycle_analytics.database.modifier import (
         modify_goal_status,
         modify_manual_goal_value_count,
     )
     from cycle_analytics.database.retriever import (
         get_goal_years_in_database,
-        get_rides_in_timeframe,
         load_goals,
     )
 
@@ -150,7 +152,7 @@ def overview() -> str:
     year_goals = [g for g in goals if g.month is None]
     month_goals = [g for g in goals if g.month == load_month]
 
-    data = convert_rides_to_df(get_rides_in_timeframe(load_year))
+    data = convert_ride_overview_container_to_df(get_overview(load_year))
     data_location = resolve_track_location_association(str(load_year))
     year_goal_displays = []
     month_goal_displays = []

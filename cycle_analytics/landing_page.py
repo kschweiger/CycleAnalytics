@@ -4,17 +4,16 @@ from datetime import date
 from flask import current_app, render_template, request
 
 from cycle_analytics.database.converter import (
-    convert_rides_to_df,
+    convert_ride_overview_container_to_df,
     summarize_rides_in_month,
     summarize_rides_in_year,
 )
 from cycle_analytics.database.retriever import (
-    get_curr_and_prev_month_rides,
     get_goal_years_in_database,
     get_last_ride,
+    get_overview,
     get_recent_events,
     get_ride_years_in_database,
-    get_rides_in_timeframe,
     load_goals,
     resolve_track_location_association,
 )
@@ -26,7 +25,7 @@ from cycle_analytics.model.goal import (
     format_goals_concise,
 )
 from cycle_analytics.utils import get_month_mapping
-from cycle_analytics.utils.base import unwrap
+from cycle_analytics.utils.base import get_curr_and_prev_month_date_ranges, unwrap
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +44,7 @@ def render_landing_page() -> str:
     last_ride = get_last_ride(
         None if last_ride_type_selected == "Any" else last_ride_type_selected
     )
-
+    logger.info("Last ride done")
     # --------------------- RECENT EVENTS ---------------------
     recent_event_type_selected = "All"
     recent_event_types = ["All"] + config.adders.event.type_choices
@@ -70,6 +69,7 @@ def render_landing_page() -> str:
                 event.event_date,
             )
         )
+    logger.info("Recent events done")
     # --------------------- GOALS ---------------------
     goal_years = [
         str(g)
@@ -99,8 +99,7 @@ def render_landing_page() -> str:
         )
     ]
     # -----------------------------------------------------------------------------
-    # TODO: Check if this takes too long with more data. Maybe add an update button
-    data = convert_rides_to_df(get_rides_in_timeframe(goal_year_selected))
+    data = convert_ride_overview_container_to_df(get_overview(goal_year_selected))
     data_locations = resolve_track_location_association(goal_year_selected)
     for goal in display_goals:
         if isinstance(goal, RideGoal):
@@ -115,6 +114,7 @@ def render_landing_page() -> str:
     # -----------------------------------------------------------------------------
 
     goals = format_goals_concise(display_goals)
+    logger.info("Goals doen")
     # --------------------- SUMMARY ---------------------
     summary_form = YearAndRideTypeForm()
 
@@ -135,13 +135,23 @@ def render_landing_page() -> str:
         summary_ride_type_selected = select_ride_types_
 
     summary_data = summarize_rides_in_year(
-        get_rides_in_timeframe(summary_year_selected, summary_ride_type_selected)
+        convert_ride_overview_container_to_df(
+            get_overview(summary_year_selected, summary_ride_type_selected)
+        )
+        # get_rides_in_timeframe(summary_year_selected, summary_ride_type_selected)
     )
 
     summary_month = summarize_rides_in_month(
-        *get_curr_and_prev_month_rides(date_today.year, date_today.month)
+        *[
+            convert_ride_overview_container_to_df(get_overview(date_range))
+            for date_range in get_curr_and_prev_month_date_ranges(
+                date_today.year, date_today.month
+            )
+        ]
+        # *get_curr_and_prev_month_rides(date_today.year, date_today.month)
     )
 
+    logger.info("summary done")
     return render_template(
         "landing_page.html",
         active_page="home",

@@ -1,3 +1,4 @@
+import logging
 import re
 from copy import copy
 from datetime import date, timedelta
@@ -11,6 +12,8 @@ from cycle_analytics.database.model import DatabaseLocation
 from cycle_analytics.model.base import MapMarker
 
 T = TypeVar("T")
+
+logger = logging.getLogger(__name__)
 
 
 def none_or_round(value: None | float, digits: int = 2) -> None | float:
@@ -245,3 +248,27 @@ def convert_locations_to_markers(
         )
 
     return location_markers
+
+
+def get_curr_and_prev_month_date_ranges(
+    curr_year: int,
+    curr_month: int,
+) -> tuple[tuple[date, date], tuple[date, date]]:
+    curr_month_start = date(curr_year, curr_month, 1)
+    if curr_month == 12:
+        curr_month_end = date(curr_year + 1, 1, 1) - timedelta(days=1)
+    else:
+        curr_month_end = date(curr_year, curr_month + 1, 1) - timedelta(days=1)
+
+    if curr_month == 1:
+        last_year = curr_month_start.year - 1
+        last_month_start = date(last_year, 12, 1)
+        last_month_end = date(last_year, 12, 31)
+    else:
+        last_month_end = curr_month_start - timedelta(days=1)
+        last_month_start = date(last_month_end.year, last_month_end.month, 1)
+
+    logger.debug("Curr. month:  %s - %s", curr_month_start, curr_month_end)
+    logger.debug("Last month:  %s - %s", last_month_start, last_month_end)
+
+    return (curr_month_start, curr_month_end), (last_month_start, last_month_end)
