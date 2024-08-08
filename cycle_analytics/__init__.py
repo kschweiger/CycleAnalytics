@@ -30,6 +30,12 @@ def create_app(
         logging.getLogger("geo_track_analyzer"),
     ):
         logger_.setLevel("DEBUG" if app.debug else "INFO")
+        handler = default_handler
+        formatter = logging.Formatter(
+            "%(levelname)-8s [%(processName)s/%(threadName)s] [%(asctime)s] %(funcName)s: %(message)s",
+            "%d/%m/%Y %H:%M%:%S",
+        )
+        handler.setFormatter(formatter)
         logger_.addHandler(default_handler)
 
     if dynaconf_kwargs is None:

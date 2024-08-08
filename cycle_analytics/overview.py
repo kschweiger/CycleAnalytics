@@ -1,3 +1,4 @@
+import concurrent.futures
 import json
 import logging
 from copy import copy
@@ -9,7 +10,7 @@ import numpy as np
 import pandas as pd
 import plotly
 import plotly.express as px
-from flask import Blueprint, current_app, render_template, request, url_for
+from flask import Blueprint, Flask, current_app, render_template, request, url_for
 from flask_wtf import FlaskForm
 from geo_track_analyzer.utils.base import center_geolocation
 from wtforms import SelectField
@@ -18,6 +19,7 @@ from wtforms.validators import DataRequired
 from cycle_analytics.database.converter import (
     convert_ride_overview_container_to_df,
 )
+from cycle_analytics.database.model import Ride
 from cycle_analytics.database.retriever import (
     get_ride_and_latest_track_overview,
     get_ride_years_in_database,
@@ -241,11 +243,30 @@ def heatmap() -> str:
     # TODO: Do this multithreaded?
     datas = []
 
-    for ride in rides:
-        this_track = ride.track
-        if this_track:
-            data = this_track.get_track_data()
-            datas.append(data[data.moving])
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=current_app.config.threadpool  # type: ignore
+    ) as executor:
+
+        def get_data(ride: Ride, app: Flask) -> None | pd.DataFrame:
+            with app.app_context():
+                this_track = ride.track
+                if this_track:
+                    return this_track.get_track_data()
+                else:
+                    return None
+
+        future_datas = (
+            executor.submit(
+                get_data,
+                ride,
+                current_app._get_current_object(),  # type: ignore
+            )
+            for ride in rides
+        )
+        for future in concurrent.futures.as_completed(future_datas):
+            data = future.result()
+            if data is not None:
+                datas.append(data[data.moving])
 
     data = pd.concat(datas)
 

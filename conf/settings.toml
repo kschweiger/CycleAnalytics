@@ -11,6 +11,7 @@ DEBUG_TB_PROFILER_ENABLED = true
 [default]
 cache_type = "SimpleCache"
 cache_default_timeout = 300
+threadpool = 8
 ALLOWED_TRACK_EXTENSIONS = ["fit", "gpx"]
 EXTENSIONS = []
 SQLALCHEMY_DATABASE_URI = "@format {this.database_type}://{this.database_user}:{this.database_password}@{this.database_server}:{this.database_port}/{this.database_name}"
@@ -24,25 +25,25 @@ database_name = "development"
 [default.categorized_values]
 terrain_types = ["MTB", "Road", "Gravel", "Testing/Setup"]
 event_types = [
-    "Mechanical",
-    "Crash",
-    "Service",
-    "Repair",
-    "Replacement",
-    "Purchase",
-    "Other",
+  "Mechanical",
+  "Crash",
+  "Service",
+  "Repair",
+  "Replacement",
+  "Purchase",
+  "Other",
 ]
 segment_types = ["Single Trail", "Dirt Track", "Gravel track", "Road", "Track"]
 difficulties = ["No Difficulty", "Easy", "Moderate", "Difficult", "Break Neck"]
 severities = ["Minor", "Medium", "Major", "Critical"]
 materials = ["Aluminium", "Carbon", "Titanium"]
 type_secification = [
-    "Cross-Country",
-    "Trail",
-    "Enduro",
-    "Downhill",
-    "Race",
-    "Endurance",
+  "Cross-Country",
+  "Trail",
+  "Enduro",
+  "Downhill",
+  "Race",
+  "Endurance",
 ]
 
 [default.defaults]
@@ -57,12 +58,12 @@ track_overview_table = "tracks_v1_overview"
 
 [default.style]
 color_sequence = [
-    "#20c997",
-    "#dc3545",
-    "#0d6efd",
-    "#ffc107",
-    "#d63384",
-    "#6f42c1",
+  "#20c997",
+  "#dc3545",
+  "#0d6efd",
+  "#ffc107",
+  "#d63384",
+  "#6f42c1",
 ]
 color_marker = "#198754"
 color_border = "#e9ecef"
@@ -77,13 +78,13 @@ max = "#dc3545"
 type_choices = ["MTB", "Road", "Gravel", "Testing/Setup"]
 [default.adders.event]
 type_choices = [
-    "Mechanical",
-    "Crash",
-    "Service",
-    "Repair",
-    "Replacement",
-    "Purchase",
-    "Other",
+  "Mechanical",
+  "Crash",
+  "Service",
+  "Repair",
+  "Replacement",
+  "Purchase",
+  "Other",
 ]
 init_map_view_lat = 48.02
 init_map_view_long = 10.2
@@ -138,20 +139,20 @@ distance = 500
 
 [default.routing]
 valid_tags = [
-    "primary",
-    "trunk",
-    "secondary",
-    "tertiary",
-    "unclassified",
-    "cycleway",
-    "residential",
-    "living_street",
-    "track",
-    "service",
-    "bridleway",
-    "footway",
-    "steps",
-    "path",
+  "primary",
+  "trunk",
+  "secondary",
+  "tertiary",
+  "unclassified",
+  "cycleway",
+  "residential",
+  "living_street",
+  "track",
+  "service",
+  "bridleway",
+  "footway",
+  "steps",
+  "path",
 ]
 access = ["access", "vehicle", "bicycle"]
 [default.routing.display_names]
