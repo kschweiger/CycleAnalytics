@@ -50,11 +50,11 @@ def test_agg_ride_goal(
         (
             pd.DataFrame(
                 {
-                    "moving_time_seconds": [
+                    "ride_time": [
                         60,
                         30,
                     ],
-                    "total_time_seconds": [
+                    "total_time": [
                         90,
                         100,
                     ],
@@ -65,11 +65,11 @@ def test_agg_ride_goal(
         (
             pd.DataFrame(
                 {
-                    "moving_time_seconds": [
+                    "ride_time": [
                         None,
                         30,
                     ],
-                    "total_time_seconds": [
+                    "total_time": [
                         90,
                         100,
                     ],
@@ -80,11 +80,11 @@ def test_agg_ride_goal(
         (
             pd.DataFrame(
                 {
-                    "moving_time_seconds": [
+                    "ride_time": [
                         None,
                         30,
                     ],
-                    "total_time_seconds": [
+                    "total_time": [
                         None,
                         100,
                     ],
@@ -95,10 +95,10 @@ def test_agg_ride_goal(
         (
             pd.DataFrame(
                 {
-                    "moving_time_seconds": [
+                    "ride_time": [
                         None,
                     ],
-                    "total_time_seconds": [
+                    "total_time": [
                         None,
                     ],
                 }

@@ -94,9 +94,7 @@ def agg_ride_goal(data: pd.DataFrame, agg: AggregationType) -> float:
     elif agg == AggregationType.MAX_DISTANCE:
         return data.distance.max()
     elif agg == AggregationType.DURATION:
-        relevant_data = (
-            data[["moving_time_seconds", "total_time_seconds"]].min(axis=1).dropna()
-        )
+        relevant_data = data[["ride_time", "total_time"]].min(axis=1).dropna()
         if relevant_data.empty:
             return 0
         return relevant_data.max()
@@ -194,22 +192,18 @@ class Goal(ABC):
         return progress
 
     @abstractmethod
-    def evaluate(self) -> GoalEvaluation:
-        ...
+    def evaluate(self) -> GoalEvaluation: ...
 
     @abstractmethod
-    def has_been_reached(self) -> bool:
-        ...
+    def has_been_reached(self) -> bool: ...
 
     @property
     @abstractmethod
-    def goal_type_repr(self) -> str:
-        ...
+    def goal_type_repr(self) -> str: ...
 
     @property
     @abstractmethod
-    def goal_type(self) -> GoalType:
-        ...
+    def goal_type(self) -> GoalType: ...
 
     def _filter_date_dataframe(self, data: pd.DataFrame) -> pd.DataFrame:
         if "date" not in data.columns:
