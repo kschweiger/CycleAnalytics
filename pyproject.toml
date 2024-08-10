@@ -20,12 +20,12 @@ pydantic = "^2.8.2"
 redis = "^5.0.8"
 wtforms = "^3.1.2"
 plotly = "^5.23.0"
-sqlalchemy = "^2.0.31"
+sqlalchemy = "^2.0.32"
 flask-sqlalchemy = "^3.1.1"
 psycopg2 = "^2.9.9"
-geo-track-analyzer = "^1.4.1"
+geo-track-analyzer = "^1.4.4"
 flask-debugtoolbar = "^0.14.1"
-debugpy = "^1.8.2"
+debugpy = "^1.8.5"
 tldextract = "^5.1.2"
 httpx = "^0.27.0"
 
@@ -35,7 +35,7 @@ optional = true
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.11.1"
 pre-commit = "^3.8.0"
-ruff = "~0.5.5"
+ruff = "~0.5.7"
 bpython = "^0.24"
 
 [tool.poetry.group.test]
