@@ -1,0 +1,9 @@
+-c prod.txt
+-c dev.txt
+
+pytest
+pytest-mock
+pytest-cov
+pytest-sugar
+pytest-dependency
+freezegun

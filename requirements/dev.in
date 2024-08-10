@@ -1,0 +1,17 @@
+-c prod.txt
+-c test.txt
+
+# Build tools
+bump-my-version
+build>=1,<2
+setuptools>=72,<73
+setuptools-scm>=8,<9
+uv
+
+# Lint and format
+ruff
+mypy
+
+# Development tools
+bpython
+pre-commit

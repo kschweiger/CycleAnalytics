@@ -1,0 +1,175 @@
+annotated-types==0.7.0
+    # via pydantic
+anyio==4.4.0
+    # via httpx
+async-timeout==4.0.3
+    # via redis
+blinker==1.8.2
+    # via
+    #   flask
+    #   flask-debugtoolbar
+cachelib==0.9.0
+    # via flask-caching
+certifi==2024.7.4
+    # via
+    #   httpcore
+    #   httpx
+    #   requests
+charset-normalizer==3.3.2
+    # via requests
+click==8.1.7
+    # via flask
+compress-pickle==2.1.0
+    # via pydantic-numpy
+debugpy==1.8.5
+    # via cycle-analytics (pyproject.toml)
+dynaconf==3.2.6
+    # via cycle-analytics (pyproject.toml)
+exceptiongroup==1.2.2
+    # via anyio
+filelock==3.15.4
+    # via
+    #   pyroutelib3
+    #   tldextract
+fitparse==1.2.0
+    # via geo-track-analyzer
+flask==3.0.3
+    # via
+    #   cycle-analytics (pyproject.toml)
+    #   flask-caching
+    #   flask-debugtoolbar
+    #   flask-sqlalchemy
+    #   flask-wtf
+flask-caching==2.3.0
+    # via cycle-analytics (pyproject.toml)
+flask-debugtoolbar==0.15.1
+    # via cycle-analytics (pyproject.toml)
+flask-sqlalchemy==3.1.1
+    # via cycle-analytics (pyproject.toml)
+flask-wtf==1.2.1
+    # via cycle-analytics (pyproject.toml)
+geo-track-analyzer==1.4.4
+    # via cycle-analytics (pyproject.toml)
+gpxpy==1.6.2
+    # via geo-track-analyzer
+gunicorn==22.0.0
+    # via cycle-analytics (pyproject.toml)
+h11==0.14.0
+    # via httpcore
+httpcore==1.0.5
+    # via httpx
+httpx==0.27.0
+    # via cycle-analytics (pyproject.toml)
+idna==3.7
+    # via
+    #   anyio
+    #   httpx
+    #   requests
+    #   tldextract
+iso8601==2.1.0
+    # via osmiter
+itsdangerous==2.2.0
+    # via
+    #   flask
+    #   flask-debugtoolbar
+    #   flask-wtf
+jinja2==3.1.4
+    # via flask
+kaleido==0.2.1
+    # via cycle-analytics (pyproject.toml)
+lz4==4.3.3
+    # via compress-pickle
+markupsafe==2.1.5
+    # via
+    #   flask-debugtoolbar
+    #   jinja2
+    #   werkzeug
+    #   wtforms
+numpy==1.26.4
+    # via
+    #   geo-track-analyzer
+    #   pandas
+    #   pydantic-numpy
+osmiter==1.3.1
+    # via pyroutelib3
+packaging==24.1
+    # via
+    #   flask-debugtoolbar
+    #   gunicorn
+    #   plotly
+pandas==2.2.2
+    # via
+    #   cycle-analytics (pyproject.toml)
+    #   geo-track-analyzer
+plotly==5.23.0
+    # via
+    #   cycle-analytics (pyproject.toml)
+    #   geo-track-analyzer
+protobuf==5.27.3
+    # via osmiter
+psycopg2==2.9.9
+    # via cycle-analytics (pyproject.toml)
+pydantic==2.8.2
+    # via
+    #   cycle-analytics (pyproject.toml)
+    #   geo-track-analyzer
+    #   pydantic-numpy
+pydantic-core==2.20.1
+    # via pydantic
+pydantic-numpy==5.0.2
+    # via geo-track-analyzer
+pyroutelib3==1.7.2
+    # via cycle-analytics (pyproject.toml)
+python-dateutil==2.9.0.post0
+    # via pandas
+pytz==2024.1
+    # via pandas
+redis==5.0.8
+    # via cycle-analytics (pyproject.toml)
+requests==2.32.3
+    # via
+    #   geo-track-analyzer
+    #   requests-file
+    #   tldextract
+requests-file==2.1.0
+    # via tldextract
+ruamel-yaml==0.18.6
+    # via pydantic-numpy
+ruamel-yaml-clib==0.2.8
+    # via ruamel-yaml
+semver==3.0.2
+    # via pydantic-numpy
+six==1.16.0
+    # via python-dateutil
+sniffio==1.3.1
+    # via
+    #   anyio
+    #   httpx
+sqlalchemy==2.0.32
+    # via
+    #   cycle-analytics (pyproject.toml)
+    #   flask-sqlalchemy
+tenacity==9.0.0
+    # via plotly
+tldextract==5.1.2
+    # via cycle-analytics (pyproject.toml)
+typing-extensions==4.12.2
+    # via
+    #   anyio
+    #   osmiter
+    #   pydantic
+    #   pydantic-core
+    #   pyroutelib3
+    #   sqlalchemy
+tzdata==2024.1
+    # via pandas
+urllib3==2.2.2
+    # via requests
+werkzeug==3.0.3
+    # via
+    #   flask
+    #   flask-debugtoolbar
+wtforms==3.1.2
+    # via
+    #   cycle-analytics (pyproject.toml)
+    #   flask-wtf

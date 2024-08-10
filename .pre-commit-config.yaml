@@ -19,29 +19,19 @@ repos:
         exclude: ^tests/
         additional_dependencies:
           - types-Markdown
-  - repo: https://github.com/python-poetry/poetry
-    rev: 1.8.0
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.2.3
     hooks:
-      - id: poetry-check
-      - id: poetry-lock
-        args: ["--no-update"]
-      - id: poetry-export
+      - id: pip-compile
+        name: Compile Prod
         args:
-          [
-            "-f",
-            "requirements.txt",
-            "-o",
-            "requirements.txt",
-            "--without-hashes",
-          ]
-      - id: poetry-export
-        args:
-          [
-            "-f",
-            "requirements.txt",
-            "-o",
-            "requirements_test.txt",
-            "--without-hashes",
-            "--with",
-            "test",
-          ]
+          [pyproject.toml, -o, requirements/prod.txt, --all-extras, --no-header]
+        files: pyproject.toml
+      - id: pip-compile
+        name: Compile Dev
+        args: [requirements/dev.in, -o, requirements/dev.txt, --no-header]
+        files: ^requirements/.*\.(in|txt)
+      - id: pip-compile
+        name: Compile Test
+        args: [requirements/test.in, -o, requirements/test.txt, --no-header]
+        files: ^requirements/.*\.(in|txt)

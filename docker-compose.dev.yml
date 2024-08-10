@@ -11,6 +11,6 @@ services:
     container_name: RedisInsight
     restart: unless-stopped
     ports:
-      - '8544:8001'
+      - "8544:5540"
     depends_on:
       - redis

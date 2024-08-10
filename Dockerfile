@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM python:3.11-bookworm
+FROM --platform=$BUILDPLATFORM python:3.12-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -7,9 +7,9 @@ WORKDIR /usr/src/app
 
 RUN pip install pip -U
 
-COPY requirements.txt /usr/src/app/
+COPY requirements/prod.txt /usr/src/app/
 
-RUN pip install -r requirements.txt
+RUN pip install -r prod.txt
 
 
 RUN groupadd -r app

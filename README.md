@@ -4,7 +4,7 @@ App for tracking rides, managing goals, events, segments, and locations related 
 
 ## Configuration
 
-Various aspects of the tool can be configures with the [setting.toml](/conf/settings.toml) file. Create an additional file in the `conf/` folder called `.secrets.toml` for additional configuration like the database password.  Typically it would look something like this:
+Various aspects of the tool can be configures with the [setting.toml](/conf/settings.toml) file. Create an additional file in the `conf/` folder called `.secrets.toml` for additional configuration like the database password. Typically it would look something like this:
 
 ```toml
 dynaconf_merge = true
@@ -44,3 +44,17 @@ The tool is intended to be run using the proved Docker files. Details are given 
 - `run-debug` (same a dev but also supports vscode debugger)
 
 `make` commoands to run the tool after building the containers (e.g. with `make compose-build`)
+
+## Development
+
+Dependency management is done using `uv` (or `pip-tools`). Install `uv` in your venv and use the `uv-sync` make command to install the current dependencies.
+
+Dependencies can be updated using the `uv-compile` make command.
+
+Before running the app, take care of the settings described above. To run the app locally use something like this:
+
+```bash
+python -m flask --app cycle_analytics --debug run -p 7548
+```
+
+this will run on the local machine with a the default `SimpleCache` provided by flask.

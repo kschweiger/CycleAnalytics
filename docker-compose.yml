@@ -4,6 +4,7 @@ services:
     image: redis:7
     container_name: redis
     restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
     expose:
       - 6379
   app:
