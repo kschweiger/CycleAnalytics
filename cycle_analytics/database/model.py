@@ -347,7 +347,7 @@ class Ride(Base):
             cache.set(key, byte_track, timeout=60 * 60 * 24)
             return byte_track
         else:
-            logger.debug("Hit on %s. Returning cached ByteTrack")
+            logger.debug("Hit on %s. Returning cached ByteTrack", key)
             return data
 
     @property
@@ -387,6 +387,7 @@ class Ride(Base):
 
         return fill_overview, None if len(segment_overviews) == 0 else segment_overviews
 
+    # Property for nicer access to latest track
     @property
     def database_track(self) -> None | DatabaseTrack:
         key = f"database_track_for_ride_{self.id}"

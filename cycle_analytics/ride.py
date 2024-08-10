@@ -1,3 +1,4 @@
+import contextlib
 import json
 import logging
 from collections import deque
@@ -167,10 +168,8 @@ def display(id_ride: int) -> str | Response:
     track_data = None
     track_overview = None
     segment_overviews = None
-    try:
+    with contextlib.suppress(RuntimeError):
         track_overview, segment_overviews = ride.track_overviews
-    except RuntimeError:
-        pass
 
     if track_overview:
         track_data = [
