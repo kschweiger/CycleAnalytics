@@ -66,12 +66,11 @@ class AggregationType(str, Enum):
             if goal_type == GoalType.RIDE:
                 return f"{format_float(threshold)} rides"
             return f"{format_float(threshold)} occurances"
-        elif self in [AggregationType.TOTAL_DISTANCE, AggregationType.AVG_DISTANCE]:
-            if threshold >= 5000:
-                return f"{format_float(threshold/1000)} km"
-            else:
-                return f"{format_float(threshold)} m"
-        elif self == AggregationType.MAX_DISTANCE:
+        elif self in [
+            AggregationType.MAX_DISTANCE,
+            AggregationType.TOTAL_DISTANCE,
+            AggregationType.AVG_DISTANCE,
+        ]:
             return f"{format_float(threshold)} km"
         elif self == AggregationType.DURATION:
             if threshold > 60 * 60:

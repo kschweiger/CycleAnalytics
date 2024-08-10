@@ -116,8 +116,7 @@ def test_max_duration_aggregation(data: pd.DataFrame, exp_value: float) -> None:
     ("aggregation_type", "threshold", "text"),
     [
         (AggregationType.COUNT, 5, "5 occurances"),
-        (AggregationType.TOTAL_DISTANCE, 1000, "1000 m"),
-        (AggregationType.TOTAL_DISTANCE, 10000, "10 km"),
+        (AggregationType.TOTAL_DISTANCE, 100, "100 km"),
         (AggregationType.MAX_DISTANCE, 5, "5 km"),
         (AggregationType.MAX_DISTANCE, 5.5, "5.50 km"),
     ],

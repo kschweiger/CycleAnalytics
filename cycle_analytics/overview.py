@@ -179,7 +179,9 @@ def main() -> str:
         else:
             this_ride_data.extend(
                 [
-                    round(ride_data.overview_distance, 2),
+                    ""
+                    if ride_data.overview_avg_vel is None
+                    else round(ride_data.overview_avg_vel, 2),
                     ""
                     if ride_data.overview_uphill is None
                     else round(ride_data.overview_uphill, 2),
