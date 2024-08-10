@@ -62,19 +62,32 @@ target-version = "py310"
 line-length = 88
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "PD", "PT", "NPY", "N", "W", "RET", "ANN", "RUF"]
-unfixable = ["F841", "RUF005", "RUF015"]
+select = [
+  "E",
+  "F",
+  "I",
+  "PD",
+  "PT",
+  "NPY",
+  "N",
+  "W",
+  "RET",
+  "ANN",
+  "RUF",
+  "SIM",
+  "PERF",
+]
+unfixable = ["F841", "RUF015"]
 ignore = [
-  "ANN101",
-  "RUF009",
-  "E731",
-  "RET505",
   "ANN002",
   "ANN003",
+  "ANN101",
+  "RET502",
+  "RET505",
   "RUF005",
-  "RUF007",
+  "RUF009",
+  "E731",
 ]
-ignore-init-module-imports = true
 
 
 [tool.mypy]

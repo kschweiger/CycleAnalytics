@@ -218,9 +218,7 @@ def main() -> str:
             color_sequence=current_app.config.style.color_sequence,
         )
 
-    plots = []
-    for i in range(0, len(plots_), 2):
-        plots.append(plots_[i : i + 2])
+    plots = [plots_[i : i + 2] for i in range(0, len(plots_), 2)]
 
     return render_template(
         "overview.html",
@@ -240,7 +238,6 @@ def heatmap() -> str:
 
     rides = get_rides_in_timeframe(year_selected)
 
-    # TODO: Do this multithreaded?
     datas = []
 
     with concurrent.futures.ThreadPoolExecutor(

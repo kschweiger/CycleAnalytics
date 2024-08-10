@@ -1,3 +1,4 @@
+import logging
 from datetime import date, datetime, time, timedelta
 from typing import Optional, Type
 
@@ -11,6 +12,10 @@ from sqlalchemy.orm import (
     mapped_column,
     relationship,
 )
+
+from cycle_analytics.cache import cache
+
+logger = logging.getLogger(__name__)
 
 
 class Base(DeclarativeBase, MappedAsDataclass):
@@ -329,14 +334,21 @@ class Ride(Base):
         sorted_tracks = sorted(self.tracks, key=lambda t: t.added, reverse=True)
         return sorted_tracks[0]
 
-    # TODO: Need some caching here
     @property
     def track(self) -> None | Track:
-        latest_track = self.get_latest_track()
-        if not latest_track:
+        track = self.database_track
+        if not track:
             return None
 
-        return ByteTrack(latest_track.content)
+        key = f"bytetrack_for_ride_{track.id}"
+        data = cache.get(key)
+        if data is None:
+            byte_track = ByteTrack(track.content)
+            cache.set(key, byte_track, timeout=60 * 60 * 24)
+            return byte_track
+        else:
+            logger.debug("Hit on %s. Returning cached ByteTrack")
+            return data
 
     @property
     def track_overview(self) -> None | TrackOverview:
@@ -377,7 +389,16 @@ class Ride(Base):
 
     @property
     def database_track(self) -> None | DatabaseTrack:
-        return self.get_latest_track()
+        key = f"database_track_for_ride_{self.id}"
+        data = cache.get(key)
+        if data is None:
+            latest_track = self.get_latest_track()
+            if latest_track is not None:
+                cache.set(key, latest_track, timeout=60 * 60 * 24)
+            return latest_track
+        else:
+            logger.debug("Hit on %s. Returning cached DatabaseTrack", key)
+            return data
 
 
 class DatabaseGoal(Base):
