@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="m-1 p-2 border rounded-3">
+  <h3>{{metric.capitalize()}} Zones</h3>
+  {% if zones is not none %}
+  <div class="container">
+    <form method="POST" id="zonesForm">
+      <div id="form_content">
+        <script>
+          load_zone_form_data(
+            {{url_for("settings.get_zone_form") | tojson }},
+            {{inital_payload| tojson}},
+            "{{csrf_token()}}"
+          );
+        </script>
+      </div>
+
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input id="updated_zones_btn" type="submit" value="Update Zones" class="w-100 btn btn-success mt-1">
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block head_scripts %}
+<script>
+  function load_zone_form_data(update_url, payload, csrf_token, action = null) {
+    const content_div = document.getElementById("form_content");
+
+    let request_url;
+    if (action === null) {
+      request_url = update_url;
+    }
+    else {
+      request_url = update_url + "?action=" + action
+    }
+
+    fetch(request_url, {
+      method: "POST",
+      "headers": {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrf_token,
+      },
+      "body": JSON.stringify(payload),
+    })
+      .then(response => response.json())
+      .then(data => content_div.innerHTML = data["data"]);
+    console.log("dasdasdasd");
+  }
+</script>
+{% endblock %}
