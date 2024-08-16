@@ -34,6 +34,7 @@ from cycle_analytics.database.model import (
 )
 from cycle_analytics.database.model import db as orm_db
 from cycle_analytics.database.modifier import switch_overview_of_interest_flag
+from cycle_analytics.database.retriever import get_zones_for_metric
 from cycle_analytics.model.base import MapData, MapMarker, MapPathData
 from cycle_analytics.plotting import (
     get_track_elevation_extension_plot,
@@ -163,7 +164,12 @@ def display(id_ride: int) -> str | Response:
     database_track = ride.database_track
     track = None
     if database_track:
-        track = ByteTrack(database_track.content)
+        track = ByteTrack(
+            database_track.content,
+            heartrate_zones=get_zones_for_metric("heartrate"),
+            cadence_zones=get_zones_for_metric("cadence"),
+            power_zones=get_zones_for_metric("power"),
+        )
 
     track_data = None
     track_overview = None
@@ -305,6 +311,7 @@ def display(id_ride: int) -> str | Response:
                 color_extention=colors[1],
                 slider=True,
                 show_segment_borders=visualize_segments and plot_segments is not None,
+                include_zones=True,
             )
         except VisualizationSetupError:
             hr_plot = None
