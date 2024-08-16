@@ -327,6 +327,7 @@ def display(id_ride: int) -> str | Response:
                 color_extention=colors[1],
                 slider=True,
                 show_segment_borders=visualize_segments and plot_segments is not None,
+                include_zones=True,
             )
         except VisualizationSetupError:
             cad_plot = None
@@ -343,6 +344,7 @@ def display(id_ride: int) -> str | Response:
                 color_extention=colors[1],
                 slider=True,
                 show_segment_borders=visualize_segments and plot_segments is not None,
+                include_zones=True,
             )
         except VisualizationSetupError:
             pw_plot = None
