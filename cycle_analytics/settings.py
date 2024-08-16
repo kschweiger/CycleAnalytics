@@ -4,8 +4,11 @@ from enum import StrEnum, auto
 
 from flask import Blueprint, flash, render_template, request
 from geo_track_analyzer.model import ZoneInterval, Zones
+from pydantic import ValidationError
 
 from cycle_analytics.cache import cache
+from cycle_analytics.database.modifier import update_zones
+from cycle_analytics.database.retriever import get_zones_for_metric
 
 logger = logging.getLogger(__name__)
 
@@ -84,15 +87,39 @@ def get_zone_form() -> dict[str, str]:
 def modify_zones(metric: str) -> str:
     zone_metric = ZoneMetric(metric)
 
-    # TEMP:
-    zones = Zones(
-        intervals=[
-            ZoneInterval(start=None, end=100),
-            ZoneInterval(start=100, end=150),
-            ZoneInterval(start=150, end=None),
-        ]
-    )
-    # TEMP:
+    if request.method == "POST":
+        intervals = []
+        for i in range(1, int(request.form.get("count_zones")) + 1):  # type: ignore
+            zone_color = request.form.get(f"color_{i}", None)
+            if zone_color == "":
+                zone_color = None
+            intervals.append(
+                ZoneInterval(
+                    name=request.form.get(f"name_{i}", None),
+                    start=request.form.get(f"start_{i}", None),  # type: ignore
+                    end=request.form.get(f"end_{i}", None),  # type: ignore
+                    color=zone_color,  # type: ignore
+                )
+            )
+        try:
+            post_zones = Zones(intervals=intervals)
+        except ValidationError:
+            flash(
+                "Invalid zone definition. Make sure that consecutive zones start and "
+                "end with the same value"
+            )
+        else:
+            update_zones(post_zones, zone_metric.value)
+            print(post_zones)
+
+    zones = get_zones_for_metric(zone_metric.value)
+    if not zones:
+        zones = Zones(
+            intervals=[
+                ZoneInterval(start=None, end=100),
+                ZoneInterval(start=100, end=None),
+            ]
+        )
 
     return render_template(
         "utils/modify_zones.html",

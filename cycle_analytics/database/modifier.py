@@ -1,8 +1,11 @@
 from typing import Literal
 
+from geo_track_analyzer.model import Zones
+from sqlalchemy import select
+
 from cycle_analytics.model.goal import AggregationType
 
-from .model import DatabaseGoal, DatabaseSegment, TrackOverview
+from .model import DatabaseGoal, DatabaseSegment, DatabaseZoneInterval, TrackOverview
 from .model import db as orm_db
 
 
@@ -74,4 +77,30 @@ def switch_overview_of_interest_flag(id_overview: int) -> bool:
     orm_db.session.add(overview)
     orm_db.session.commit()
 
+    return True
+
+
+def update_zones(zones: Zones, metric: str) -> bool:
+    stmt = select(DatabaseZoneInterval).where(DatabaseZoneInterval.metric == metric)
+    curr_zones = orm_db.session.execute(stmt).scalars().all()
+    print(curr_zones)
+    for curr_zone in curr_zones:
+        print(curr_zone)
+        orm_db.session.delete(curr_zone)
+
+    new_zones = []
+    for i, interval in enumerate(zones.intervals):
+        new_zones.append(
+            DatabaseZoneInterval(
+                id=i,
+                metric=metric,
+                name=interval.name,
+                interval_start=interval.start,
+                interval_end=interval.end,
+                color=interval.color,
+            )
+        )
+    orm_db.session.add_all(new_zones)
+
+    orm_db.session.commit()
     return True

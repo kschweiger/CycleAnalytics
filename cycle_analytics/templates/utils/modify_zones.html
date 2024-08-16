@@ -16,9 +16,12 @@
           );
         </script>
       </div>
-
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      <input id="updated_zones_btn" type="submit" value="Update Zones" class="w-100 btn btn-success mt-1">
+      <div class="row py-1">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="col">
+          <input id="updated_zones_btn" type="submit" value="Update Zones" class="w-100 btn btn-success">
+        </div>
+      </div>
     </form>
   </div>
   {% endif %}
