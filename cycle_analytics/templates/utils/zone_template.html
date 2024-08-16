@@ -2,8 +2,8 @@
   <div class="col"></div>
   <div class="col">Start</div>
   <div class="col">End</div>
+  <div class="col-auto"></div>
 </div>
-<input type="hidden" name="count_zones" value="{{zones.intervals | length}}" />
 {% for interval in zones.intervals %}
 <div class="row py-1" id="row_{{loop.index}}">
   <div class="col">
@@ -18,15 +18,16 @@
     <input class="form-control" type="number" id="end_{{loop.index}}" name="end_{{loop.index}}" {% if interval.end is
       none %} disabled {% else %} value="{{interval.end}}" {% endif %} />
   </div>
-  <div class="col visually-hidden">
-    <input class="form-control" type="text" id="color_{{loop.index}}" name="color_{{loop.index}}" {% if interval.color
-      is none %}{% else %}value="{{interval.color}}" {% endif %} />
+  <div class="col-auto">
+    <input type="color" class="form-control form-control-color" id="color_{{loop.index}}" name="color_{{loop.index}}" {%
+      if interval.color is not none %} value="{{interval.color}}" {% endif %}>
   </div>
 
 </div>
 
 {% endfor %}
 <div class="row py-1">
+  <div class="col"></div>
   <div class="col"></div>
   <div class="col"></div>
   <div class="col">
@@ -41,6 +42,7 @@
 <div class="row py-1">
   <div class="col"></div>
   <div class="col"></div>
+  <div class="col"></div>
   <div class="col">
     <div>
       <button type="button" class="btn btn-secondary w-100" {% if disable_rm_btn %}disabled{% endif %}
@@ -50,3 +52,4 @@
 
   </div>
 </div>
+<input type="hidden" name="count_zones" value="{{zones.intervals | length}}" />

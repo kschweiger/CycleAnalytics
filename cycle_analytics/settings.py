@@ -110,7 +110,6 @@ def modify_zones(metric: str) -> str:
             )
         else:
             update_zones(post_zones, zone_metric.value)
-            print(post_zones)
 
     zones = get_zones_for_metric(zone_metric.value)
     if not zones:
@@ -120,7 +119,6 @@ def modify_zones(metric: str) -> str:
                 ZoneInterval(start=100, end=None),
             ]
         )
-
     return render_template(
         "utils/modify_zones.html",
         metric=zone_metric,
@@ -140,11 +138,10 @@ def zones() -> str:
 
 @bp.route("/", methods=("GET", "POST"))
 def main() -> str:
-    if request.method == "POST":
-        if request.form.get("reset_cache") is not None:
-            logger.warning("Resetting cache")
-            cache.clear()
-            flash("Cache cleared", "alert-warning")
+    if request.method == "POST" and request.form.get("reset_cache") is not None:
+        logger.warning("Resetting cache")
+        cache.clear()
+        flash("Cache cleared", "alert-warning")
 
     return render_template(
         "settings.html",
