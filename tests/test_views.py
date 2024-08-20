@@ -66,6 +66,11 @@ def test_views_empty_database(
         ("/add/bike", 200),
         ("/ride/add_note/1", 200),
         ("/track/compare/", 200),
+        ("/settings/zones", 200),
+        ("/settings/modify_zones/heartrate", 200),
+        ("/settings/modify_zones/power", 200),
+        ("/settings/modify_zones/cadence", 200),
+        ("/settings/modify_zones/velocity", 200),
     ],
 )
 def test_views(client: FlaskClient, route: str, exp_status_code: int) -> None:

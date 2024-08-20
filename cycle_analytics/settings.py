@@ -45,12 +45,9 @@ def _update_zones(
             )
         )
     elif action is Action.REMOVE:
-        print("asdasd")
         if len(intervals) > 2:
-            print(intervals)
             intervals = intervals[:-1]
             intervals[-1].end = None
-            print(intervals)
         else:
             logger.error("Can not remove intervals if only two are passed")
     return intervals
@@ -71,7 +68,7 @@ def get_zone_form() -> dict[str, str]:
         logger.error("Pass at least two zones")
 
     zones = Zones(intervals=_update_zones(intervals, action))
-    outgoing_payload = {"intervals": [i.json() for i in zones.intervals]}
+    outgoing_payload = {"intervals": [i.model_dump_json() for i in zones.intervals]}
     if len(zones.intervals) == 2:
         disable_rm_btn = True
     _rendered_temple = render_template(
