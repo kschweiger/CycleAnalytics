@@ -15,6 +15,7 @@ from cycle_analytics.database.model import (
     DatabaseLocation,
     DatabaseSegment,
     DatabaseTrack,
+    DatabaseZoneInterval,
     Difficulty,
     EventType,
     Material,
@@ -449,5 +450,51 @@ def create_test_data(database: SQLAlchemy, data: dict[str, Any]) -> None:
             track_id=extension_db_track.id,
             distance=10,
         )
+    )
+    database.session.commit()
+
+    database.session.add_all(
+        [
+            DatabaseZoneInterval(
+                id=0,
+                metric="heartrate",
+                interval_start=None,
+                interval_end=100,
+                name="Easy",
+                color="#FF0000",
+            ),
+            DatabaseZoneInterval(
+                id=1,
+                metric="heartrate",
+                interval_start=100,
+                interval_end=150,
+                name="Moderate",
+                color="#0000FF",
+            ),
+            DatabaseZoneInterval(
+                id=2,
+                metric="heartrate",
+                interval_start=150,
+                interval_end=None,
+                name="Hard",
+                color="#00FF00",
+            ),
+            DatabaseZoneInterval(
+                id=0,
+                metric="power",
+                interval_start=None,
+                interval_end=150,
+                name=None,
+                color=None,
+            ),
+            DatabaseZoneInterval(
+                id=1,
+                metric="power",
+                interval_start=150,
+                interval_end=None,
+                name=None,
+                color=None,
+            ),
+        ]
     )
     database.session.commit()

@@ -4,6 +4,8 @@ from typing import Sequence, Type, TypeVar
 
 import pandas as pd
 from geo_track_analyzer import ByteTrack, Track
+from geo_track_analyzer.model import ZoneInterval
+from geo_track_analyzer.track import Zones
 from sqlalchemy import and_, desc, distinct, extract, func, not_, or_, select
 
 from cycle_analytics.cache import cache
@@ -28,6 +30,7 @@ from .model import (
     DatabaseLocation,
     DatabaseSegment,
     DatabaseTrack,
+    DatabaseZoneInterval,
     Difficulty,
     EventType,
     Material,
@@ -572,3 +575,23 @@ def get_rides_with_tracks() -> list[tuple[int, date, float, str]]:
     )
 
     return db.session.execute(stmt).all()  # type: ignore
+
+
+def get_zones_for_metric(metric: str) -> None | Zones:
+    stmt = (
+        select(
+            DatabaseZoneInterval.name,
+            DatabaseZoneInterval.interval_start.label("start"),
+            DatabaseZoneInterval.interval_end.label("end"),
+            DatabaseZoneInterval.color,
+        )
+        .where(DatabaseZoneInterval.metric == metric)
+        .order_by(DatabaseZoneInterval.id)
+    )
+    data = db.session.execute(stmt).all()
+    if not data:
+        return None
+
+    intervals = [ZoneInterval(**row._asdict()) for row in data]
+
+    return Zones(intervals=intervals)

@@ -1,0 +1,55 @@
+<div class="row py-1">
+  <div class="col"></div>
+  <div class="col">Start</div>
+  <div class="col">End</div>
+  <div class="col-auto"></div>
+</div>
+{% for interval in zones.intervals %}
+<div class="row py-1" id="row_{{loop.index}}">
+  <div class="col">
+    <input class="form-control" type="text" id="name_{{loop.index}}" name="name_{{loop.index}}"
+      value="{% if interval.name is none%}Zone {{loop.index}}{% else %}{{interval.name}}{% endif %}" />
+  </div>
+  <div class="col">
+    <input class="form-control" type="number" id="start_{{loop.index}}" name="start_{{loop.index}}" {% if interval.start
+      is none %} disabled {% else %} value="{{interval.start}}" {% endif %} />
+  </div>
+  <div class="col">
+    <input class="form-control" type="number" id="end_{{loop.index}}" name="end_{{loop.index}}" {% if interval.end is
+      none %} disabled {% else %} value="{{interval.end}}" {% endif %} />
+  </div>
+  <div class="col-auto">
+    <input type="color" class="form-control form-control-color" id="color_{{loop.index}}" name="color_{{loop.index}}" {%
+      if interval.color is not none %} value="{{interval.color}}" {% endif %}>
+  </div>
+
+</div>
+
+{% endfor %}
+<div class="row py-1">
+  <div class="col"></div>
+  <div class="col"></div>
+  <div class="col"></div>
+  <div class="col">
+    <div>
+      <button type="button" class="btn btn-secondary w-100"
+        onclick='load_zone_form_data({{url_for("settings.get_zone_form") | tojson }}, {{payload| tojson}}, "{{csrf_token()}}" ,"add")'>Add
+        Zone</button>
+    </div>
+
+  </div>
+</div>
+<div class="row py-1">
+  <div class="col"></div>
+  <div class="col"></div>
+  <div class="col"></div>
+  <div class="col">
+    <div>
+      <button type="button" class="btn btn-secondary w-100" {% if disable_rm_btn %}disabled{% endif %}
+        onclick='load_zone_form_data({{url_for("settings.get_zone_form") | tojson }}, {{payload| tojson}}, "{{csrf_token()}}" ,"remove")'>Remove
+        Zone</button>
+    </div>
+
+  </div>
+</div>
+<input type="hidden" name="count_zones" value="{{zones.intervals | length}}" />

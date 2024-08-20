@@ -9,32 +9,40 @@
 
 </div> #}
 <div class="m-1 p-1 border rounded-3">
-    <h3>Utilities</h3>
-    <table class="mt-3 table table-hover table-borderless w-auto">
-        <tbody>
-            <tr class="align-middle">
-                <td>
-                    <form method="POST">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                        <input type="hidden" name="reset_cache" id="reset_cache" value="reset" />
-                        <div class="text-center"><input type="submit" value="Reset Cache" class="btn btn-success w-100">
-                        </div>
-                    </form>
-                </td>
-                <td>
-                    <p class="my-1">Reset the cache of the application.</p>
-                </td>
-            </tr>
-            <tr class="align-middle">
-                <td>
-                    <a href="{{url_for('adders.add_bike')}}" class="btn btn-success w-100">Add Bike</a>
-                </td>
-                <td>
-                    <p class="my-1">Add a new bike to the database.</p>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+  <h3>Utilities</h3>
+  <table class="mt-3 table table-hover table-borderless w-auto">
+    <tbody>
+      <tr class="align-middle">
+        <td>
+          <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="reset_cache" id="reset_cache" value="reset" />
+            <div class="text-center"><input type="submit" value="Reset Cache" class="btn btn-success w-100">
+            </div>
+          </form>
+        </td>
+        <td>
+          <p class="my-1">Reset the cache of the application.</p>
+        </td>
+      </tr>
+      <tr class="align-middle">
+        <td>
+          <a href="{{url_for('adders.add_bike')}}" class="btn btn-success w-100">Add Bike</a>
+        </td>
+        <td>
+          <p class="my-1">Add a new bike to the database.</p>
+        </td>
+      </tr>
+      <tr class="align-middle">
+        <td>
+          <a href="{{url_for('settings.zones')}}" class="btn btn-success w-100">Zones</a>
+        </td>
+        <td>
+          <p class="my-1">Setup and modify Heartrate, Power, Cadence and Velocity Zones</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 
 

@@ -482,6 +482,17 @@ class DatabaseLocation(Base):
         )
 
 
+class DatabaseZoneInterval(Base):
+    __tablename__: str = "zones"
+
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True, nullable=False)
+    metric: Mapped[str] = mapped_column(db.String, primary_key=True, nullable=False)
+    name: Mapped[Optional[str]] = mapped_column(db.String, nullable=True)
+    interval_start: Mapped[Optional[int]] = mapped_column(db.Integer, nullable=True)
+    interval_end: Mapped[Optional[int]] = mapped_column(db.Integer, nullable=True)
+    color: Mapped[Optional[str]] = mapped_column(db.String, nullable=True)
+
+
 # @dataclass
 # class TrackThumbnail(Base):
 #     __tablename__: str = "track_thumbnails"

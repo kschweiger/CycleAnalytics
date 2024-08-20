@@ -1,0 +1,23 @@
+{% extends 'base.html' %} {% block content %} {#
+<h3>Settings</h3>
+<div class="border p-1 border-primary-subtle rounded-3"></div>
+#}
+<div class="m-1 p-1 border rounded-3">
+  <h3>Zones</h3>
+  <div class="row">
+    <div class="col">
+      <a href="{{url_for('settings.modify_zones', metric='heartrate')}}" class="btn btn-success w-100">Heartrate</a>
+    </div>
+    <div class="col">
+      <a href="{{url_for('settings.modify_zones', metric='cadence')}}" class="btn btn-success w-100">Cadence</a>
+    </div>
+    <div class="col">
+      <a href="{{url_for('settings.modify_zones', metric='power')}}" class="btn btn-success w-100">Power</a>
+    </div>
+    <div class="col">
+      <a href="{{url_for('settings.modify_zones', metric='velocity')}}" class="btn btn-success w-100">Velocity</a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -190,7 +190,19 @@ def get_track_elevation_extension_plot(
     color_extention: Optional[str] = None,
     slider: bool = False,
     show_segment_borders: bool = False,
+    include_zones: bool = False,
 ) -> go.Figure:
+    split_by_zone = False
+    include_heartrate = plot_extension == "heartrate"
+    include_cadence = plot_extension == "cadence"
+    include_power = plot_extension == "power"
+    if include_zones and (
+        (include_heartrate and track.heartrate_zones is not None)
+        or (include_cadence and track.cadence_zones is not None)
+        or (include_power and track.power_zones is not None)
+    ):
+        split_by_zone = True
+
     elevation_plot = track.plot(
         kind="profile",
         segment=segment,
@@ -199,11 +211,12 @@ def get_track_elevation_extension_plot(
         color_elevation=color_elevation,
         color_additional_trace=color_extention,
         slider=slider,
-        include_heartrate=plot_extension == "heartrate",
-        include_cadence=plot_extension == "cadence",
-        include_power=plot_extension == "power",
+        include_heartrate=include_heartrate,
+        include_cadence=include_cadence,
+        include_power=include_power,
         show_segment_borders=show_segment_borders,
         color_segment_border=current_app.config.style.color_border,
+        split_by_zone=split_by_zone,
     )
 
     update_elevation_axis(elevation_plot, 200)
