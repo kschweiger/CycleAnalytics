@@ -8,20 +8,19 @@ from geo_track_analyzer.model import ZoneInterval
 from geo_track_analyzer.track import Zones
 from sqlalchemy import and_, desc, distinct, extract, func, not_, or_, select
 
-from cycle_analytics.cache import cache
-from cycle_analytics.database.converter import convert_database_goals
-from cycle_analytics.model.base import LastRide, RideOverviewContainer
-from cycle_analytics.model.goal import Goal
-from cycle_analytics.plotting import convert_fig_to_base64, get_track_thumbnails
-from cycle_analytics.rest_models import SegmentForMap
-from cycle_analytics.utils.base import (
+from ..cache import cache
+from ..database.converter import convert_database_goals
+from ..model.base import LastRide, RideOverviewContainer
+from ..model.goal import Goal
+from ..plotting import convert_fig_to_base64, get_track_thumbnails
+from ..rest_models import SegmentForMap
+from ..utils.base import (
     format_timedelta,
     get_date_range_from_year_month,
     none_or_round,
 )
-from cycle_analytics.utils.debug import log_timing
-from cycle_analytics.utils.track import get_identifier
-
+from ..utils.debug import log_timing
+from ..utils.track import get_identifier
 from .model import (
     Bike,
     CategoryModelType,
@@ -516,7 +515,7 @@ def get_locations() -> list[DatabaseLocation]:
 
 
 def get_locations_for_track(track_id: int) -> list[DatabaseLocation]:
-    from cycle_analytics.database.model import TrackLocationAssociation
+    from ..database.model import TrackLocationAssociation
 
     stmt = (
         select(DatabaseLocation)

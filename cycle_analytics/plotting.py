@@ -7,9 +7,9 @@ import plotly.graph_objects as go
 from flask import current_app
 from geo_track_analyzer.track import Track
 
-from cycle_analytics.database.converter import convert_ride_overview_container_to_df
-from cycle_analytics.model.base import RideOverviewContainer
-from cycle_analytics.utils.debug import log_timing
+from .database.converter import convert_ride_overview_container_to_df
+from .model.base import RideOverviewContainer
+from .utils.debug import log_timing
 
 month_label_order = dict(
     month=[

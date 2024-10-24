@@ -16,19 +16,19 @@ from geo_track_analyzer.utils.base import center_geolocation
 from wtforms import SelectField
 from wtforms.validators import DataRequired
 
-from cycle_analytics.database.converter import (
+from .database.converter import (
     convert_ride_overview_container_to_df,
 )
-from cycle_analytics.database.model import Ride
-from cycle_analytics.database.retriever import (
+from .database.model import Ride
+from .database.retriever import (
     get_ride_and_latest_track_overview,
     get_ride_years_in_database,
     get_rides_in_timeframe,
 )
-from cycle_analytics.forms import YearAndRideTypeForm
-from cycle_analytics.plotting import per_month_overview_plots
-from cycle_analytics.utils import get_month_mapping, get_nice_timedelta_isoformat
-from cycle_analytics.utils.base import format_timedelta, unwrap
+from .forms import YearAndRideTypeForm
+from .plotting import per_month_overview_plots
+from .utils import get_month_mapping, get_nice_timedelta_isoformat
+from .utils.base import format_timedelta, unwrap
 
 logger = logging.getLogger(__name__)
 

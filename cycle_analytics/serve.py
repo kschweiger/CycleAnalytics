@@ -4,7 +4,7 @@ from typing import BinaryIO, Tuple
 
 from geo_track_analyzer import ByteTrack
 
-from cycle_analytics.database.model import DatabaseSegment, DatabaseTrack, db
+from .database.model import DatabaseSegment, DatabaseTrack, db
 
 logger = logging.getLogger(__name__)
 

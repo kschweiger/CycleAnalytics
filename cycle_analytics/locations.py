@@ -11,16 +11,16 @@ from flask import (
 )
 from sqlalchemy import select
 
-from cycle_analytics.database.model import (
+from .database.model import (
     DatabaseLocation,
     Ride,
     TrackLocationAssociation,
     db,
     ride_track,
 )
-from cycle_analytics.database.retriever import get_locations
-from cycle_analytics.utils.base import convert_locations_to_markers
-from cycle_analytics.utils.track import find_possible_tracks_for_location
+from .database.retriever import get_locations
+from .utils.base import convert_locations_to_markers
+from .utils.track import find_possible_tracks_for_location
 
 logger = logging.getLogger(__name__)
 

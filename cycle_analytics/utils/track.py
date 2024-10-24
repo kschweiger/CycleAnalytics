@@ -19,15 +19,15 @@ from geo_track_analyzer.utils.base import (
 from gpxpy.gpx import GPXBounds
 from sqlalchemy import select
 
-from cycle_analytics.database.converter import initialize_overviews
-from cycle_analytics.database.model import (
+from ..database.converter import initialize_overviews
+from ..database.model import (
     DatabaseLocation,
     DatabaseTrack,
     TrackOverview,
     db,
 )
-from cycle_analytics.utils.base import unwrap
-from cycle_analytics.utils.debug import log_timing
+from ..utils.base import unwrap
+from ..utils.debug import log_timing
 
 numeric = int | float
 logger = logging.getLogger(__name__)

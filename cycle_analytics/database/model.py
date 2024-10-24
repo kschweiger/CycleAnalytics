@@ -13,7 +13,7 @@ from sqlalchemy.orm import (
     relationship,
 )
 
-from cycle_analytics.cache import cache
+from ..cache import cache
 
 logger = logging.getLogger(__name__)
 

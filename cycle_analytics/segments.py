@@ -30,27 +30,27 @@ from werkzeug import Response
 from wtforms import HiddenField, SelectField, StringField, TextAreaField
 from wtforms.validators import DataRequired, Optional
 
-from cycle_analytics.database.model import DatabaseSegment, Difficulty, SegmentType
-from cycle_analytics.database.model import db as orm_db
-from cycle_analytics.database.modifier import modify_segment_visited_flag
-from cycle_analytics.database.retriever import (
+from .database.model import DatabaseSegment, Difficulty, SegmentType
+from .database.model import db as orm_db
+from .database.modifier import modify_segment_visited_flag
+from .database.retriever import (
     get_locations,
     get_segments_for_map_in_bounds,
     get_unique_model_objects_in_db,
 )
-from cycle_analytics.model.base import MapData, MapPathData
-from cycle_analytics.plotting import (
+from .model.base import MapData, MapPathData
+from .plotting import (
     convert_fig_to_base64,
     get_track_elevation_plot,
     get_track_elevation_slope_plot,
 )
-from cycle_analytics.rest_models import (
+from .rest_models import (
     SegmentsInBoundsRequest,
     SegmentsInBoundsResponse,
 )
-from cycle_analytics.utils import find_closest_elem_to_poi
-from cycle_analytics.utils.base import convert_locations_to_markers, unwrap
-from cycle_analytics.utils.forms import flash_form_error
+from .utils import find_closest_elem_to_poi
+from .utils.base import convert_locations_to_markers, unwrap
+from .utils.forms import flash_form_error
 
 logger = logging.getLogger(__name__)
 

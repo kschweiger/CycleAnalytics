@@ -7,8 +7,8 @@ from typing import final
 import numpy as np
 import pandas as pd
 
-from cycle_analytics.model.exceptions import GoalSetupError
-from cycle_analytics.utils.base import format_float, format_seconds
+from ..model.exceptions import GoalSetupError
+from ..utils.base import format_float, format_seconds
 
 
 @dataclass

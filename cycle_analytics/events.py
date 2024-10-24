@@ -5,9 +5,9 @@ from flask_wtf import FlaskForm
 from wtforms import SelectField
 from wtforms.validators import DataRequired
 
-from cycle_analytics.database.retriever import get_event_years_in_database, get_events
-from cycle_analytics.model.base import MapMarker
-from cycle_analytics.utils import get_month_mapping
+from .database.retriever import get_event_years_in_database, get_events
+from .model.base import MapMarker
+from .utils import get_month_mapping
 
 
 class OverviewForm(FlaskForm):

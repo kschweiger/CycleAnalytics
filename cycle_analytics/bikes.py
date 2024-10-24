@@ -4,9 +4,9 @@ from flask import Blueprint, flash, redirect, render_template, url_for
 from sqlalchemy.exc import NoResultFound
 from werkzeug import Response
 
-from cycle_analytics.database.model import Bike
-from cycle_analytics.database.model import db as orm_db
-from cycle_analytics.database.retriever import get_agg_data_for_bike
+from .database.model import Bike
+from .database.model import db as orm_db
+from .database.retriever import get_agg_data_for_bike
 
 logger = logging.getLogger(__name__)
 

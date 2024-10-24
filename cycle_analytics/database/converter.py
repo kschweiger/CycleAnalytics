@@ -7,10 +7,9 @@ import pandas as pd
 from geo_track_analyzer import Track
 from geo_track_analyzer.model import SegmentOverview
 
-from cycle_analytics.model.base import RideOverviewContainer
-from cycle_analytics.model.goal import AggregationType, Goal
-from cycle_analytics.utils.base import compare_values
-
+from ..model.base import RideOverviewContainer
+from ..model.goal import AggregationType, Goal
+from ..utils.base import compare_values
 from .model import (
     DatabaseGoal,
     Ride,
@@ -78,7 +77,7 @@ def convert_rides_to_df(rides: list[Ride]) -> pd.DataFrame:
 
         for key in [
             key
-            for key in data.keys()
+            for key in data
             if key
             not in [
                 "distance",

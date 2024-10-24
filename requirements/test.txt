@@ -1,7 +1,9 @@
 coverage==7.6.4
     # via pytest-cov
 exceptiongroup==1.2.2
-    # via pytest
+    # via
+    #   -c requirements/prod.txt
+    #   pytest
 freezegun==1.5.1
     # via -r requirements/test.in
 iniconfig==2.0.0

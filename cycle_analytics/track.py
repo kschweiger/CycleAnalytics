@@ -18,14 +18,14 @@ from geo_track_analyzer.utils.track import extract_track_data_for_plot
 from geo_track_analyzer.visualize import plot_tracks_on_map
 from werkzeug import Response
 
-from cycle_analytics.database.model import DatabaseTrack, Ride, TrackLocationAssociation
-from cycle_analytics.database.model import db as orm_db
-from cycle_analytics.database.retriever import (
+from .database.model import DatabaseTrack, Ride, TrackLocationAssociation
+from .database.model import db as orm_db
+from .database.retriever import (
     get_locations_for_track,
     get_rides_with_tracks,
 )
-from cycle_analytics.utils.forms import get_track_from_file_storage
-from cycle_analytics.utils.track import check_location_in_track, get_enhanced_db_track
+from .utils.forms import get_track_from_file_storage
+from .utils.track import check_location_in_track, get_enhanced_db_track
 
 bp = Blueprint("track", __name__, url_prefix="/track")
 

@@ -6,13 +6,11 @@ from flask.logging import default_handler
 from flask_wtf.csrf import CSRFProtect
 from werkzeug import Response
 
-from cycle_analytics.database.creator import (
-    sync_categorical_values,
-)
-from cycle_analytics.database.model import db as orm_db
-from cycle_analytics.landing_page import render_landing_page
-from cycle_analytics.serve import get_segment_download, get_track_download
-from cycle_analytics.utils.debug import initialize_flask_server_debugger_if_needed
+from .database.creator import sync_categorical_values
+from .database.model import db as orm_db
+from .landing_page import render_landing_page
+from .serve import get_segment_download, get_track_download
+from .utils.debug import initialize_flask_server_debugger_if_needed
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +56,7 @@ def create_app(
     if test_config is not None:
         cfg.settings.update(test_config)
 
-    from cycle_analytics.cache import cache
+    from .cache import cache
 
     logger.debug("Initializing Cache")
     cache.init_app(app=app)

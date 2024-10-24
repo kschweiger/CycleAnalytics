@@ -26,30 +26,30 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired
 
-from cycle_analytics.database.model import (
+from .database.model import (
     DatabaseLocation,
     Ride,
     RideNote,
     TrackLocationAssociation,
 )
-from cycle_analytics.database.model import db as orm_db
-from cycle_analytics.database.modifier import switch_overview_of_interest_flag
-from cycle_analytics.database.retriever import get_zones_for_metric
-from cycle_analytics.model.base import MapData, MapMarker, MapPathData
-from cycle_analytics.plotting import (
+from .database.model import db as orm_db
+from .database.modifier import switch_overview_of_interest_flag
+from .database.retriever import get_zones_for_metric
+from .model.base import MapData, MapMarker, MapPathData
+from .plotting import (
     get_track_elevation_extension_plot,
     get_track_elevation_plot,
     get_track_elevation_slope_plot,
 )
-from cycle_analytics.track import _match_locations
-from cycle_analytics.utils.base import (
+from .track import _match_locations
+from .utils.base import (
     convert_locations_to_markers,
     format_timedelta,
     none_or_round,
     unwrap,
 )
-from cycle_analytics.utils.forms import get_track_from_wtf_form
-from cycle_analytics.utils.track import init_db_track_and_enhance
+from .utils.forms import get_track_from_wtf_form
+from .utils.track import init_db_track_and_enhance
 
 bp = Blueprint("ride", __name__, url_prefix="/ride")
 

@@ -3,8 +3,7 @@ from typing import Literal
 from geo_track_analyzer.model import Zones
 from sqlalchemy import select
 
-from cycle_analytics.model.goal import AggregationType
-
+from ..model.goal import AggregationType
 from .model import DatabaseGoal, DatabaseSegment, DatabaseZoneInterval, TrackOverview
 from .model import db as orm_db
 

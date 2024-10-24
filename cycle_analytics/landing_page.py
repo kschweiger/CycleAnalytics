@@ -3,12 +3,12 @@ from datetime import date
 
 from flask import current_app, render_template, request
 
-from cycle_analytics.database.converter import (
+from .database.converter import (
     convert_ride_overview_container_to_df,
     summarize_rides_in_month,
     summarize_rides_in_year,
 )
-from cycle_analytics.database.retriever import (
+from .database.retriever import (
     get_goal_years_in_database,
     get_last_ride,
     get_recent_events,
@@ -17,15 +17,15 @@ from cycle_analytics.database.retriever import (
     load_goals,
     resolve_track_location_association,
 )
-from cycle_analytics.forms import YearAndRideTypeForm
-from cycle_analytics.model.goal import (
+from .forms import YearAndRideTypeForm
+from .model.goal import (
     LocationGoal,
     ManualGoal,
     RideGoal,
     format_goals_concise,
 )
-from cycle_analytics.utils import get_month_mapping
-from cycle_analytics.utils.base import get_curr_and_prev_month_date_ranges, unwrap
+from .utils import get_month_mapping
+from .utils.base import get_curr_and_prev_month_date_ranges, unwrap
 
 logger = logging.getLogger(__name__)
 

@@ -2,6 +2,8 @@ annotated-types==0.7.0
     # via pydantic
 anyio==4.6.2.post1
     # via httpx
+async-timeout==4.0.3
+    # via redis
 blinker==1.8.2
     # via flask
 cachelib==0.9.0
@@ -21,6 +23,8 @@ debugpy==1.8.7
     # via cycle-analytics (pyproject.toml)
 dynaconf==3.2.6
     # via cycle-analytics (pyproject.toml)
+exceptiongroup==1.2.2
+    # via anyio
 filelock==3.16.1
     # via
     #   pyroutelib3
@@ -146,6 +150,7 @@ tldextract==5.1.2
     # via cycle-analytics (pyproject.toml)
 typing-extensions==4.12.2
     # via
+    #   anyio
     #   osmiter
     #   pydantic
     #   pydantic-core

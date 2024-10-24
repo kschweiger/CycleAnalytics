@@ -6,9 +6,9 @@ from flask import Blueprint, flash, render_template, request
 from geo_track_analyzer.model import ZoneInterval, Zones
 from pydantic import ValidationError
 
-from cycle_analytics.cache import cache
-from cycle_analytics.database.modifier import update_zones
-from cycle_analytics.database.retriever import get_zones_for_metric
+from .cache import cache
+from .database.modifier import update_zones
+from .database.retriever import get_zones_for_metric
 
 logger = logging.getLogger(__name__)
 

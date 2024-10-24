@@ -8,8 +8,8 @@ import pandas as pd
 import tldextract
 from flask import url_for
 
-from cycle_analytics.database.model import DatabaseLocation
-from cycle_analytics.model.base import MapMarker
+from ..database.model import DatabaseLocation
+from ..model.base import MapMarker
 
 T = TypeVar("T")
 
