@@ -15,8 +15,13 @@ run-debug:
 
 uv-compile:
 	uv pip compile pyproject.toml -o requirements/prod.txt --all-extras --no-header
-	uv pip compile requirements/dev.in -o requirements/dev.txt --no-header
-	uv pip compile requirements/test.in -o requirements/test.txt --no-header
+	uv pip compile requirements/dev.in -o requirements/dev.txt --no-header -U
+	uv pip compile requirements/test.in -o requirements/test.txt --no-header -U
+
+uv-compile-update:
+	uv pip compile pyproject.toml -o requirements/prod.txt --all-extras --no-header -U
+	uv pip compile requirements/dev.in -o requirements/dev.txt --no-header -U
+	uv pip compile requirements/test.in -o requirements/test.txt --no-header -U
 
 uv-sync:
 	uv pip sync requirements/prod.txt requirements/dev.txt requirements/test.txt

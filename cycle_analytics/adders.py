@@ -77,7 +77,13 @@ class RideForm(FlaskForm):
     track = FileField("GPX Track")
     enhance_elevation = RadioField(
         "Enhance Elevation",
-        choices=[(True, "Enhance Elevation")],
+        choices=[(False, "Enhance Elevation")],
+        coerce=bool,
+        validate_choice=False,
+    )
+    strip_segments = RadioField(
+        "Strip Segments",
+        choices=[(False, "Strip Segments")],
         coerce=bool,
         validate_choice=False,
     )
@@ -279,7 +285,7 @@ class LocationForm(FlaskForm):
 
 @bp.route("/ride", methods=("GET", "POST"))
 def add_ride() -> str | Response:
-    form = RideForm()
+    form: RideForm = RideForm()
     config = current_app.config
 
     all_terrain_choices = get_unique_model_objects_in_db(TerrainType)
@@ -323,6 +329,10 @@ def add_ride() -> str | Response:
             except RuntimeError as e:
                 flash("Error: %s" % e, "alert-danger")
             else:
+                if form.strip_segments.data is not None:
+                    logger.info("Stripping segments")
+                    track.strip_segements()
+
                 tracks_to_insert = init_db_track_and_enhance(
                     track=track,
                     # NOTE: If enhance_elevation is switched of the track should be

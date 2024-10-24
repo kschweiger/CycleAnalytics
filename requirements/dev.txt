@@ -6,19 +6,17 @@ blessed==1.20.0
     # via curtsies
 bpython==0.24
     # via -r requirements/dev.in
-bracex==2.5
+bracex==2.5.post1
     # via wcmatch
-build==1.2.1
+bump-my-version==0.28.0
     # via -r requirements/dev.in
-bump-my-version==0.25.1
-    # via -r requirements/dev.in
-certifi==2024.7.4
+certifi==2024.8.30
     # via
     #   -c requirements/prod.txt
     #   requests
 cfgv==3.4.0
     # via pre-commit
-charset-normalizer==3.3.2
+charset-normalizer==3.4.0
     # via
     #   -c requirements/prod.txt
     #   requests
@@ -33,17 +31,17 @@ cwcwidth==0.1.9
     # via
     #   bpython
     #   curtsies
-distlib==0.3.8
+distlib==0.3.9
     # via virtualenv
-filelock==3.15.4
+filelock==3.16.1
     # via
     #   -c requirements/prod.txt
     #   virtualenv
-greenlet==3.0.3
+greenlet==3.1.1
     # via bpython
-identify==2.6.0
+identify==2.6.1
     # via pre-commit
-idna==3.7
+idna==3.10
     # via
     #   -c requirements/prod.txt
     #   requests
@@ -51,41 +49,33 @@ markdown-it-py==3.0.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
-mypy==1.11.1
+mypy==1.13.0
     # via -r requirements/dev.in
 mypy-extensions==1.0.0
     # via mypy
 nodeenv==1.9.1
     # via pre-commit
-packaging==24.1
-    # via
-    #   -c requirements/prod.txt
-    #   -c requirements/test.txt
-    #   build
-    #   setuptools-scm
-platformdirs==4.2.2
+platformdirs==4.3.6
     # via virtualenv
-pre-commit==3.8.0
+pre-commit==4.0.1
     # via -r requirements/dev.in
 prompt-toolkit==3.0.36
     # via questionary
-pydantic==2.8.2
+pydantic==2.9.2
     # via
     #   -c requirements/prod.txt
     #   bump-my-version
     #   pydantic-settings
-pydantic-core==2.20.1
+pydantic-core==2.23.4
     # via
     #   -c requirements/prod.txt
     #   pydantic
-pydantic-settings==2.4.0
+pydantic-settings==2.6.0
     # via bump-my-version
 pygments==2.18.0
     # via
     #   bpython
     #   rich
-pyproject-hooks==1.1.0
-    # via build
 python-dotenv==1.0.1
     # via pydantic-settings
 pyxdg==0.28
@@ -98,33 +88,24 @@ requests==2.32.3
     # via
     #   -c requirements/prod.txt
     #   bpython
-rich==13.7.1
+rich==13.9.3
     # via
     #   bump-my-version
     #   rich-click
 rich-click==1.8.3
     # via bump-my-version
-ruff==0.5.7
-    # via -r requirements/dev.in
-setuptools==72.1.0
-    # via
-    #   -c requirements/test.txt
-    #   -r requirements/dev.in
-    #   setuptools-scm
-setuptools-scm==8.1.0
+ruff==0.7.1
     # via -r requirements/dev.in
 six==1.16.0
     # via
     #   -c requirements/prod.txt
     #   -c requirements/test.txt
     #   blessed
-tomli==2.0.1
+tomli==2.0.2
     # via
     #   -c requirements/test.txt
-    #   build
     #   mypy
-    #   setuptools-scm
-tomlkit==0.13.0
+tomlkit==0.13.2
     # via bump-my-version
 typing-extensions==4.12.2
     # via
@@ -132,16 +113,17 @@ typing-extensions==4.12.2
     #   mypy
     #   pydantic
     #   pydantic-core
+    #   rich
     #   rich-click
-urllib3==2.2.2
+urllib3==2.2.3
     # via
     #   -c requirements/prod.txt
     #   requests
-uv==0.2.35
+uv==0.4.26
     # via -r requirements/dev.in
-virtualenv==20.26.3
+virtualenv==20.27.0
     # via pre-commit
-wcmatch==9.0
+wcmatch==10.0
     # via bump-my-version
 wcwidth==0.2.13
     # via
