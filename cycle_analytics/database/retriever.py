@@ -1,5 +1,5 @@
 import logging
-from datetime import date, datetime, time, timedelta
+from datetime import date, timedelta
 from typing import Sequence, Type, TypeVar
 
 import pandas as pd
@@ -641,7 +641,7 @@ def get_weekly_distance(past_weeks: int) -> None | pd.DataFrame:
                     date_part('week', ride_date) AS week,
                     sum(distance)
                 FROM
-                    cycle_analytics.ride
+                    ride
                 WHERE
                     ride_date >= (
                         SELECT
