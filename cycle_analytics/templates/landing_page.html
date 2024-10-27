@@ -11,6 +11,12 @@
             <div class="row p-1 border rounded-3">
                 {% include "tiles/summary.html" %}
             </div>
+            {% if weekly_distance_plot is not none %}
+
+            <div class="row p-1 mt-1 border rounded-3">
+                {% include "tiles/weekly_distance.html" %}
+            </div>
+            {%endif%}
         </div>
         <div class="col-xl-7">
             <div class="row p-1 border rounded-3">{% include "tiles/last_ride.html" %}</div>

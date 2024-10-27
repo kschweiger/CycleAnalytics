@@ -269,3 +269,66 @@ def get_track_elevation_slope_plot(
     fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor="Gray")
 
     return fig
+
+
+def get_weekly_data_line_plot(
+    data: pd.DataFrame,
+    y_col: str = "distance",
+    y_title: str = "Distance [km]",
+    fill_na: None | float = None,
+    color: None | str = None,
+    add_avg: bool = False,
+) -> go.Figure:
+    fig = go.Figure()
+    y_data = data[y_col]
+    if fill_na is not None:
+        y_data = y_data.fillna(fill_na)
+    line_style_dict = {"width": 2}
+    if color is not None:
+        line_style_dict.update({"color": color})  # type: ignore
+    print(line_style_dict)
+    fig.add_trace(
+        go.Scatter(
+            x=data.week_number,
+            y=y_data,
+            mode="lines+markers",
+            line=line_style_dict,
+            fill="tozeroy",
+            showlegend=False,
+        )
+    )
+
+    if add_avg:
+        val = y_data.mean()
+
+        fig.add_trace(
+            go.Scatter(
+                x=data.week_number,
+                y=[val for _ in range(len(y_data))],
+                mode="lines",
+                line=dict(width=2, color="White"),
+                name="Average",
+            )
+        )
+
+    fig.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        # title="title",
+        xaxis_title="Weeks",
+        yaxis_title=y_title,
+        font_color="white",
+        margin=dict(l=5, r=5, t=10, b=10, pad=0),
+        legend=dict(
+            orientation="h",  # Horizontal orientation
+            yanchor="bottom",  # Anchor the legend to the bottom
+            y=1.0,  # Position it above the plot area
+            xanchor="right",  # Center it horizontally
+            x=1,  # Center it at the top
+        ),
+    )
+
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor="Gray")
+    return fig
+
+

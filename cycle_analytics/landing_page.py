@@ -3,6 +3,8 @@ from datetime import date
 
 from flask import current_app, render_template, request
 
+from cycle_analytics.plotting import convert_fig_to_base64, get_weekly_data_line_plot
+
 from .database.converter import (
     convert_ride_overview_container_to_df,
     summarize_rides_in_month,
@@ -14,6 +16,7 @@ from .database.retriever import (
     get_recent_events,
     get_ride_and_latest_track_overview,
     get_ride_years_in_database,
+    get_weekly_distance,
     load_goals,
     resolve_track_location_association,
 )
@@ -156,8 +159,21 @@ def render_landing_page() -> str:
         ]
         # *get_curr_and_prev_month_rides(date_today.year, date_today.month)
     )
-
     logger.info("summary done")
+    # ------------------------ Weekly disance -----------------------
+    weekly_distance_data = get_weekly_distance(15)
+    if weekly_distance_data is None:
+        weekly_distance_fig_base64 = None
+    else:
+        weekly_distance_fig = get_weekly_data_line_plot(
+            weekly_distance_data,
+            fill_na=0.0,
+            color=config.style.color_sequence[0],
+            add_avg=True,
+        )
+        weekly_distance_fig_base64 = convert_fig_to_base64(
+            [weekly_distance_fig], 600, 300
+        )[0]
     return render_template(
         "landing_page.html",
         active_page="home",
@@ -177,4 +193,5 @@ def render_landing_page() -> str:
         summary_ride_type_selected=summary_ride_type_selected,
         summary_data=summary_data,
         summary_month=summary_month,
+        weekly_distance_plot=weekly_distance_fig_base64,
     )

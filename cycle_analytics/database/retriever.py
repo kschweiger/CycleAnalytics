@@ -1,12 +1,13 @@
 import logging
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from typing import Sequence, Type, TypeVar
 
 import pandas as pd
 from geo_track_analyzer import ByteTrack, Track
 from geo_track_analyzer.model import ZoneInterval
 from geo_track_analyzer.track import Zones
-from sqlalchemy import and_, desc, distinct, extract, func, not_, or_, select
+from sqlalchemy import and_, desc, distinct, extract, func, not_, or_, select, text
+from sqlalchemy.exc import OperationalError
 
 from ..cache import cache
 from ..database.converter import convert_database_goals
@@ -594,3 +595,67 @@ def get_zones_for_metric(metric: str) -> None | Zones:
     intervals = [ZoneInterval(**row._asdict()) for row in data]
 
     return Zones(intervals=intervals)
+
+
+def get_weekly_distance(past_weeks: int) -> None | pd.DataFrame:
+    assert past_weeks > 0
+
+    temp_table_stmt = text(f"""
+    CREATE TEMPORARY TABLE tmp_week_table AS
+    WITH RECURSIVE weeks (
+        week_start
+    ) AS (
+        SELECT
+            date_trunc('week', CURRENT_DATE)
+        UNION ALL
+        SELECT
+            week_start - INTERVAL '1 week'
+        FROM
+            weeks
+        WHERE
+            week_start > date_trunc('week', CURRENT_DATE - INTERVAL '{past_weeks} weeks'))
+    SELECT
+        extract(YEAR FROM week_start) AS year,
+        extract(WEEK FROM week_start) AS week_number,
+        week_start AS week_start_date,
+        week_start + INTERVAL '6 days' AS week_end_date
+    FROM
+        weeks
+    ORDER BY
+        week_start DESC
+    """)
+
+    try:
+        db.session.execute(temp_table_stmt)
+    except OperationalError:
+        return None
+
+    data_stmt = text(
+        """
+        SELECT
+            twt.week_number, d.sum AS distance
+        FROM
+            tmp_week_table twt
+            LEFT JOIN (
+                SELECT
+                    date_part('week', ride_date) AS week,
+                    sum(distance)
+                FROM
+                    cycle_analytics.ride
+                WHERE
+                    ride_date >= (
+                        SELECT
+                            min(week_start_date)
+                        FROM
+                            tmp_week_table
+                        LIMIT 1)
+                GROUP BY
+                    week) d ON d.week = twt.week_number
+        ORDER BY
+            week_number DESC;
+        """
+    )
+
+    result = db.session.execute(data_stmt).all()
+
+    return pd.DataFrame(result)
