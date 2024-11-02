@@ -1,5 +1,5 @@
 import logging
-from datetime import date
+from datetime import date, timedelta
 
 from flask import current_app, render_template, request
 
@@ -16,7 +16,7 @@ from .database.retriever import (
     get_recent_events,
     get_ride_and_latest_track_overview,
     get_ride_years_in_database,
-    get_weekly_distance,
+    get_weekly_data,
     load_goals,
     resolve_track_location_association,
 )
@@ -161,9 +161,10 @@ def render_landing_page() -> str:
     )
     logger.info("summary done")
     # ------------------------ Weekly disance -----------------------
-    weekly_distance_data = get_weekly_distance(15)
+    weekly_distance_data = get_weekly_data(15)
     if weekly_distance_data is None:
         weekly_distance_fig_base64 = None
+        weekly_duration_fig_base64 = None
     else:
         weekly_distance_fig = get_weekly_data_line_plot(
             weekly_distance_data,
@@ -174,6 +175,21 @@ def render_landing_page() -> str:
         weekly_distance_fig_base64 = convert_fig_to_base64(
             [weekly_distance_fig], 600, 300
         )[0]
+
+        weekly_duration_fig = get_weekly_data_line_plot(
+            weekly_distance_data,
+            y_col="duration",
+            y_title="Duration",
+            y_unit="HH:MM",
+            fill_na=timedelta(seconds=0),
+            color=config.style.color_sequence[0],
+            add_avg=True,
+            y_is_timedelta=True,
+        )
+        weekly_duration_fig_base64 = convert_fig_to_base64(
+            [weekly_duration_fig], 600, 300
+        )[0]
+
     return render_template(
         "landing_page.html",
         active_page="home",
@@ -194,4 +210,5 @@ def render_landing_page() -> str:
         summary_data=summary_data,
         summary_month=summary_month,
         weekly_distance_plot=weekly_distance_fig_base64,
+        weekly_duration_plot=weekly_duration_fig_base64,
     )

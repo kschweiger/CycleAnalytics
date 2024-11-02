@@ -1,16 +1,21 @@
 import base64
+import logging
+from datetime import timedelta
 from typing import Literal, Optional
 
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from flask import current_app
-from geo_track_analyzer.track import Track
+from geo_track_analyzer.track import Track, VisualizationSetupError
+
+from cycle_analytics.utils.base import format_timedelta
 
 from .database.converter import convert_ride_overview_container_to_df
 from .model.base import RideOverviewContainer
 from .utils.debug import log_timing
 
+logger = logging.getLogger(__name__)
 month_label_order = dict(
     month=[
         "Jan",
@@ -274,19 +279,25 @@ def get_track_elevation_slope_plot(
 def get_weekly_data_line_plot(
     data: pd.DataFrame,
     y_col: str = "distance",
-    y_title: str = "Distance [km]",
-    fill_na: None | float = None,
+    y_title: str = "Distance",
+    y_unit: str = "km",
+    fill_na: None | float | timedelta = None,
     color: None | str = None,
     add_avg: bool = False,
+    y_is_timedelta: bool = False,
 ) -> go.Figure:
     fig = go.Figure()
     y_data = data[y_col]
+
     if fill_na is not None:
         y_data = y_data.fillna(fill_na)
+
+    if y_is_timedelta:
+        y_data = y_data + pd.to_datetime("1970/01/01")
+
     line_style_dict = {"width": 2}
     if color is not None:
         line_style_dict.update({"color": color})  # type: ignore
-    print(line_style_dict)
     fig.add_trace(
         go.Scatter(
             x=data.week_number,
@@ -300,6 +311,12 @@ def get_weekly_data_line_plot(
 
     if add_avg:
         val = y_data.mean()
+        val_std = y_data.std()
+        if y_is_timedelta:
+            val_time: pd.Timestamp = val.time()  # type: ignore
+            name = f"Average: {val_time.isoformat(timespec='minutes')} +- {format_timedelta(val_std, up_to="minutes")} {y_unit}"
+        else:
+            name = f"Average: {val:.2f} +- {val_std:.2f} {y_unit}"
 
         fig.add_trace(
             go.Scatter(
@@ -307,7 +324,7 @@ def get_weekly_data_line_plot(
                 y=[val for _ in range(len(y_data))],
                 mode="lines",
                 line=dict(width=2, color="White"),
-                name="Average",
+                name=name,
             )
         )
 
@@ -316,7 +333,7 @@ def get_weekly_data_line_plot(
         plot_bgcolor="rgba(0,0,0,0)",
         # title="title",
         xaxis_title="Weeks",
-        yaxis_title=y_title,
+        yaxis_title=f"{y_title} [{y_unit}]",
         font_color="white",
         margin=dict(l=5, r=5, t=10, b=10, pad=0),
         legend=dict(
@@ -328,7 +345,32 @@ def get_weekly_data_line_plot(
         ),
     )
 
-    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor="Gray")
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor="Gray", tickmode="linear")
+    if y_is_timedelta:
+        fig.update_yaxes(tickformat="%H:%M")
     return fig
 
 
+def get_track_summary_plots(
+    track: Track,
+    metric: Literal["heartrate", "cadence", "power"],
+) -> None | list[go.Figure]:
+    figs = []
+    for agg in ["time", "distance", "speed"]:
+        try:
+            figs.append(
+                track.plot(
+                    kind="zone_summary",
+                    metric=metric,
+                    aggregate=agg,
+                    use_zone_colors=True,
+                )
+            )
+        except VisualizationSetupError as e:  # noqa: PERF203
+            logger.debug("Track summary plot: %s", str(e))
+            return None
+
+    for fig in figs:
+        fig.show()
+
+    return figs

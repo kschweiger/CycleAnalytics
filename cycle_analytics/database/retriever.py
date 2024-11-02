@@ -597,7 +597,7 @@ def get_zones_for_metric(metric: str) -> None | Zones:
     return Zones(intervals=intervals)
 
 
-def get_weekly_distance(past_weeks: int) -> None | pd.DataFrame:
+def get_weekly_data(past_weeks: int) -> None | pd.DataFrame:
     assert past_weeks > 0
 
     temp_table_stmt = text(f"""
@@ -633,13 +633,14 @@ def get_weekly_distance(past_weeks: int) -> None | pd.DataFrame:
     data_stmt = text(
         """
         SELECT
-            twt.week_number, d.sum AS distance
+            twt.week_number, d.distance, d.duration
         FROM
             tmp_week_table twt
             LEFT JOIN (
                 SELECT
                     date_part('week', ride_date) AS week,
-                    sum(distance)
+                    sum(ride_duration) as duration,
+                    sum(distance) as distance
                 FROM
                     ride
                 WHERE
