@@ -40,6 +40,7 @@ from .plotting import (
     get_track_elevation_extension_plot,
     get_track_elevation_plot,
     get_track_elevation_slope_plot,
+    get_track_summary_plots,
 )
 from .track import _match_locations
 from .utils.base import (
@@ -357,6 +358,25 @@ def display(id_ride: int) -> str | Response:
             )
         ).scalars()
 
+        zone_summary_hr_fig = get_track_summary_plots(track, "heartrate")
+        zone_summary_hr_plot = (
+            json.dumps(zone_summary_hr_fig, cls=plotly.utils.PlotlyJSONEncoder)
+            if zone_summary_hr_fig is not None
+            else None
+        )
+        zone_summary_power_fig = get_track_summary_plots(track, "power")
+        zone_summary_power_plot = (
+            json.dumps(zone_summary_power_fig, cls=plotly.utils.PlotlyJSONEncoder)
+            if zone_summary_power_fig is not None
+            else None
+        )
+        zone_summary_cadence_fig = get_track_summary_plots(track, "cadence")
+        zone_summary_cadence_plot = (
+            json.dumps(zone_summary_cadence_fig, cls=plotly.utils.PlotlyJSONEncoder)
+            if zone_summary_cadence_fig is not None
+            else None
+        )
+
         database_locations = []
         for assoication in assoications:
             database_locations.append(
@@ -372,6 +392,9 @@ def display(id_ride: int) -> str | Response:
         hr_plot = None
         cad_plot = None
         pw_plot = None
+        zone_summary_hr_plot = None
+        zone_summary_power_plot = None
+        zone_summary_cadence_plot = None
 
     located_events = []
     if ride.events:
@@ -418,6 +441,9 @@ def display(id_ride: int) -> str | Response:
         heartrate_plot=hr_plot,
         cadence_plot=cad_plot,
         power_plot=pw_plot,
+        heartrate_zone_summary_plot=zone_summary_hr_plot,
+        power_zone_summary_plot=zone_summary_power_plot,
+        cadence_zone_summary_plot=zone_summary_cadence_plot,
         map_data=map_data,
         map_markers=located_events + location_markers,
         form=form,

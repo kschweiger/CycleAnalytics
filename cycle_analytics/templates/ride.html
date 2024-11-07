@@ -349,7 +349,32 @@
     </div>
     {% endif %}
     {% endif %}
-    <div id="test_table"></div>
+    {% if heartrate_zone_summary_plot is not none or power_zone_summary_plot is not none or cadence_zone_summary_plot is not none %}
+    <div class="row m-2 p-2 border rounded-3">
+      <h3>Zone summaries</h3>
+      {% if heartrate_zone_summary_plot is not none%}
+      <div id="zone_hr_summary" class="col">
+          <div class="">
+              <div id="heartrate_zone_summary_plot" class="my-3"></div>
+          </div>
+      </div>
+      {% endif %}
+      {% if power_zone_summary_plot is not none%}
+      <div id="zone_power_summary" class="col">
+          <div class="">
+              <div id="power_zone_summary_plot" class="my-3"></div>
+          </div>
+      </div>
+      {% endif %}
+      {% if cadence_zone_summary_plot is not none%}
+      <div id="zone_cadence_summary" class="col">
+          <div class="">
+              <div id="cadence_zone_summary_plot" class="my-3"></div>
+          </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}
@@ -396,6 +421,33 @@
     var layout = chart["layout"];
     var config = { displayModeBar: false, responsive: true, width: 10 };
     Plotly.newPlot("power_plot", data, layout, config);
+</script>
+{% endif %}
+{% if heartrate_zone_summary_plot is not none %}
+<script>
+    var chart = {{ heartrate_zone_summary_plot  | safe}};
+    var data = chart["data"];
+    var layout = chart["layout"];
+    var config = { displayModeBar: false, responsive: true, width: 5 };
+    Plotly.newPlot("heartrate_zone_summary_plot", data, layout, config);
+</script>
+{% endif %}
+{% if power_zone_summary_plot is not none %}
+<script>
+    var chart = {{ power_zone_summary_plot  | safe}};
+    var data = chart["data"];
+    var layout = chart["layout"];
+    var config = { displayModeBar: false, responsive: true, width: 5 };
+    Plotly.newPlot("power_zone_summary_plot", data, layout, config);
+</script>
+{% endif %}
+{% if cadence_zone_summary_plot is not none %}
+<script>
+    var chart = {{ cadence_zone_summary_plot  | safe}};
+    var data = chart["data"];
+    var layout = chart["layout"];
+    var config = { displayModeBar: false, responsive: true, width: 5 };
+    Plotly.newPlot("cadence_zone_summary_plot", data, layout, config);
 </script>
 {% endif %}
 {% endif %}

@@ -355,22 +355,26 @@ def get_track_summary_plots(
     track: Track,
     metric: Literal["heartrate", "cadence", "power"],
 ) -> None | list[go.Figure]:
-    figs = []
-    for agg in ["time", "distance", "speed"]:
-        try:
-            figs.append(
-                track.plot(
-                    kind="zone_summary",
-                    metric=metric,
-                    aggregate=agg,
-                    use_zone_colors=True,
-                )
-            )
-        except VisualizationSetupError as e:  # noqa: PERF203
-            logger.debug("Track summary plot: %s", str(e))
-            return None
+    try:
+        fig = track.plot(
+            kind="zone_summary",
+            metric=metric,
+            aggregate="time",
+            height=None,
+            width=None,
+            use_zone_colors=True,
+            as_pie_chart=True,
+        )
+    except VisualizationSetupError as e:
+        logger.debug("Track summary plot: %s", str(e))
+        return None
+    fig.update_layout(
+        autosize=True,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+    )
+    fig.update_layout(font_color="white")
 
-    for fig in figs:
-        fig.show()
+    # fig.show()
 
-    return figs
+    return fig
