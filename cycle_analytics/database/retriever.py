@@ -161,7 +161,7 @@ def get_ride_with_latest_track_id(
         .join(DatabaseTrack, ride_track.columns["track_id"] == DatabaseTrack.id)
         .join(Ride, ride_track.columns["ride_id"] == Ride.id)
         .filter(
-            and_(
+            or_(
                 *(
                     Ride.ride_date.between(start_date, end_date)
                     for start_date, end_date in date_ranges
@@ -198,7 +198,7 @@ def get_ride_with_latest_track_id(
             )
         )
         .filter(
-            and_(
+            or_(
                 *(
                     Ride.ride_date.between(start_date, end_date)
                     for start_date, end_date in date_ranges

@@ -172,3 +172,7 @@ docker/secrets.env
 .vscode
 .ruff_cache
 cov.xml
+
+# Other stuff
+*logs
+rsnaps/
