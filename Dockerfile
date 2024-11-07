@@ -1,22 +1,18 @@
-FROM --platform=$BUILDPLATFORM python:3.12-bookworm
+# syntax=docker/dockerfile:1
+FROM python:3.12-bookworm
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+SHELL ["/bin/bash", "-c"]
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+WORKDIR /home/app/app
 
-WORKDIR /usr/src/app
-
-RUN pip install pip -U
-
-COPY requirements/prod.txt /usr/src/app/
-
-RUN pip install -r prod.txt
-
-
-RUN groupadd -r app
-RUN useradd -r -g app app
-RUN chown -R app:app /usr/src/app
-
+RUN groupadd -r app && useradd -r -g app app
+RUN chown -R app:app /home/app
 USER app
+ENV PATH="/home/app/app/.venv/bin:$PATH"
 
-COPY . /usr/src/app/
+ADD . .
+RUN uv venv
+
+RUN uv pip install -r requirements/prod.txt --no-deps && uv pip install -e . --no-deps
+
 
