@@ -451,10 +451,12 @@
 </script>
 {% endif %}
 {% endif %}
-<script src="{{ url_for('static', filename='map_utils.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='map_utils.js') }}"></script>
 
 {% if map_data is not none%}
-<script>
+<script type="module">
+    import {PolyLineData,EventMarker,show_map_with_path_and_markers } from "{{ url_for('static', filename='map_utils.js') }}";
+
     show_map_with_path_and_markers('map',
         [{%for path in map_data.paths %}
     new PolyLineData([{{ path.latitudes }}],
