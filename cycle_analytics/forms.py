@@ -1,7 +1,7 @@
 from datetime import date
 
 from flask_wtf import FlaskForm
-from wtforms import SelectField
+from wtforms import FileField, SelectField
 from wtforms.validators import DataRequired
 
 
@@ -11,3 +11,7 @@ class YearAndRideTypeForm(FlaskForm):
     )
 
     ride_type = SelectField("Ride Type", validators=[DataRequired()], default="Default")
+
+
+class TrackUploadForm(FlaskForm):
+    track = FileField("GPX Track", validators=[DataRequired()])

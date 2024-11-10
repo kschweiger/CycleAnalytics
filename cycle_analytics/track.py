@@ -18,13 +18,16 @@ from geo_track_analyzer.utils.track import extract_track_data_for_plot
 from geo_track_analyzer.visualize import plot_tracks_on_map
 from werkzeug import Response
 
+from cycle_analytics.model.base import MapData, MapPathData
+
 from .database.model import DatabaseTrack, Ride, TrackLocationAssociation
 from .database.model import db as orm_db
 from .database.retriever import (
     get_locations_for_track,
     get_rides_with_tracks,
 )
-from .utils.forms import get_track_from_file_storage
+from .forms import TrackUploadForm
+from .utils.forms import get_track_from_file_storage, get_track_from_wtf_form
 from .utils.track import check_location_in_track, get_enhanced_db_track
 
 bp = Blueprint("track", __name__, url_prefix="/track")
@@ -177,4 +180,37 @@ def compare() -> str | Response:
         active_page="utils_compare",
         ride_data=ride_data,
         map_plot=map_plot,
+    )
+
+
+@bp.route("trim/", methods=("GET", "POST"))
+def trim() -> str | Response:
+    # TODO: Add database track shortening by passing id as get_parameter
+
+    state = "empty"
+    map_data = None
+    form = TrackUploadForm()
+
+    if form.validate_on_submit():
+        try:
+            track = get_track_from_wtf_form(form, "track")
+        except RuntimeError as e:
+            flash(f"File could not be loaded: {e}", "alert-danger")
+        else:
+            state = "track-loaded"
+
+            track_segment_data = track.get_track_data()
+            lats = track_segment_data[track_segment_data.moving].latitude.to_list()
+            lats = ",".join([str(l) for l in lats])  # noqa: E741
+            longs = track_segment_data[track_segment_data.moving].longitude.to_list()
+            longs = ",".join([str(l) for l in longs])  # noqa: E741
+            paths = [MapPathData(latitudes=lats, longitudes=longs)]
+            map_data = MapData(paths=paths)
+
+    return render_template(
+        "trim_track.html",
+        active_page="utils_shorten",
+        form=form,
+        state=state,
+        map_data=map_data,
     )
