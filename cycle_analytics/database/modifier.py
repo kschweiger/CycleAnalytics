@@ -1,11 +1,20 @@
+import logging
 from typing import Literal
 
 from geo_track_analyzer.model import Zones
 from sqlalchemy import select
 
 from ..model.goal import AggregationType
-from .model import DatabaseGoal, DatabaseSegment, DatabaseZoneInterval, TrackOverview
+from .model import (
+    DatabaseGoal,
+    DatabaseSegment,
+    DatabaseTrack,
+    DatabaseZoneInterval,
+    TrackOverview,
+)
 from .model import db as orm_db
+
+logger = logging.getLogger(__name__)
 
 
 def modify_goal_status(id_goal: int, active: bool = True) -> bool:
@@ -102,4 +111,19 @@ def update_zones(zones: Zones, metric: str) -> bool:
     orm_db.session.add_all(new_zones)
 
     orm_db.session.commit()
+    return True
+
+
+def update_track_content(id_track: int, new_content: bytes) -> bool:
+    db_track = orm_db.session.get(DatabaseTrack, id_track)
+    if db_track is None:
+        logger.error("Invalid track id %s", id_track)
+        return False
+    db_track.content = new_content
+    try:
+        orm_db.session.commit()
+    except TypeError:
+        logger.error("Cannot convert %s to binary", new_content)
+        return False
+
     return True
