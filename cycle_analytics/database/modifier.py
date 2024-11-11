@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import Literal
 
 from geo_track_analyzer.model import Zones
@@ -120,6 +121,7 @@ def update_track_content(id_track: int, new_content: bytes) -> bool:
         logger.error("Invalid track id %s", id_track)
         return False
     db_track.content = new_content
+    db_track.added = datetime.now()
     try:
         orm_db.session.commit()
     except TypeError:
