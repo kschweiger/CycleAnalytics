@@ -129,3 +129,13 @@ def update_track_content(id_track: int, new_content: bytes) -> bool:
         return False
 
     return True
+
+
+def update_track_overview(id_track: int, new_overviews: list[TrackOverview]) -> bool:
+    overviews = orm_db.session.query(TrackOverview).filter_by(id_track=id_track).all()
+    for overview in overviews:
+        orm_db.session.delete(overview)
+    orm_db.session.add_all(new_overviews)
+    orm_db.session.commit()
+
+    return True

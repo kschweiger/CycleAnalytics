@@ -25,7 +25,11 @@ from werkzeug import Response
 from wtforms import HiddenField
 from wtforms.validators import DataRequired
 
-from cycle_analytics.database.modifier import update_track_content
+from cycle_analytics.database.converter import initialize_overviews
+from cycle_analytics.database.modifier import (
+    update_track_content,
+    update_track_overview,
+)
 
 from .cache import cache
 from .database.model import DatabaseTrack, Ride, TrackLocationAssociation
@@ -313,6 +317,11 @@ def trim() -> str | Response:
         ]
 
         if update_track_content(form_track_id, track.get_xml().encode()):
+            update_track_overview(
+                form_track_id,
+                initialize_overviews(track, form_track_id),
+            )
+
             ride_id = get_ride_for_track(form_track_id)
             assert ride_id is not None
             cache.clear()
