@@ -1,6 +1,9 @@
+import hashlib
 import json
 import logging
 import re
+from datetime import timedelta
+from io import BytesIO
 
 import pandas as pd
 import plotly
@@ -11,15 +14,18 @@ from flask import (
     redirect,
     render_template,
     request,
+    send_file,
     url_for,
 )
+from flask_wtf import FlaskForm
 from geo_track_analyzer import ByteTrack, Track
 from geo_track_analyzer.utils.track import extract_track_data_for_plot
 from geo_track_analyzer.visualize import plot_tracks_on_map
 from werkzeug import Response
+from wtforms import HiddenField
+from wtforms.validators import DataRequired
 
-from cycle_analytics.model.base import MapData, MapPathData
-
+from .cache import cache
 from .database.model import DatabaseTrack, Ride, TrackLocationAssociation
 from .database.model import db as orm_db
 from .database.retriever import (
@@ -27,12 +33,21 @@ from .database.retriever import (
     get_rides_with_tracks,
 )
 from .forms import TrackUploadForm
+from .model.base import MapData, MapPathData
+from .utils.base import format_timedelta, unwrap
 from .utils.forms import get_track_from_file_storage, get_track_from_wtf_form
 from .utils.track import check_location_in_track, get_enhanced_db_track
 
 bp = Blueprint("track", __name__, url_prefix="/track")
 
 logger = logging.getLogger(__name__)
+
+
+class TrackTrimForm(FlaskForm):
+    orig_file_name = HiddenField("Original File Name", validators=[DataRequired()])
+    cache_key = HiddenField("Cache Key", validators=[DataRequired()])
+    start_idx = HiddenField("Start Index", validators=[DataRequired()])
+    end_idx = HiddenField("End Index", validators=[DataRequired()])
 
 
 @bp.route("enhance/<int:id_ride>/", methods=("GET", "POST"))
@@ -190,6 +205,9 @@ def trim() -> str | Response:
     state = "empty"
     map_data = None
     form = TrackUploadForm()
+    trim_form = TrackTrimForm()
+
+    track_cache_timeout_seconds = 60 * 10
 
     if form.validate_on_submit():
         try:
@@ -200,17 +218,64 @@ def trim() -> str | Response:
             state = "track-loaded"
 
             track_segment_data = track.get_track_data()
-            lats = track_segment_data[track_segment_data.moving].latitude.to_list()
+            lats = track_segment_data.latitude.to_list()
             lats = ",".join([str(l) for l in lats])  # noqa: E741
-            longs = track_segment_data[track_segment_data.moving].longitude.to_list()
+            longs = track_segment_data.longitude.to_list()
             longs = ",".join([str(l) for l in longs])  # noqa: E741
             paths = [MapPathData(latitudes=lats, longitudes=longs)]
             map_data = MapData(paths=paths)
+
+            file_name = form.track.data.filename
+            assert isinstance(file_name, str)
+
+            track_data = track.get_xml().encode()
+            cache_key = hashlib.sha256(file_name.encode()).hexdigest()
+
+            cache.set(
+                cache_key,
+                track_data,
+                timeout=track_cache_timeout_seconds,
+            )
+            trim_form.start_idx.data = 0
+            trim_form.end_idx.data = len(lats) - 1
+            trim_form.cache_key.data = cache_key
+            trim_form.orig_file_name.data = ".".join(file_name.split(".")[0:-1])
+
+    if trim_form.validate_on_submit():
+        logger.info("Trimming loaded track")
+
+        cache_key = unwrap(trim_form.cache_key.data)
+        file_name = unwrap(trim_form.orig_file_name.data)
+        start_idx = int(trim_form.start_idx.data)
+        end_idx = int(trim_form.end_idx.data)
+        cached_track_data = cache.get(cache_key)
+        if cached_track_data is None:
+            flash(
+                "Time out. Please finish your modifications within %s (HH:MM:SS)"
+                % format_timedelta(timedelta(seconds=track_cache_timeout_seconds)),
+                "alert-warning",
+            )
+        else:
+            track = ByteTrack(cached_track_data)
+            logger.debug("Trimming to %s -> %s", start_idx, end_idx)
+            track.strip_segements()
+            track.track.segments[0].points = track.track.segments[0].points[
+                start_idx:end_idx
+            ]
+
+            binary_data = BytesIO(track.get_xml().encode())
+
+            return send_file(
+                binary_data,
+                download_name=f"{file_name}_trimmed.gpx",
+                as_attachment=True,
+            )  # type: ignore
 
     return render_template(
         "trim_track.html",
         active_page="utils_shorten",
         form=form,
+        trim_form=trim_form,
         state=state,
         map_data=map_data,
     )

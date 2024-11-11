@@ -3,8 +3,6 @@ from datetime import date, timedelta
 
 from flask import current_app, render_template, request
 
-from cycle_analytics.plotting import convert_fig_to_base64, get_weekly_data_line_plot
-
 from .database.converter import (
     convert_ride_overview_container_to_df,
     summarize_rides_in_month,
@@ -27,6 +25,7 @@ from .model.goal import (
     RideGoal,
     format_goals_concise,
 )
+from .plotting import convert_fig_to_base64, get_weekly_data_line_plot
 from .utils import get_month_mapping
 from .utils.base import get_curr_and_prev_month_date_ranges, unwrap
 

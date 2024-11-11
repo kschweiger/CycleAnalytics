@@ -13,6 +13,24 @@
     <div class="row">
         <h4>Trim Track</h4>
     </div>
+<div class="accordion mb-2" id="accordionExample">
+  <div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+        Help
+      </button>
+    </h2>
+    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+      <div class="accordion-body">
+        <ul>
+        <li>Select a <strong>.gpx</strong> or <strong>.fit</strong> file from you disk to trim the track.</li>
+        <li>Use the sliders to change the start and end points in the track..</li>
+        <li>Download the trimmed track. This will always convert it to a <strong>.gpx</strong> file. Elevation, time, and extentions will be retained. Segments will be removed Segments will be removed.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 {% if state == "empty" %}
@@ -26,7 +44,9 @@
       </div>
     </div>
     <div class="col-auto mb-3">
-      <div class="col text-end"><input type="submit" value="Submit" class="btn btn-success w-100"></div>
+      <div class="col text-end">
+        <input type="submit" value="Submit" class="btn btn-success w-100">
+    </div>
     </div>
   </div>
 </form>
@@ -48,11 +68,21 @@
 <div class="row mx-2">
   <div class="col-1"> End </div>
   <div class="col">
-
 <input class="w-100" type="range" id="end-slider" min="0" max="1000" value="1000">
   </div>
 </div>
-
+<div class="row mt-2">
+  <div class="col">
+    <form method="POST">
+        {{ trim_form.csrf_token }}
+        {{trim_form.orig_file_name()}}
+        {{trim_form.cache_key()}}
+        {{trim_form.start_idx()}}
+        {{trim_form.end_idx()}}
+        <input type="submit" value="Download" class="btn btn-success w-100">
+    </form>
+  </div>
+</div>
 <div class="row mt-2">
   <div class="col">
     <a class="btn btn-secondary w-100" href="{{url_for('track.trim')}}">Back</a>

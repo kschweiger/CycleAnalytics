@@ -45,7 +45,8 @@ function updateMap() {
     currEndIndex = endIndex;
     endMarker.setLatLng(points[currEndIndex]);
   }
-
+  document.getElementById('start_idx').value = currStartIndex;
+  document.getElementById('end_idx').value = currEndIndex;
 }
 
 export { initializeMap }
