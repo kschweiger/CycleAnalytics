@@ -25,11 +25,14 @@ from werkzeug import Response
 from wtforms import HiddenField
 from wtforms.validators import DataRequired
 
+from cycle_analytics.database.modifier import update_track_content
+
 from .cache import cache
 from .database.model import DatabaseTrack, Ride, TrackLocationAssociation
 from .database.model import db as orm_db
 from .database.retriever import (
     get_locations_for_track,
+    get_ride_for_track,
     get_rides_with_tracks,
 )
 from .forms import TrackUploadForm
@@ -46,6 +49,12 @@ logger = logging.getLogger(__name__)
 class TrackTrimForm(FlaskForm):
     orig_file_name = HiddenField("Original File Name", validators=[DataRequired()])
     cache_key = HiddenField("Cache Key", validators=[DataRequired()])
+    start_idx = HiddenField("Start Index", validators=[DataRequired()])
+    end_idx = HiddenField("End Index", validators=[DataRequired()])
+
+
+class DatabaseTrackTrimForm(FlaskForm):
+    track_id = HiddenField("Track ID", validators=[DataRequired()])
     start_idx = HiddenField("Start Index", validators=[DataRequired()])
     end_idx = HiddenField("End Index", validators=[DataRequired()])
 
@@ -198,17 +207,37 @@ def compare() -> str | Response:
     )
 
 
+def _get_map_data(track: Track) -> MapData:
+    track_segment_data = track.get_track_data()
+    lats = track_segment_data.latitude.to_list()
+    lats = ",".join([str(l) for l in lats])  # noqa: E741
+    longs = track_segment_data.longitude.to_list()
+    longs = ",".join([str(l) for l in longs])  # noqa: E741
+    paths = [MapPathData(latitudes=lats, longitudes=longs)]
+    return MapData(paths=paths)
+
+
 @bp.route("trim/", methods=("GET", "POST"))
 def trim() -> str | Response:
-    # TODO: Add database track shortening by passing id as get_parameter
+    _track_id = request.args.get("track_id", None)
+    track_id = None if _track_id is None else int(_track_id)
 
     state = "empty"
     map_data = None
     form = TrackUploadForm()
     trim_form = TrackTrimForm()
+    trim_database_form = DatabaseTrackTrimForm()
 
     track_cache_timeout_seconds = 60 * 10
 
+    if track_id is not None and not trim_database_form.validate_on_submit():
+        state = "track-loaded"
+        db_track = orm_db.get_or_404(DatabaseTrack, track_id)
+        track = ByteTrack(db_track.content)
+        map_data = _get_map_data(track)
+        trim_database_form.track_id.data = track_id
+        trim_database_form.start_idx.data = 0
+        trim_database_form.end_idx.data = len(map_data.paths[0].latitudes) - 1
     if form.validate_on_submit():
         try:
             track = get_track_from_wtf_form(form, "track")
@@ -217,13 +246,7 @@ def trim() -> str | Response:
         else:
             state = "track-loaded"
 
-            track_segment_data = track.get_track_data()
-            lats = track_segment_data.latitude.to_list()
-            lats = ",".join([str(l) for l in lats])  # noqa: E741
-            longs = track_segment_data.longitude.to_list()
-            longs = ",".join([str(l) for l in longs])  # noqa: E741
-            paths = [MapPathData(latitudes=lats, longitudes=longs)]
-            map_data = MapData(paths=paths)
+            map_data = _get_map_data(track)
 
             file_name = form.track.data.filename
             assert isinstance(file_name, str)
@@ -237,7 +260,7 @@ def trim() -> str | Response:
                 timeout=track_cache_timeout_seconds,
             )
             trim_form.start_idx.data = 0
-            trim_form.end_idx.data = len(lats) - 1
+            trim_form.end_idx.data = len(map_data.paths[0].latitudes) - 1
             trim_form.cache_key.data = cache_key
             trim_form.orig_file_name.data = ".".join(file_name.split(".")[0:-1])
 
@@ -258,6 +281,8 @@ def trim() -> str | Response:
         else:
             track = ByteTrack(cached_track_data)
             logger.debug("Trimming to %s -> %s", start_idx, end_idx)
+            # NOTE: This should be an option toggle or not even a thing once support by
+            # geo-track-analyer
             track.strip_segements()
             track.track.segments[0].points = track.track.segments[0].points[
                 start_idx:end_idx
@@ -271,11 +296,38 @@ def trim() -> str | Response:
                 as_attachment=True,
             )  # type: ignore
 
+    if trim_database_form.validate_on_submit():
+        form_track_id = int(unwrap(trim_database_form.track_id.data))
+        start_idx = int(trim_database_form.start_idx.data)
+        end_idx = int(trim_database_form.end_idx.data)
+
+        logger.info("Trimming track %s", form_track_id)
+        db_track = orm_db.get_or_404(DatabaseTrack, form_track_id)
+        track = ByteTrack(db_track.content)
+
+        # NOTE: This should be an option toggle or not even a thing once support by
+        # geo-track-analyer
+        track.strip_segements()
+        track.track.segments[0].points = track.track.segments[0].points[
+            start_idx:end_idx
+        ]
+
+        if update_track_content(form_track_id, track.get_xml().encode()):
+            ride_id = get_ride_for_track(form_track_id)
+            assert ride_id is not None
+            cache.clear()
+            return redirect(url_for("ride.display", id_ride=ride_id))
+
+        else:
+            flash("Updating trakc content failed" "alert-warning")
+
     return render_template(
         "trim_track.html",
         active_page="utils_shorten",
         form=form,
+        track_id=track_id,
         trim_form=trim_form,
+        trim_database_form=trim_database_form,
         state=state,
         map_data=map_data,
     )

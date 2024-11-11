@@ -74,12 +74,20 @@
 <div class="row mt-2">
   <div class="col">
     <form method="POST">
+        {% if track_id is none %}
         {{ trim_form.csrf_token }}
         {{trim_form.orig_file_name()}}
         {{trim_form.cache_key()}}
         {{trim_form.start_idx()}}
         {{trim_form.end_idx()}}
         <input type="submit" value="Download" class="btn btn-success w-100">
+        {% else %}
+        {{ trim_database_form.csrf_token }}
+        {{trim_database_form.track_id()}}
+        {{trim_database_form.start_idx()}}
+        {{trim_database_form.end_idx()}}
+        <input type="submit" value="Update" class="btn btn-success w-100">
+        {% endif %}
     </form>
   </div>
 </div>
