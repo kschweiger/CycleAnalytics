@@ -340,3 +340,16 @@ def trim() -> str | Response:
         state=state,
         map_data=map_data,
     )
+
+
+@bp.route("add_segments/<int:id_track>", methods=("GET", "POST"))
+def add_segments(id_track: int) -> str | Response:
+    db_track = orm_db.get_or_404(DatabaseTrack, id_track)
+    track = ByteTrack(db_track.content)
+    map_data = _get_map_data(track)
+    return render_template(
+        "segment_track.html",
+        active_page="placeholder",
+        id_track=id_track,
+        map_data=map_data,
+    )

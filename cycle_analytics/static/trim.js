@@ -1,10 +1,15 @@
-import { get_map_layer, add_marker_to_map, get_icon } from './map_utils.js';
+import { get_map_layer, add_marker_to_map, get_icon, PolyLineData } from './map_utils.js';
 
 let points, startMarker, endMarker, currStartIndex, currEndIndex;
 
 document.getElementById('start-slider').addEventListener('input', updateMap);
 document.getElementById('end-slider').addEventListener('input', updateMap);
 
+/**
+ * Initialize the map with a ploy line for the trimming view
+* @param {string} div_id - Id of the map div
+* @param {PolyLineData} line_data - Object containing the Polyline to show on the map
+*/
 function initializeMap(div_id, line_data) {
   let map = L.map(div_id);
   let carto = get_map_layer("carto");

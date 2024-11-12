@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block head_scripts %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+{% endblock %}
+
+
+{% block content %}
+<div class="continer m-1 p-2 border rounded-3">
+    <div class="row">
+      <h4>Add segments to track {{ id_track }}</h4>
+    </div>
+
+
+<div class="row">
+  <div class="col">
+    <div class="p-2 border rounded-3">
+        <div id="map" style="height:600px"></div>
+    </div>
+  </div>
+</div>
+
+<div id="slider_rows" class="py-2">
+  <div class="row">
+    <div class="col">
+      <input class="w-100" type="range" id="segment-slider-0" min="0" max="1000" value="0">
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col">
+        <input id="add_segment", value="Add segment" class="btn btn-warning w-100">
+  </div>
+  <div class="col">
+        <input id="remove_segment", value="Remove segment" class="btn btn-danger w-100">
+  </div>
+  <div class="col">
+        <input id="preview", value="Preview" class="btn btn-secondary w-100">
+  </div>
+  <div class="col">
+        <input id="save", value="Save" class="btn btn-success w-100" disabled>
+  </div>
+  </div>
+</div>
+
+
+{% endblock %}
+
+{% block body_scripts %}
+<script type="module">
+  import {initializeMap} from "{{ url_for('static', filename='segment.js') }}";
+  import {PolyLineData } from "{{ url_for('static', filename='map_utils.js') }}";
+    initializeMap(
+      'map',
+      new PolyLineData(
+        [{{ map_data.paths[0].latitudes }}],
+        [{{ map_data.paths[0].longitudes }}],
+        "{{ map_data.paths[0].color | safe }}"
+      )
+    )
+</script>
+{% endblock %}
