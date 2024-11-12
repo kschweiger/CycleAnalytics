@@ -75,9 +75,18 @@ function initializeMarker() {
 
 }
 
+function removeLastMarker() {
+  let marker = markers.pop();
+  marker_indices.pop();
+  sliders.pop();
+  map.removeLayer(marker);
+
+}
+
 
 document.addEventListener('DOMContentLoaded', function () {
   const addSegmentButton = document.getElementById('add_segment');
+  const rmSegmentButton = document.getElementById('remove_segment');
   const sliderRowsContainer = document.getElementById('slider_rows');
   let sliderIndex = 0;
 
@@ -94,7 +103,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     sliderRowsContainer.appendChild(newRow);
     initializeMarker();
+    rmSegmentButton.disabled = false;
   });
+  rmSegmentButton.addEventListener("click", function () {
+    const rows = sliderRowsContainer.getElementsByClassName('row');
+    if (rows.length > 1) {  // Ensure we always keep at least one slider
+      sliderRowsContainer.removeChild(rows[rows.length - 1]);
+      removeLastMarker();
+      sliderIndex--;  // Decrement the slider index
+      if (sliderIndex == 0) {
+        rmSegmentButton.disabled = true;
+      };
+    } else {
+      console.log("Cannot remove the last slider.");
+      // Optionally, you can disable the remove button or show a message to the user
+    }
+  });
+
 });
 
 export { initializeMap }
