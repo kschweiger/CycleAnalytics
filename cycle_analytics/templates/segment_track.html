@@ -24,11 +24,6 @@
 </div>
 
 <div id="slider_rows" class="py-2">
-  <div class="row">
-    <div class="col">
-      <input class="w-100" type="range" id="segment-slider-0" min="0" max="1000" value="0">
-    </div>
-  </div>
 </div>
 <div class="row">
   <div class="col">
@@ -41,9 +36,16 @@
         <input id="preview", value="Preview" class="btn btn-secondary w-100">
   </div>
   <div class="col">
-        <input id="save", value="Save" class="btn btn-success w-100" disabled>
+    <input id="save", value="Save" class="btn btn-success w-100" {% if not save_enabled%}disabled{% endif %}>
   </div>
   </div>
+</div>
+<div>
+        <form method="POST" id="segment_form">
+        <input type="hidden" name="submit_type" id="submit_type" value="preview">
+        <input type="hidden" name="submit_indices" id="submit_indices" value="{{marker_indices}}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        </form>
 </div>
 
 
@@ -51,15 +53,17 @@
 
 {% block body_scripts %}
 <script type="module">
-  import {initializeMap} from "{{ url_for('static', filename='segment.js') }}";
+  import {initialize} from "{{ url_for('static', filename='segment.js') }}";
   import {PolyLineData } from "{{ url_for('static', filename='map_utils.js') }}";
-    initializeMap(
+    initialize(
       'map',
       new PolyLineData(
         [{{ map_data.paths[0].latitudes }}],
         [{{ map_data.paths[0].longitudes }}],
         "{{ map_data.paths[0].color | safe }}"
-      )
+      ),
+      {{ n_points }},
+      {{marker_indices}},
     )
 </script>
 {% endblock %}

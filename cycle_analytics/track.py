@@ -211,14 +211,15 @@ def compare() -> str | Response:
     )
 
 
-def _get_map_data(track: Track) -> MapData:
+def _get_map_data(track: Track) -> tuple[MapData, int]:
     track_segment_data = track.get_track_data()
     lats = track_segment_data.latitude.to_list()
+    n_points = len(lats)
     lats = ",".join([str(l) for l in lats])  # noqa: E741
     longs = track_segment_data.longitude.to_list()
     longs = ",".join([str(l) for l in longs])  # noqa: E741
     paths = [MapPathData(latitudes=lats, longitudes=longs)]
-    return MapData(paths=paths)
+    return MapData(paths=paths), n_points
 
 
 @bp.route("trim/", methods=("GET", "POST"))
@@ -233,12 +234,12 @@ def trim() -> str | Response:
     trim_database_form = DatabaseTrackTrimForm()
 
     track_cache_timeout_seconds = 60 * 10
-
+    n_points = 1000
     if track_id is not None and not trim_database_form.validate_on_submit():
         state = "track-loaded"
         db_track = orm_db.get_or_404(DatabaseTrack, track_id)
         track = ByteTrack(db_track.content)
-        map_data = _get_map_data(track)
+        map_data, n_points = _get_map_data(track)
         trim_database_form.track_id.data = track_id
         trim_database_form.start_idx.data = 0
         trim_database_form.end_idx.data = len(map_data.paths[0].latitudes) - 1
@@ -250,7 +251,7 @@ def trim() -> str | Response:
         else:
             state = "track-loaded"
 
-            map_data = _get_map_data(track)
+            map_data, n_points = _get_map_data(track)
 
             file_name = form.track.data.filename
             assert isinstance(file_name, str)
@@ -339,6 +340,7 @@ def trim() -> str | Response:
         trim_database_form=trim_database_form,
         state=state,
         map_data=map_data,
+        n_points=n_points,
     )
 
 
@@ -346,10 +348,30 @@ def trim() -> str | Response:
 def add_segments(id_track: int) -> str | Response:
     db_track = orm_db.get_or_404(DatabaseTrack, id_track)
     track = ByteTrack(db_track.content)
-    map_data = _get_map_data(track)
+
+    map_data, n_points = _get_map_data(track)
+    marker_indices = [0]
+    save_enabled = False
+
+    if request.method == "POST":
+        submit_type = request.form.get("submit_type")
+        assert submit_type in ["preview", "save"]
+        marker_indices = unwrap(request.form.get("submit_indices")).split(",")
+        save_enabled = True
+        if submit_type == "preview":
+            logger.debug("Adding segments --- Preview mode")
+        else:
+            logging.info("Adding segemnts to track %s", id_track)
+            ride_id = get_ride_for_track(id_track)
+            cache.clear()
+            return redirect(url_for("ride.display", id_ride=ride_id))
+
     return render_template(
         "segment_track.html",
         active_page="placeholder",
         id_track=id_track,
         map_data=map_data,
+        n_points=n_points,
+        marker_indices="[" + ",".join(map(str, marker_indices)) + "]",
+        save_enabled=save_enabled,
     )

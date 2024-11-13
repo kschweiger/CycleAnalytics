@@ -62,13 +62,13 @@
 <div class="row mx-2">
   <div class="col-1"> Start </div>
   <div class="col">
-<input class="w-100" type="range" id="start-slider" min="0" max="1000" value="0">
+    <input class="w-100" type="range" id="start-slider" min="0" max="{{n_points}}" value="0">
   </div>
 </div>
 <div class="row mx-2">
   <div class="col-1"> End </div>
   <div class="col">
-<input class="w-100" type="range" id="end-slider" min="0" max="1000" value="1000">
+    <input class="w-100" type="range" id="end-slider" min="0" max="{{n_points}}" value="{{n_points}}">
   </div>
 </div>
 <div class="row mt-2">
@@ -105,15 +105,16 @@
 <script type="module" src="{{ url_for('static', filename='trim.js') }}"></script>
 {% if map_data is not none%}
 <script type="module">
-  import {initializeMap} from "{{ url_for('static', filename='trim.js') }}";
+  import {initialize} from "{{ url_for('static', filename='trim.js') }}";
   import {PolyLineData } from "{{ url_for('static', filename='map_utils.js') }}";
-    initializeMap(
+    initialize(
       'map',
       new PolyLineData(
         [{{ map_data.paths[0].latitudes }}],
         [{{ map_data.paths[0].longitudes }}],
         "{{ map_data.paths[0].color | safe }}"
-      )
+      ),
+      {{n_points}}
     )
 </script>
 {% endif %}

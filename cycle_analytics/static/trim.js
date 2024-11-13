@@ -1,20 +1,21 @@
 import { get_map_layer, add_marker_to_map, get_icon, PolyLineData } from './map_utils.js';
 
-let points, startMarker, endMarker, currStartIndex, currEndIndex;
+let points, startMarker, endMarker, currStartIndex, currEndIndex, rangeMax;
 
-document.getElementById('start-slider').addEventListener('input', updateMap);
-document.getElementById('end-slider').addEventListener('input', updateMap);
 
 /**
  * Initialize the map with a ploy line for the trimming view
 * @param {string} div_id - Id of the map div
 * @param {PolyLineData} line_data - Object containing the Polyline to show on the map
+* @param {number} nPoints -
 */
-function initializeMap(div_id, line_data) {
+function initialize(div_id, line_data, nPoints) {
+  document.getElementById('start-slider').addEventListener('input', updateMap);
+  document.getElementById('end-slider').addEventListener('input', updateMap);
   let map = L.map(div_id);
   let carto = get_map_layer("carto");
   let osm = get_map_layer("osm");
-
+  rangeMax = nPoints;
   map.addLayer(carto);
 
   var baseMaps = {
@@ -34,7 +35,6 @@ function initializeMap(div_id, line_data) {
 }
 
 function updateMap() {
-  const rangeMax = 1000;
   const startValue = document.getElementById('start-slider').value;
   const endValue = document.getElementById('end-slider').value;
 
@@ -54,4 +54,4 @@ function updateMap() {
   document.getElementById('end_idx').value = currEndIndex;
 }
 
-export { initializeMap }
+export { initialize }
