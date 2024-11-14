@@ -25,15 +25,14 @@ from werkzeug import Response
 from wtforms import HiddenField
 from wtforms.validators import DataRequired
 
-from cycle_analytics.database.converter import initialize_overviews
-from cycle_analytics.database.modifier import (
+from .cache import cache
+from .database.converter import initialize_overviews
+from .database.model import DatabaseTrack, Ride, TrackLocationAssociation
+from .database.model import db as orm_db
+from .database.modifier import (
     update_track_content,
     update_track_overview,
 )
-
-from .cache import cache
-from .database.model import DatabaseTrack, Ride, TrackLocationAssociation
-from .database.model import db as orm_db
 from .database.retriever import (
     get_locations_for_track,
     get_ride_for_track,
@@ -41,9 +40,11 @@ from .database.retriever import (
 )
 from .forms import TrackUploadForm
 from .model.base import MapData, MapPathData
+from .plotting import get_track_elevation_slope_plot
 from .utils.base import format_timedelta, unwrap
 from .utils.forms import get_track_from_file_storage, get_track_from_wtf_form
 from .utils.track import check_location_in_track, get_enhanced_db_track
+from .utils.view_data import segment_summary
 
 bp = Blueprint("track", __name__, url_prefix="/track")
 
@@ -211,8 +212,12 @@ def compare() -> str | Response:
     )
 
 
-def _get_map_data(track: Track) -> tuple[MapData, int]:
+def _get_map_data(track: Track, segment: None | int = None) -> tuple[MapData, int]:
     track_segment_data = track.get_track_data()
+    if segment is not None:
+        track_segment_data = track_segment_data[track_segment_data.segment == segment]
+        if track_segment_data.empty:
+            raise RuntimeError
     lats = track_segment_data.latitude.to_list()
     n_points = len(lats)
     lats = ",".join([str(l) for l in lats])  # noqa: E741
@@ -352,14 +357,59 @@ def add_segments(id_track: int) -> str | Response:
     map_data, n_points = _get_map_data(track)
     marker_indices = [0]
     save_enabled = False
-
+    preview_table = None
+    preview_map_plots = None
+    preview_map_datas = None
     if request.method == "POST":
         submit_type = request.form.get("submit_type")
         assert submit_type in ["preview", "save"]
-        marker_indices = unwrap(request.form.get("submit_indices")).split(",")
+        marker_indices = sorted(
+            map(int, unwrap(request.form.get("submit_indices")).split(","))
+        )
         save_enabled = True
         if submit_type == "preview":
             logger.debug("Adding segments --- Preview mode")
+            track.strip_segements()
+            points_pre = len(track.track.segments[0].points)
+            last_split_idx = 0
+            last_segment = track.track.segments[-1]
+            new_segments = []
+            for marker_idx in marker_indices:
+                split_idx = marker_idx - last_split_idx
+                _segment, last_segment = last_segment.split(split_idx)
+                new_segments.append(_segment)
+                last_split_idx = marker_idx
+            new_segments.append(last_segment)
+            points_post = sum([len(s.points) for s in new_segments])
+            logger.info(
+                "Inital points %s in 1 segment -> New poinst %s in %s segments",
+                points_pre,
+                points_post,
+                len(new_segments),
+            )
+            track.track.segments = new_segments
+            preview_map_plots = []
+            preview_map_datas = []
+            for i in range(len(new_segments)):
+                this_map_data, _ = _get_map_data(track, i)
+                preview_map_datas.append(this_map_data)
+                slope_colors = current_app.config.style.slope_colors
+                _fig = get_track_elevation_slope_plot(
+                    track,
+                    segment=i,
+                    color_neutral=slope_colors.neutral,
+                    color_min=slope_colors.min,
+                    color_max=slope_colors.max,
+                    slider=False,
+                )
+                _fig.update_layout(height=400)
+                preview_map_plots.append(
+                    json.dumps(_fig, cls=plotly.utils.PlotlyJSONEncoder)
+                )
+            preview_table = segment_summary(
+                [track.get_segment_overview(i) for i in range(len(new_segments))]
+            )
+
         else:
             logging.info("Adding segemnts to track %s", id_track)
             ride_id = get_ride_for_track(id_track)
@@ -374,4 +424,7 @@ def add_segments(id_track: int) -> str | Response:
         n_points=n_points,
         marker_indices="[" + ",".join(map(str, marker_indices)) + "]",
         save_enabled=save_enabled,
+        preview_table=preview_table,
+        preview_map_plots=preview_map_plots,
+        preview_map_datas=preview_map_datas,
     )

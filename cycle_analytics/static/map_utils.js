@@ -139,6 +139,12 @@ export function show_map_for_form_path(div_id, btn_id, height, lats, longs) {
   return map;
 }
 
+/**
+* Initialize the map with a ploy line for the trimming view
+* @param {string} div_id - Id of the map div
+* @param {Array<PolyLineData>} line_datas - Object containing the Polyline to show on the map
+* @param {Array<EventMarker>} markers -
+*/
 export function show_map_with_path_and_markers(div_id, line_datas, markers) {
   let map = L.map(div_id);
   let carto = get_map_layer("carto");
