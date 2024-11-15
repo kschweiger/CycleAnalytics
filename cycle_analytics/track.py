@@ -355,7 +355,7 @@ def add_segments(id_track: int) -> str | Response:
     track = ByteTrack(db_track.content)
 
     ride_id = get_ride_for_track(id_track)
-    if len(track.track.segments) > 1:
+    if len(track.track.segments) > 1 and int(request.args.get("force", 0)) != 1:
         flash(
             f"Track {ride_id} already has segments. Currently only fully replacing the "
             "segments is supported. You can append force=1 to the url to overwrite "
