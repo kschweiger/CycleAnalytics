@@ -34,8 +34,8 @@ def get_track_from_file_storage(data: FileStorage) -> Track:
 
     if not allowed_file(filename):
         raise RuntimeError(
-            "File has no valid file ending. Valid endings are %s",
-            ",".join(current_app.config["ALLOWED_TRACK_EXTENSIONS"]),
+            "File has no valid file ending. Valid endings are %s"
+            % ",".join(current_app.config["ALLOWED_TRACK_EXTENSIONS"]),
         )
 
     if filename.endswith(".fit"):

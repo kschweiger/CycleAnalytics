@@ -59,6 +59,8 @@
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item {% if active_page == 'utils_compare'%}active{% endif %}"
                                 href="{{url_for('track.compare')}}">Compare Tracks</a></li>
+                        <li><a class="dropdown-item {% if active_page == 'utils_shorten'%}active{% endif %}"
+                                href="{{url_for('track.trim')}}">Shorten Tracks</a></li>
                     </ul>
                 </li>
                 <li class="nav-item">

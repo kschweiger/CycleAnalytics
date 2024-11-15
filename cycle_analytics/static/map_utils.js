@@ -1,4 +1,4 @@
-class EventMarker {
+export class EventMarker {
   constructor(lat, long, color, color_idx, text) {
     this.lat = lat;
     this.long = long;
@@ -7,7 +7,7 @@ class EventMarker {
   }
 }
 
-function show_polyline(map, points, color = "#20c997") {
+export function show_polyline(map, points, color = "#20c997") {
   var polyline = L.polyline([points], { color: color }).addTo(map);
 
   map.fitBounds(polyline.getBounds());
@@ -15,11 +15,15 @@ function show_polyline(map, points, color = "#20c997") {
   return polyline;
 }
 
-class PolyLineData {
+export class PolyLineData {
   constructor(lats, longs, color) {
     this.lats = lats;
     this.longs = longs;
     this.color = color;
+    this.points = [];
+    for (let i = 0; i < lats.length; i++) {
+      this.points.push([lats[i], longs[i]]);
+    }
   }
 
   set_path_on_map(map) {
@@ -33,7 +37,7 @@ class PolyLineData {
   }
 }
 
-function set_path_on_map(map, lats, longs, color = "#20c997") {
+export function set_path_on_map(map, lats, longs, color = "#20c997") {
   const lat_points = lats.split(",");
   const long_points = longs.split(",");
 
@@ -43,10 +47,10 @@ function set_path_on_map(map, lats, longs, color = "#20c997") {
     points.push([lat_points[i], long_points[i]]);
   }
 
-  return show_polyline(map, points, (color = color));
+  return Rhow_polyline(map, points, (color = color));
 }
 
-function get_map_layer(type) {
+export function get_map_layer(type) {
   if (type == "carto") {
     return L.tileLayer(
       "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
@@ -68,7 +72,7 @@ function get_map_layer(type) {
   }
 }
 
-function show_map_for_form(
+export function show_map_for_form(
   div_id,
   btn_id,
   height,
@@ -129,13 +133,19 @@ function show_map_for_form(
   return map;
 }
 
-function show_map_for_form_path(div_id, btn_id, height, lats, longs) {
-  map = show_map_for_form(div_id, btn_id, height, 1, 1, 1, []);
+export function show_map_for_form_path(div_id, btn_id, height, lats, longs) {
+  let map = show_map_for_form(div_id, btn_id, height, 1, 1, 1, []);
   set_path_on_map(map, lats, longs);
   return map;
 }
 
-function show_map_with_path_and_markers(div_id, line_datas, markers) {
+/**
+* Initialize the map with a ploy line for the trimming view
+* @param {string} div_id - Id of the map div
+* @param {Array<PolyLineData>} line_datas - Object containing the Polyline to show on the map
+* @param {Array<EventMarker>} markers -
+*/
+export function show_map_with_path_and_markers(div_id, line_datas, markers) {
   let map = L.map(div_id);
   let carto = get_map_layer("carto");
   let osm = get_map_layer("osm");
@@ -225,7 +235,8 @@ function get_yellow_icon(i) {
   return icon;
 }
 
-function get_icon(color, color_idx) {
+export function get_icon(color, color_idx) {
+  let icon;
   switch (color) {
     case "blue":
       icon = get_blue_icon(color_idx);
@@ -251,7 +262,7 @@ function get_icon(color, color_idx) {
   return icon;
 }
 
-function add_marker_to_map(
+export function add_marker_to_map(
   map,
   lat,
   long,
@@ -267,7 +278,7 @@ function add_marker_to_map(
   return marker;
 }
 
-function show_map_with_markers(div_id, markers) {
+export function show_map_with_markers(div_id, markers) {
   let map = L.map(div_id);
 
   let carto = get_map_layer("carto");
@@ -300,7 +311,7 @@ function show_map_with_markers(div_id, markers) {
   map.fitBounds(group.getBounds());
 }
 
-function segment_adder_map(div_id, markers) {
+export function segment_adder_map(div_id, markers) {
   let map = L.map(div_id).setView([48.02, 10.2], 7);
 
   let carto = get_map_layer("carto");
@@ -322,7 +333,7 @@ function segment_adder_map(div_id, markers) {
       e.latlng.lng,
       get_icon("green", 0),
       "Marker @ " + e.latlng.lat + " / " + e.latlng.lng,
-      (draggable = true),
+      true,
     );
   }
   map.on("click", onMapClick);
@@ -346,107 +357,8 @@ function segment_adder_map(div_id, markers) {
   return map;
 }
 
-async function calc_route(csrf_token, map) {
-  var transport_settings = {};
-  var sliders = document.querySelectorAll('input[type="range"]');
-  sliders.forEach(function (slider) {
-    var sliderID = slider.id.replace("slider_", ""); // Remove the "slider_" prefix
-    transport_settings[sliderID] = parseFloat(slider.value);
-  });
 
-  let waypoints = [];
-
-  map.eachLayer(function (layer) {
-    // Make a list of all Markers on the map. These will be sent to the endpoints
-    // calcualting the route using a post request
-    if (layer instanceof L.Marker) {
-      waypoints.push([layer.getLatLng().lat, layer.getLatLng().lng]);
-    }
-    // Remove polylines from previous request
-    else if (layer instanceof L.Polyline) {
-      map.removeLayer(layer);
-    }
-  });
-
-  // Reset the values in the from. Otherwise it can happen to carry over
-  // data from previous routes
-  document.getElementById("segment_latitudes").value = "";
-  document.getElementById("segment_longitudes").value = "";
-  document.getElementById("segment_elevations").value = "";
-
-  // Reset the alert div
-  document.getElementById("route_alert").className = "visually-hidden";
-  document.getElementById("route_alert").innerHTML = "";
-
-  if (waypoints.length < 2) {
-    document.getElementById("route_alert").className = "alert alert-warning";
-    document.getElementById("route_alert").innerHTML =
-      "Place at least <span class='fw-bold'>two markers<span> on the map";
-    return;
-  }
-
-  // Add a spinner to the button sending triggering the request
-  document.getElementById("get_path_spinner").className =
-    "spinner-border spinner-border-sm";
-
-  let route = undefined;
-  let profile = undefined;
-  let elevations = undefined;
-  const response = await fetch("/segments/calc-route", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      "X-CSRFToken": csrf_token,
-    },
-    body: JSON.stringify({
-      waypoints: waypoints,
-      transport_settings: transport_settings,
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      route = data["route"];
-      profile = data["profile"];
-      elevations = data["elevations"];
-    });
-
-  // After post request
-  // Remove the spinner
-  document.getElementById("get_path_spinner").className = "";
-
-  // Deal with the result of the post request
-  if (!(route === undefined)) {
-    show_polyline(map, route);
-    let lats = [];
-    let lngs = [];
-    for (point of route) {
-      lats.push(point[0]);
-      lngs.push(point[1]);
-    }
-    document.getElementById("segment_latitudes").value = lats.toString();
-    document.getElementById("segment_longitudes").value = lngs.toString();
-    if (!(elevations === null)) {
-      document.getElementById("segment_elevations").value =
-        elevations.toString();
-    }
-    document.getElementById("save_segmnet_btn").disabled = false;
-    document.getElementById("segment_name").disabled = false;
-    document.getElementById("segment_description").disabled = false;
-    document.getElementById("segment_difficulty").disabled = false;
-    document.getElementById("segment_type").disabled = false;
-  }
-
-  // Show bae64 encoded png if included in the response
-  if (typeof profile === "string") {
-    document.getElementById("profile_div").className = "";
-    document
-      .getElementById("profile_plot")
-      .setAttribute("src", "data:image/png;base64," + profile);
-  }
-}
-
-function remove_last_marker_from_map(map) {
+export function remove_last_marker_from_map(map) {
   let n_markers = 0;
   map.eachLayer(function (layer) {
     // Make a list of all Markers on the map. These will be sent to the endpoints
@@ -481,7 +393,7 @@ function remove_last_marker_from_map(map) {
   });
 }
 
-function reset_map(map) {
+export function reset_map(map) {
   map.eachLayer(function (layer) {
     if (layer instanceof L.Marker) {
       if (layer.options.draggable) {
@@ -499,7 +411,7 @@ function reset_map(map) {
   document.getElementById("profile_plot").setAttribute("src", "");
 }
 
-function segment_map(div_id, csrf_token, markers) {
+export function segment_map(div_id, csrf_token, markers) {
   let map = L.map(div_id).setView([47.598342, 7.759027], 12);
 
   let carto = get_map_layer("carto");
@@ -535,6 +447,7 @@ function segment_map(div_id, csrf_token, markers) {
     })
       .then((response) => response.json())
       .then((data) => {
+        let segment;
         for (segment of data["segments"]) {
           segments_on_map.push(segment["segment_id"]);
           var polyline = L.polyline([segment["points"]], {

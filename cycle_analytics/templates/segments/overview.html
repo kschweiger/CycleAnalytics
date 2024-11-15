@@ -5,6 +5,7 @@
     integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
     integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+<script type="module" src="{{ url_for('static', filename='map_utils.js') }}"></script>
 {% endblock %}
 
 
@@ -31,8 +32,8 @@
 {% endblock %}
 
 {% block body_scripts %}
-<script src="{{ url_for('static', filename='map_utils.js') }}"></script>
-<script>
+<script type=module>
+    import {EventMarker,segment_map} from "{{ url_for('static', filename='map_utils.js') }}";
     segment_map("map", '{{ csrf_token() }}', [{% for marker in location_markers %}
     new EventMarker({{ marker.latitude }}, {{ marker.longitude }}, "{{marker.color}}", {{ marker.color_idx }}, "{{marker.popup_text | safe}}")
     {% if loop.index < (location_markers | length) %}, {% endif %}

@@ -71,6 +71,12 @@ color_border = "#e9ecef"
 neutral = "#198754"
 min = "#0d6efd"
 max = "#dc3545"
+[default.style.css_colors]
+primary = "#0d6dfd"
+success = "#198754"
+danger = "#dc3546"
+warning = "#ffc107"
+info = "#0dcaf0"
 
 
 [default.adders]

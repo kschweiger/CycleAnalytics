@@ -5,7 +5,7 @@
     integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
     integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
-<script src="{{ url_for('static', filename='map_utils.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='map_utils.js') }}"></script>
 
 {% endblock %}
 
@@ -64,8 +64,7 @@
                     {{ map_segment_form.segment_elevations() }}
                     <div class="row align-items-end">
                         <div class="col-3">
-                            <button id="get_path" type="button" class="w-100 align-bottom btn btn-success"
-                                onclick="calc_route('{{ csrf_token() }}', map)">
+                            <button id="get_path" type="button" class="w-100 align-bottom btn btn-success">
                                 Find path
                                 <div id="get_path_spinner" role="status"></div>
                             </button>
@@ -78,7 +77,7 @@
                                 <div class="col">
                                     <select class="form-select" id="transport_selection" onchange="setStartingValues()">
                                         {% for mode in transport_modes %}
-                                        <option value="{{mode.mode_name}}"">{{mode.display_name}}</option>
+                                        <option value="{{mode.mode_name}}">{{mode.display_name}}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
@@ -112,8 +111,7 @@
                     </div>
                     <div class="row">
                         <div class="col-3">
-                            <button id="remove_last_marker" type="button" class="w-100 btn btn-success mt-1"
-                                onclick="remove_last_marker_from_map(map)">
+                            <button id="remove_last_marker" type="button" class="w-100 btn btn-success mt-1">
                                 Remove last marker
                             </button>
                         </div>
@@ -124,8 +122,7 @@
                     </div>
                     <div class="row">
                         <div class="col-3">
-                            <button id="Reset" type="button" class="w-100 btn btn-success mt-1"
-                                onclick="reset_map(map)">
+                            <button id="Reset" type="button" class="w-100 btn btn-success mt-1">
                                 Reset
                             </button>
                         </div>
@@ -175,68 +172,67 @@
 {% endblock %}
 
 {% block body_scripts %}
-{#
-<script>
-    segment_map = new SegmentAdderMap("map");
-    segment_map.blubb();
-    segment_map.setup();
-</script> #}
-<script>
-    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
-    const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
-</script>
-<script>
-    let map = segment_adder_map("map", [{% for marker in location_markers %}
-    new EventMarker({{ marker.latitude }}, {{ marker.longitude }}, "{{marker.color}}", {{ marker.color_idx }}, "{{marker.popup_text | safe}}")
-    {% if loop.index < (location_markers | length) %}, {% endif %}
-    {% endfor %}]);
-</script>
-<script>
-    function showSliders() {
-        var slidersDiv = document.getElementById("sliders");
-        slidersDiv.classList.remove("visually-hidden");
-        var customizeBtn = document.getElementById("show_customize_btn");
-        customizeBtn.disabled = true;
-    }
-</script>
-<script>
-    var sliders = document.querySelectorAll('input[type="range"]');
-    var outputs = document.querySelectorAll('output');
+<script type="module" src="{{ url_for('static', filename='add_segment.js') }}">
+</<script>
 
-    function setStartingValues() {
-        var selectedDictionary = document.getElementById("transport_selection").value;
-        var startingValues = getStartingValues(selectedDictionary);
+<script type="module">
+import {EventMarker} from "{{ url_for('static', filename='map_utils.js') }}";
+import {add_marker, calc_route} from "{{ url_for('static', filename='add_segment.js') }}";
+{% for marker in location_markers %}
+add_marker(
+  new EventMarker(
+  {{ marker.latitude }},
+  {{ marker.longitude }},
+  "{{marker.color}}",
+  {{ marker.color_idx }},
+  "{{marker.popup_text | safe}}"
+  )
+)
+{% endfor %}
 
-        sliders.forEach(function (slider, index) {
-            slider.value = startingValues[index];
-            outputs[index].textContent = slider.value;
-        });
-    }
+document.getElementById("get_path").onclick = function() {
+  calc_route('{{ csrf_token() }}')
+  }
 
 
-    function getStartingValues(dictionary) {
-        switch (dictionary) {
-            {% for mode in transport_modes %}
-            case "{{ mode.mode_name }}":
-        return JSON.parse("{{ mode.weight_values }}");
-        {% endfor %}
 
-            default:
-        console.log("Unimplemented mode")
-    }
-    }
+var sliders = document.querySelectorAll('input[type="range"]');
+var outputs = document.querySelectorAll('output');
+
+function setStartingValues() {
+    var selectedDictionary = document.getElementById("transport_selection").value;
+    var startingValues = getStartingValues(selectedDictionary);
 
     sliders.forEach(function (slider, index) {
-        var output = outputs[index];
-
-        output.textContent = slider.value;
-
-        slider.addEventListener('input', function () {
-            output.textContent = this.value;
-        });
+        slider.value = startingValues[index];
+        outputs[index].textContent = slider.value;
     });
+}
 
-    // Set starting values on page load
-    setStartingValues();
+
+function getStartingValues(dictionary) {
+    switch (dictionary) {
+        {% for mode in transport_modes %}
+        case "{{ mode.mode_name }}":
+    return JSON.parse("{{ mode.weight_values }}");
+    {% endfor %}
+
+        default:
+    console.log("Unimplemented mode")
+}
+}
+
+sliders.forEach(function (slider, index) {
+    var output = outputs[index];
+
+    output.textContent = slider.value;
+
+    slider.addEventListener('input', function () {
+        output.textContent = this.value;
+    });
+});
+
+// Set starting values on page load
+setStartingValues();
 </script>
 {%endblock%}

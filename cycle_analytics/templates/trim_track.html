@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block head_scripts %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+{% endblock %}
+
+
+{% block content %}
+<div class="m-1 p-2 border rounded-3">
+    <div class="row">
+        <h4>Trim Track</h4>
+    </div>
+<div class="accordion mb-2" id="accordionExample">
+  <div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+        Help
+      </button>
+    </h2>
+    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+      <div class="accordion-body">
+        <ul>
+        <li>Select a <strong>.gpx</strong> or <strong>.fit</strong> file from you disk to trim the track.</li>
+        <li>Use the sliders to change the start and end points in the track..</li>
+        <li>Download the trimmed track. This will always convert it to a <strong>.gpx</strong> file. Elevation, time, and extentions will be retained. Segments will be removed Segments will be removed.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% if state == "empty" %}
+<form method="POST" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+  <div class= "row">
+    <div class="col mb-3">
+      <div class="col">
+        <!--{{form.track.label(class_="form-label") }}-->
+        {{form.track(class_="form-control", accept_=".gpx,.fit")}}
+      </div>
+    </div>
+    <div class="col-auto mb-3">
+      <div class="col text-end">
+        <input type="submit" value="Submit" class="btn btn-success w-100">
+    </div>
+    </div>
+  </div>
+</form>
+{% else %}
+<div class="row">
+  <div class="col">
+
+    <div class="m-2 p-2 border rounded-3">
+        <div id="map" style="height:600px"></div>
+    </div>
+  </div>
+</div>
+<div class="row mx-2">
+  <div class="col-1"> Start </div>
+  <div class="col">
+    <input class="w-100" type="range" id="start-slider" min="0" max="{{n_points}}" value="0">
+  </div>
+</div>
+<div class="row mx-2">
+  <div class="col-1"> End </div>
+  <div class="col">
+    <input class="w-100" type="range" id="end-slider" min="0" max="{{n_points}}" value="{{n_points}}">
+  </div>
+</div>
+<div class="row mt-2">
+  <div class="col">
+    <form method="POST">
+        {% if track_id is none %}
+        {{ trim_form.csrf_token }}
+        {{trim_form.orig_file_name()}}
+        {{trim_form.cache_key()}}
+        {{trim_form.start_idx()}}
+        {{trim_form.end_idx()}}
+        <input type="submit" value="Download" class="btn btn-success w-100">
+        {% else %}
+        {{ trim_database_form.csrf_token }}
+        {{trim_database_form.track_id()}}
+        {{trim_database_form.start_idx()}}
+        {{trim_database_form.end_idx()}}
+        <input type="submit" value="Update" class="btn btn-success w-100">
+        {% endif %}
+    </form>
+  </div>
+</div>
+<div class="row mt-2">
+  <div class="col">
+    <a class="btn btn-secondary w-100" href="{{url_for('track.trim')}}">Back</a>
+  </div>
+</div>
+{% endif %}
+</div>
+
+{% endblock %}
+
+{% block body_scripts %}
+<script type="module" src="{{ url_for('static', filename='trim.js') }}"></script>
+{% if map_data is not none%}
+<script type="module">
+  import {initialize} from "{{ url_for('static', filename='trim.js') }}";
+  import {PolyLineData } from "{{ url_for('static', filename='map_utils.js') }}";
+    initialize(
+      'map',
+      new PolyLineData(
+        [{{ map_data.paths[0].latitudes }}],
+        [{{ map_data.paths[0].longitudes }}],
+        "{{ map_data.paths[0].color | safe }}"
+      ),
+      {{n_points}}
+    )
+</script>
+{% endif %}
+{% endblock %}

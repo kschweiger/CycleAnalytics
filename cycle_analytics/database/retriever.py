@@ -660,3 +660,14 @@ def get_weekly_data(past_weeks: int) -> None | pd.DataFrame:
     result = db.session.execute(data_stmt).all()
 
     return pd.DataFrame(result)
+
+
+def get_ride_for_track(id_track: int) -> None | int:
+    stmt = select(
+        ride_track.columns["ride_id"],
+    ).where(ride_track.columns["track_id"] == id_track)
+    data = db.session.execute(stmt).first()
+    if data is None:
+        return None
+    else:
+        return next(iter(data))

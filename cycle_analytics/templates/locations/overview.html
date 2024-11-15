@@ -5,7 +5,7 @@
     integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
     integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
-<script src="{{ url_for('static', filename='map_utils.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='map_utils.js') }}"></script>
 {% endblock %}
 
 {% block content %}
@@ -39,7 +39,8 @@
 
 {% block body_scripts %}
 {% if location_markers|length > 0 %}
-<script>
+<script type="module">
+    import {PolyLineData,EventMarker,show_map_with_markers} from "{{ url_for('static', filename='map_utils.js') }}";
     show_map_with_markers("map",
         [{% for marker in location_markers %}
     new EventMarker({{ marker.latitude }}, {{ marker.longitude }}, "{{marker.color}}", {{ marker.color_idx }}, "{{marker.popup_text | safe}}")

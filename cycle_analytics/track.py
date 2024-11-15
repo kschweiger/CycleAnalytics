@@ -1,6 +1,9 @@
+import hashlib
 import json
 import logging
 import re
+from datetime import timedelta
+from io import BytesIO
 
 import pandas as pd
 import plotly
@@ -11,25 +14,54 @@ from flask import (
     redirect,
     render_template,
     request,
+    send_file,
     url_for,
 )
+from flask_wtf import FlaskForm
 from geo_track_analyzer import ByteTrack, Track
 from geo_track_analyzer.utils.track import extract_track_data_for_plot
 from geo_track_analyzer.visualize import plot_tracks_on_map
 from werkzeug import Response
+from wtforms import HiddenField
+from wtforms.validators import DataRequired
 
+from .cache import cache
+from .database.converter import initialize_overviews
 from .database.model import DatabaseTrack, Ride, TrackLocationAssociation
 from .database.model import db as orm_db
+from .database.modifier import (
+    update_track_content,
+    update_track_overview,
+)
 from .database.retriever import (
     get_locations_for_track,
+    get_ride_for_track,
     get_rides_with_tracks,
 )
-from .utils.forms import get_track_from_file_storage
+from .forms import TrackUploadForm
+from .model.base import MapData, MapPathData
+from .plotting import get_track_elevation_slope_plot
+from .utils.base import format_timedelta, unwrap
+from .utils.forms import get_track_from_file_storage, get_track_from_wtf_form
 from .utils.track import check_location_in_track, get_enhanced_db_track
+from .utils.view_data import segment_summary
 
 bp = Blueprint("track", __name__, url_prefix="/track")
 
 logger = logging.getLogger(__name__)
+
+
+class TrackTrimForm(FlaskForm):
+    orig_file_name = HiddenField("Original File Name", validators=[DataRequired()])
+    cache_key = HiddenField("Cache Key", validators=[DataRequired()])
+    start_idx = HiddenField("Start Index", validators=[DataRequired()])
+    end_idx = HiddenField("End Index", validators=[DataRequired()])
+
+
+class DatabaseTrackTrimForm(FlaskForm):
+    track_id = HiddenField("Track ID", validators=[DataRequired()])
+    start_idx = HiddenField("Start Index", validators=[DataRequired()])
+    end_idx = HiddenField("End Index", validators=[DataRequired()])
 
 
 @bp.route("enhance/<int:id_ride>/", methods=("GET", "POST"))
@@ -177,4 +209,242 @@ def compare() -> str | Response:
         active_page="utils_compare",
         ride_data=ride_data,
         map_plot=map_plot,
+    )
+
+
+def _get_map_data(track: Track, segment: None | int = None) -> tuple[MapData, int]:
+    track_segment_data = track.get_track_data()
+    if segment is not None:
+        track_segment_data = track_segment_data[track_segment_data.segment == segment]
+        if track_segment_data.empty:
+            raise RuntimeError
+    lats = track_segment_data.latitude.to_list()
+    n_points = len(lats)
+    lats = ",".join([str(l) for l in lats])  # noqa: E741
+    longs = track_segment_data.longitude.to_list()
+    longs = ",".join([str(l) for l in longs])  # noqa: E741
+    paths = [MapPathData(latitudes=lats, longitudes=longs)]
+    return MapData(paths=paths), n_points
+
+
+@bp.route("trim/", methods=("GET", "POST"))
+def trim() -> str | Response:
+    _track_id = request.args.get("track_id", None)
+    track_id = None if _track_id is None else int(_track_id)
+
+    state = "empty"
+    map_data = None
+    form = TrackUploadForm()
+    trim_form = TrackTrimForm()
+    trim_database_form = DatabaseTrackTrimForm()
+
+    track_cache_timeout_seconds = 60 * 10
+    n_points = 1000
+    if track_id is not None and not trim_database_form.validate_on_submit():
+        state = "track-loaded"
+        db_track = orm_db.get_or_404(DatabaseTrack, track_id)
+        track = ByteTrack(db_track.content)
+        map_data, n_points = _get_map_data(track)
+        trim_database_form.track_id.data = track_id
+        trim_database_form.start_idx.data = 0
+        trim_database_form.end_idx.data = len(map_data.paths[0].latitudes) - 1
+    if form.validate_on_submit():
+        try:
+            track = get_track_from_wtf_form(form, "track")
+        except RuntimeError as e:
+            flash(f"File could not be loaded: {e}", "alert-danger")
+        else:
+            state = "track-loaded"
+
+            map_data, n_points = _get_map_data(track)
+
+            file_name = form.track.data.filename
+            assert isinstance(file_name, str)
+
+            track_data = track.get_xml().encode()
+            cache_key = hashlib.sha256(file_name.encode()).hexdigest()
+
+            cache.set(
+                cache_key,
+                track_data,
+                timeout=track_cache_timeout_seconds,
+            )
+            trim_form.start_idx.data = 0
+            trim_form.end_idx.data = len(map_data.paths[0].latitudes) - 1
+            trim_form.cache_key.data = cache_key
+            trim_form.orig_file_name.data = ".".join(file_name.split(".")[0:-1])
+
+    if trim_form.validate_on_submit():
+        logger.info("Trimming loaded track")
+
+        cache_key = unwrap(trim_form.cache_key.data)
+        file_name = unwrap(trim_form.orig_file_name.data)
+        start_idx = int(trim_form.start_idx.data)
+        end_idx = int(trim_form.end_idx.data)
+        cached_track_data = cache.get(cache_key)
+        if cached_track_data is None:
+            flash(
+                "Time out. Please finish your modifications within %s (HH:MM:SS)"
+                % format_timedelta(timedelta(seconds=track_cache_timeout_seconds)),
+                "alert-warning",
+            )
+        else:
+            track = ByteTrack(cached_track_data)
+            logger.debug("Trimming to %s -> %s", start_idx, end_idx)
+            # NOTE: This should be an option toggle or not even a thing once support by
+            # geo-track-analyer
+            track.strip_segements()
+            track.track.segments[0].points = track.track.segments[0].points[
+                start_idx:end_idx
+            ]
+
+            binary_data = BytesIO(track.get_xml().encode())
+
+            return send_file(
+                binary_data,
+                download_name=f"{file_name}_trimmed.gpx",
+                as_attachment=True,
+            )  # type: ignore
+
+    if trim_database_form.validate_on_submit():
+        form_track_id = int(unwrap(trim_database_form.track_id.data))
+        start_idx = int(trim_database_form.start_idx.data)
+        end_idx = int(trim_database_form.end_idx.data)
+
+        logger.info("Trimming track %s", form_track_id)
+        db_track = orm_db.get_or_404(DatabaseTrack, form_track_id)
+        track = ByteTrack(db_track.content)
+
+        # NOTE: This should be an option toggle or not even a thing once support by
+        # geo-track-analyer
+        track.strip_segements()
+        track.track.segments[0].points = track.track.segments[0].points[
+            start_idx:end_idx
+        ]
+
+        if update_track_content(form_track_id, track.get_xml().encode()):
+            update_track_overview(
+                form_track_id,
+                initialize_overviews(track, form_track_id),
+            )
+
+            ride_id = get_ride_for_track(form_track_id)
+            assert ride_id is not None
+            cache.clear()
+            return redirect(url_for("ride.display", id_ride=ride_id))
+
+        else:
+            flash("Updating track content failed" "alert-warning")
+
+    return render_template(
+        "trim_track.html",
+        active_page="utils_shorten",
+        form=form,
+        track_id=track_id,
+        trim_form=trim_form,
+        trim_database_form=trim_database_form,
+        state=state,
+        map_data=map_data,
+        n_points=n_points,
+    )
+
+
+@bp.route("add_segments/<int:id_track>", methods=("GET", "POST"))
+def add_segments(id_track: int) -> str | Response:
+    db_track = orm_db.get_or_404(DatabaseTrack, id_track)
+    track = ByteTrack(db_track.content)
+
+    ride_id = get_ride_for_track(id_track)
+    if len(track.track.segments) > 1 and int(request.args.get("force", 0)) != 1:
+        flash(
+            f"Track {ride_id} already has segments. Currently only fully replacing the "
+            "segments is supported. You can append force=1 to the url to overwrite "
+            "this behavior.",
+            "alert-info",
+        )
+        return redirect(url_for("ride.display", id_ride=ride_id))
+
+    map_data, n_points = _get_map_data(track)
+    marker_indices = [0]
+    save_enabled = False
+    preview_table = None
+    preview_map_plots = None
+    preview_map_datas = None
+    if request.method == "POST":
+        save_enabled = True
+
+        submit_type = request.form.get("submit_type")
+
+        assert submit_type in ["preview", "save"]
+        marker_indices = sorted(
+            map(int, unwrap(request.form.get("submit_indices")).split(","))
+        )
+
+        track.strip_segements()
+        points_pre = len(track.track.segments[0].points)
+        last_split_idx = 0
+        last_segment = track.track.segments[-1]
+        new_segments = []
+        for marker_idx in marker_indices:
+            split_idx = marker_idx - last_split_idx
+            _segment, last_segment = last_segment.split(split_idx)
+            new_segments.append(_segment)
+            last_split_idx = marker_idx
+        new_segments.append(last_segment)
+        points_post = sum([len(s.points) for s in new_segments])
+        logger.info(
+            "Inital points %s in 1 segment -> New poinst %s in %s segments",
+            points_pre,
+            points_post,
+            len(new_segments),
+        )
+        track.track.segments = new_segments
+        if submit_type == "preview":
+            logger.debug("Adding segments --- Preview mode")
+            preview_map_plots = []
+            preview_map_datas = []
+            for i in range(len(new_segments)):
+                this_map_data, _ = _get_map_data(track, i)
+                this_map_data.paths[0].color = current_app.config.style.css_colors.info  # type: ignore
+                preview_map_datas.append(this_map_data)
+                slope_colors = current_app.config.style.slope_colors  # type: ignore
+                _fig = get_track_elevation_slope_plot(
+                    track,
+                    segment=i,
+                    color_neutral=slope_colors.neutral,
+                    color_min=slope_colors.min,
+                    color_max=slope_colors.max,
+                    slider=False,
+                )
+                _fig.update_layout(height=400)
+                preview_map_plots.append(
+                    json.dumps(_fig, cls=plotly.utils.PlotlyJSONEncoder)
+                )
+            preview_table = segment_summary(
+                [track.get_segment_overview(i) for i in range(len(new_segments))]
+            )
+        else:
+            logging.info("Adding segemnts to track %s", id_track)
+            if update_track_content(id_track, track.get_xml().encode()):
+                update_track_overview(
+                    id_track,
+                    initialize_overviews(track, id_track),
+                )
+                ride_id = get_ride_for_track(id_track)
+                cache.clear()
+                return redirect(url_for("ride.display", id_ride=ride_id))
+            else:
+                flash("Updating track content failed" "alert-warning")
+
+    return render_template(
+        "segment_track.html",
+        active_page="placeholder",
+        id_track=id_track,
+        map_data=map_data,
+        n_points=n_points,
+        marker_indices="[" + ",".join(map(str, marker_indices)) + "]",
+        save_enabled=save_enabled,
+        preview_table=preview_table,
+        preview_map_plots=preview_map_plots,
+        preview_map_datas=preview_map_datas,
     )

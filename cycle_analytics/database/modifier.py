@@ -1,11 +1,21 @@
+import logging
+from datetime import datetime
 from typing import Literal
 
 from geo_track_analyzer.model import Zones
 from sqlalchemy import select
 
 from ..model.goal import AggregationType
-from .model import DatabaseGoal, DatabaseSegment, DatabaseZoneInterval, TrackOverview
+from .model import (
+    DatabaseGoal,
+    DatabaseSegment,
+    DatabaseTrack,
+    DatabaseZoneInterval,
+    TrackOverview,
+)
 from .model import db as orm_db
+
+logger = logging.getLogger(__name__)
 
 
 def modify_goal_status(id_goal: int, active: bool = True) -> bool:
@@ -102,4 +112,30 @@ def update_zones(zones: Zones, metric: str) -> bool:
     orm_db.session.add_all(new_zones)
 
     orm_db.session.commit()
+    return True
+
+
+def update_track_content(id_track: int, new_content: bytes) -> bool:
+    db_track = orm_db.session.get(DatabaseTrack, id_track)
+    if db_track is None:
+        logger.error("Invalid track id %s", id_track)
+        return False
+    db_track.content = new_content
+    db_track.added = datetime.now()
+    try:
+        orm_db.session.commit()
+    except TypeError:
+        logger.error("Cannot convert %s to binary", new_content)
+        return False
+
+    return True
+
+
+def update_track_overview(id_track: int, new_overviews: list[TrackOverview]) -> bool:
+    overviews = orm_db.session.query(TrackOverview).filter_by(id_track=id_track).all()
+    for overview in overviews:
+        orm_db.session.delete(overview)
+    orm_db.session.add_all(new_overviews)
+    orm_db.session.commit()
+
     return True

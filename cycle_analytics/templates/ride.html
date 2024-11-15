@@ -117,6 +117,24 @@
                                 </svg>
                             </a>
                         </div>
+                        <div class="col-auto">
+                          <a href="{{ url_for('track.trim') }}?track_id={{id_track}}" class="btn btn-warning">
+                            <span>Trim track</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-scissors" viewBox="0 0 16 16">
+                                <path d="M3.5 3.5c-.614-.884-.074-1.962.858-2.5L8 7.226 11.642 1c.932.538 1.472 1.616.858 2.5L8.81 8.61l1.556 2.661a2.5 2.5 0 1 1-.794.637L8 9.73l-1.572 2.177a2.5 2.5 0 1 1-.794-.637L7.19 8.61zm2.5 10a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0m7 0a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0"/>
+                            </svg>
+                          </a>
+                        </div>
+                        {% if segment_table is none %}
+                        <div class="col-auto">
+                          <a href="{{ url_for('track.add_segments', id_track=id_track) }}" class="btn btn-info">
+                            <span>Add segments track</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+                            </svg>
+                          </a>
+                        </div>
+                        {% endif %}
 
                     </div>
                     <div class="visually-hidden" id="track_replace_form">
@@ -451,10 +469,12 @@
 </script>
 {% endif %}
 {% endif %}
-<script src="{{ url_for('static', filename='map_utils.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='map_utils.js') }}"></script>
 
 {% if map_data is not none%}
-<script>
+<script type="module">
+    import {PolyLineData,EventMarker,show_map_with_path_and_markers } from "{{ url_for('static', filename='map_utils.js') }}";
+
     show_map_with_path_and_markers('map',
         [{%for path in map_data.paths %}
     new PolyLineData([{{ path.latitudes }}],

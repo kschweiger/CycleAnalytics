@@ -8,6 +8,7 @@ from sqlalchemy import select
 from cycle_analytics.database.converter import initialize_overviews
 from cycle_analytics.database.model import Bike, DatabaseTrack, Ride, TerrainType
 from cycle_analytics.database.model import db as orm_db
+from cycle_analytics.database.modifier import update_track_content
 from cycle_analytics.database.retriever import get_segments_for_map_in_bounds
 
 
@@ -92,7 +93,7 @@ def test_track_with_segments() -> Track:
     return track
 
 
-@pytest.mark.dependency()
+@pytest.mark.dependency
 def test_initialize_overviews_two_segments(test_track_with_segments: Track) -> None:
     overviews = initialize_overviews(test_track_with_segments, 42)
 
@@ -132,3 +133,51 @@ def test_insert_multi_segment_overview(
 
         orm_db.session.add(test_insert_ride)
         orm_db.session.commit()
+
+
+@pytest.fixture
+def mod_test_track(app: Flask):
+    init_content = "SOME CONTENT"
+    with app.app_context():
+        db_track = DatabaseTrack(
+            content=init_content.encode(),
+            added=datetime.today(),
+            is_enhanced=False,
+        )
+        orm_db.session.add(db_track)
+        orm_db.session.commit()
+        track_id = db_track.id
+    yield track_id, init_content
+
+    with app.app_context():
+        orm_db.session.delete(db_track)
+        orm_db.session.commit()
+
+
+def test_updated_track_content(app: Flask, mod_test_track: tuple[int, str]) -> None:
+    init_content = "SOME CONTENT"
+    db_track_id, init_content = mod_test_track
+    with app.app_context():
+        db_track = orm_db.session.get(DatabaseTrack, db_track_id)
+        assert db_track is not None
+
+        assert update_track_content(db_track.id, b"NEW CONTENT")
+
+        db_track = orm_db.session.get(DatabaseTrack, db_track_id)
+        assert db_track.content.decode() != init_content
+        assert db_track.content.decode() == "NEW CONTENT"
+
+
+def test_updated_track_content_invalid_id(app: Flask) -> None:
+    with app.app_context():
+        assert not update_track_content(4785123645, b"NEW CONTENT")
+
+
+def test_updated_track_content_invalid_value(
+    app: Flask, mod_test_track: tuple[int, str]
+) -> None:
+    db_track_id, _ = mod_test_track
+    with app.app_context():
+        db_track = orm_db.session.get(DatabaseTrack, db_track_id)
+        assert db_track is not None
+        assert not update_track_content(db_track.id, 13873783543517)
