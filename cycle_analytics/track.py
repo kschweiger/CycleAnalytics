@@ -405,8 +405,9 @@ def add_segments(id_track: int) -> str | Response:
             preview_map_datas = []
             for i in range(len(new_segments)):
                 this_map_data, _ = _get_map_data(track, i)
+                this_map_data.paths[0].color = current_app.config.style.css_colors.info  # type: ignore
                 preview_map_datas.append(this_map_data)
-                slope_colors = current_app.config.style.slope_colors
+                slope_colors = current_app.config.style.slope_colors  # type: ignore
                 _fig = get_track_elevation_slope_plot(
                     track,
                     segment=i,
