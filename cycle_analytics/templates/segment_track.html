@@ -33,7 +33,7 @@
         <input id="remove_segment", value="Remove segment" class="btn btn-danger w-100" disabled>
   </div>
   <div class="col">
-        <input id="preview", value="Preview" class="btn btn-secondary w-100">
+        <input id="preview", value="Preview" class="btn btn-info w-100">
   </div>
   <div class="col">
     <input id="save", value="Save" class="btn btn-success w-100" {% if not save_enabled%}disabled{% endif %}>
@@ -42,10 +42,11 @@
 {% if preview_table is not none %}
 <div class="row py-3">
   <div class="col">
-    <div class="p-2 border rounded-3">
-      <h5>Preview</h5>
+    <div class="p-2 border border-info rounded-3">
+      <h5 class="text-info">Preview</h5>
         {% for row in preview_table[1]%}
-        <h6>Segment {{loop.index}}</h6>
+        <h6 class="py-2 pb-2 text-info border-bottom border-info">Segment {{loop.index}}</h6>
+        <div>
         <table class="table mt-3">
             <thead>
                 {% for heading in preview_table[0]%}
@@ -77,6 +78,7 @@
         <div class="mt-3">
         <div id="map_segment_{{loop.index}}" style="height:400px" class="px-1"></div>
         <div id="plot_segment_{{loop.index}}" class="my-3 px-1"></div>
+        </div>
         </div>
         {% endfor %}
     </div>

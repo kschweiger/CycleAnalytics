@@ -334,7 +334,7 @@ def trim() -> str | Response:
             return redirect(url_for("ride.display", id_ride=ride_id))
 
         else:
-            flash("Updating trakc content failed" "alert-warning")
+            flash("Updating track content failed" "alert-warning")
 
     return render_template(
         "trim_track.html",
@@ -354,6 +354,16 @@ def add_segments(id_track: int) -> str | Response:
     db_track = orm_db.get_or_404(DatabaseTrack, id_track)
     track = ByteTrack(db_track.content)
 
+    ride_id = get_ride_for_track(id_track)
+    if len(track.track.segments) > 1:
+        flash(
+            f"Track {ride_id} already has segments. Currently only fully replacing the "
+            "segments is supported. You can append force=1 to the url to overwrite "
+            "this behavior.",
+            "alert-info",
+        )
+        return redirect(url_for("ride.display", id_ride=ride_id))
+
     map_data, n_points = _get_map_data(track)
     marker_indices = [0]
     save_enabled = False
@@ -361,33 +371,36 @@ def add_segments(id_track: int) -> str | Response:
     preview_map_plots = None
     preview_map_datas = None
     if request.method == "POST":
+        save_enabled = True
+
         submit_type = request.form.get("submit_type")
+
         assert submit_type in ["preview", "save"]
         marker_indices = sorted(
             map(int, unwrap(request.form.get("submit_indices")).split(","))
         )
-        save_enabled = True
+
+        track.strip_segements()
+        points_pre = len(track.track.segments[0].points)
+        last_split_idx = 0
+        last_segment = track.track.segments[-1]
+        new_segments = []
+        for marker_idx in marker_indices:
+            split_idx = marker_idx - last_split_idx
+            _segment, last_segment = last_segment.split(split_idx)
+            new_segments.append(_segment)
+            last_split_idx = marker_idx
+        new_segments.append(last_segment)
+        points_post = sum([len(s.points) for s in new_segments])
+        logger.info(
+            "Inital points %s in 1 segment -> New poinst %s in %s segments",
+            points_pre,
+            points_post,
+            len(new_segments),
+        )
+        track.track.segments = new_segments
         if submit_type == "preview":
             logger.debug("Adding segments --- Preview mode")
-            track.strip_segements()
-            points_pre = len(track.track.segments[0].points)
-            last_split_idx = 0
-            last_segment = track.track.segments[-1]
-            new_segments = []
-            for marker_idx in marker_indices:
-                split_idx = marker_idx - last_split_idx
-                _segment, last_segment = last_segment.split(split_idx)
-                new_segments.append(_segment)
-                last_split_idx = marker_idx
-            new_segments.append(last_segment)
-            points_post = sum([len(s.points) for s in new_segments])
-            logger.info(
-                "Inital points %s in 1 segment -> New poinst %s in %s segments",
-                points_pre,
-                points_post,
-                len(new_segments),
-            )
-            track.track.segments = new_segments
             preview_map_plots = []
             preview_map_datas = []
             for i in range(len(new_segments)):
@@ -409,12 +422,18 @@ def add_segments(id_track: int) -> str | Response:
             preview_table = segment_summary(
                 [track.get_segment_overview(i) for i in range(len(new_segments))]
             )
-
         else:
             logging.info("Adding segemnts to track %s", id_track)
-            ride_id = get_ride_for_track(id_track)
-            cache.clear()
-            return redirect(url_for("ride.display", id_ride=ride_id))
+            if update_track_content(id_track, track.get_xml().encode()):
+                update_track_overview(
+                    id_track,
+                    initialize_overviews(track, id_track),
+                )
+                ride_id = get_ride_for_track(id_track)
+                cache.clear()
+                return redirect(url_for("ride.display", id_ride=ride_id))
+            else:
+                flash("Updating track content failed" "alert-warning")
 
     return render_template(
         "segment_track.html",
