@@ -300,7 +300,7 @@ def get_weekly_data_line_plot(
         line_style_dict.update({"color": color})  # type: ignore
     fig.add_trace(
         go.Scatter(
-            x=data.week_number,
+            x=data.index,
             y=y_data,
             mode="lines+markers",
             line=line_style_dict,
@@ -314,13 +314,13 @@ def get_weekly_data_line_plot(
         val_std = y_data.std()
         if y_is_timedelta:
             val_time: pd.Timestamp = val.time()  # type: ignore
-            name = f"Average: {val_time.isoformat(timespec='minutes')} +- {format_timedelta(val_std, up_to="minutes")} {y_unit}"
+            name = f"Average: {val_time.isoformat(timespec='minutes')} +- {format_timedelta(val_std, up_to='minutes')} {y_unit}"
         else:
             name = f"Average: {val:.2f} +- {val_std:.2f} {y_unit}"
 
         fig.add_trace(
             go.Scatter(
-                x=data.week_number,
+                x=data.index,
                 y=[val for _ in range(len(y_data))],
                 mode="lines",
                 line=dict(width=2, color="White"),
@@ -332,7 +332,7 @@ def get_weekly_data_line_plot(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         # title="title",
-        xaxis_title="Weeks",
+        xaxis_title="Week Number",
         yaxis_title=f"{y_title} [{y_unit}]",
         font_color="white",
         margin=dict(l=5, r=5, t=10, b=10, pad=0),
@@ -344,8 +344,14 @@ def get_weekly_data_line_plot(
             x=1,  # Center it at the top
         ),
     )
-
-    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor="Gray", tickmode="linear")
+    fig.update_xaxes(
+        showgrid=True,
+        gridwidth=1,
+        gridcolor="Gray",
+        tickmode="array",
+        ticktext=data.week_number,
+        tickvals=data.index,
+    )
     if y_is_timedelta:
         fig.update_yaxes(tickformat="%H:%M")
     return fig

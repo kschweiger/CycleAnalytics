@@ -5,7 +5,7 @@ services:
       - docker/secrets.env
     command: python -m flask --app cycle_analytics --debug run -p 8543 -h 0.0.0.0
     volumes:
-      - .:/usr/src/app/
+      - ./cycle_analytics/:/home/app/app/cycle_analytics
   redisinsight:
     image: redislabs/redisinsight:latest
     container_name: RedisInsight

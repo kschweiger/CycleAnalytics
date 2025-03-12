@@ -615,7 +615,7 @@ def get_weekly_data(past_weeks: int) -> None | pd.DataFrame:
         WHERE
             week_start > date_trunc('week', CURRENT_DATE - INTERVAL '{past_weeks} weeks'))
     SELECT
-        extract(YEAR FROM week_start) AS year,
+        extract(YEAR FROM week_start + INTERVAL '6 days') AS year,
         extract(WEEK FROM week_start) AS week_number,
         week_start AS week_start_date,
         week_start + INTERVAL '6 days' AS week_end_date
@@ -633,11 +633,12 @@ def get_weekly_data(past_weeks: int) -> None | pd.DataFrame:
     data_stmt = text(
         """
         SELECT
-            twt.week_number, d.distance, d.duration
+            twt.year, twt.week_number, d.distance, d.duration
         FROM
             tmp_week_table twt
             LEFT JOIN (
                 SELECT
+                    date_part('year', ride_date) AS ride_year,
                     date_part('week', ride_date) AS week,
                     sum(ride_duration) as duration,
                     sum(distance) as distance
@@ -651,9 +652,10 @@ def get_weekly_data(past_weeks: int) -> None | pd.DataFrame:
                             tmp_week_table
                         LIMIT 1)
                 GROUP BY
-                    week) d ON d.week = twt.week_number
+                    ride_year, week) d ON d.ride_year = twt.year AND d.week = twt.week_number
         ORDER BY
-            week_number DESC;
+        	twt.year ASC,
+	        twt.week_number ASC;
         """
     )
 
