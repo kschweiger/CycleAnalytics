@@ -19,8 +19,9 @@ from wtforms.validators import DataRequired
 from .database.converter import (
     convert_ride_overview_container_to_df,
 )
-from .database.model import Ride
+from .database.model import Ride, TerrainType
 from .database.retriever import (
+    get_possible_values,
     get_ride_and_latest_track_overview,
     get_ride_years_in_database,
     get_rides_in_timeframe,
@@ -238,7 +239,10 @@ def heatmap() -> str:
     heatmap_plot = None
     year_selected = int(request.args.get("year_selected", date.today().year))
 
-    rides = get_rides_in_timeframe(year_selected)
+    all_ride_types = get_possible_values(TerrainType)
+    rides = get_rides_in_timeframe(
+        year_selected, ride_type=[t for t in all_ride_types if t not in ["Virtual"]]
+    )
 
     datas = []
 

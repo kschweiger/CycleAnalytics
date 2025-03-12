@@ -23,7 +23,7 @@ database_name = "development"
 
 
 [default.categorized_values]
-terrain_types = ["MTB", "Road", "Gravel", "Testing/Setup"]
+terrain_types = ["MTB", "Road", "Gravel", "Testing/Setup", "Virtual"]
 event_types = [
   "Mechanical",
   "Crash",
@@ -81,7 +81,7 @@ info = "#0dcaf0"
 
 [default.adders]
 [default.adders.ride]
-type_choices = ["MTB", "Road", "Gravel", "Testing/Setup"]
+type_choices = ["MTB", "Road", "Gravel","Virtual" ,"Testing/Setup"]
 [default.adders.event]
 type_choices = [
   "Mechanical",
@@ -122,7 +122,7 @@ type_choices = ["Single Trail", "Dirt Track", "Gravel track", "Road", "Track"]
 "Track" = "#0dcaf0"
 
 [default.overview]
-default_types = ["MTB", "Road", "Gravel"]
+default_types = ["MTB", "Road", "Gravel", "Virtual"]
 
 
 [default.landing_page]

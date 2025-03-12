@@ -27,7 +27,7 @@ dependencies = [
   "pydantic>=2,<3",
   "redis>=5,<6",
   "plotly",
-  "geo-track-analyzer",
+  "geo-track-analyzer>=1.6,<2",
   "tldextract",
   "httpx",
   "pandas",
