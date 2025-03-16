@@ -110,7 +110,7 @@ export async function calc_route(csrf_token) {
     show_polyline(map, route);
     let lats = [];
     let lngs = [];
-    for (point of route) {
+    for (let point of route) {
       lats.push(point[0]);
       lngs.push(point[1]);
     }

@@ -173,7 +173,7 @@
 
 {% block body_scripts %}
 <script type="module" src="{{ url_for('static', filename='add_segment.js') }}">
-</<script>
+</script>
 
 <script type="module">
 import {EventMarker} from "{{ url_for('static', filename='map_utils.js') }}";
@@ -234,5 +234,7 @@ sliders.forEach(function (slider, index) {
 
 // Set starting values on page load
 setStartingValues();
+window.setStartingValues = setStartingValues;
 </script>
+
 {%endblock%}
