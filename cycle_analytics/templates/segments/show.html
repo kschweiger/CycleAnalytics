@@ -103,8 +103,8 @@
     Plotly.newPlot("chart", data, layout, config);
 </script>
 {% endif %}
-<script src="{{ url_for('static', filename='map_utils.js') }}"></script>
-<script>
+<script type="module">
+    import {PolyLineData,EventMarker,show_map_with_path_and_markers} from "{{ url_for('static', filename='map_utils.js') }}";
     show_map_with_path_and_markers('map', [new PolyLineData([{{ map_data.paths[0].latitudes }}], [{{ map_data.paths[0].longitudes }}], "{{map_data.paths[0].color}}")], [])
 </script>
 {% endblock %}
