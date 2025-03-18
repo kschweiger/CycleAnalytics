@@ -399,7 +399,7 @@
 
 {% block body_scripts %}
 {% if plot_elevation_and_velocity is not none%}
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
 <script>
     var chart = {{ plot_elevation_and_velocity | safe}};
     var data = chart["data"];

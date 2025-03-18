@@ -101,7 +101,7 @@
 {% endblock %}
 
 {% block body_scripts %}
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
 <script type="module">
   import {initialize} from "{{ url_for('static', filename='segment.js') }}";
   import {PolyLineData } from "{{ url_for('static', filename='map_utils.js') }}";

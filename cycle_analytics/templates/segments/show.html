@@ -94,7 +94,7 @@
 
 {% block body_scripts %}
 {% if plot_elevation is not none%}
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
 <script>
     var chart = {{ plot_elevation | safe}};
     var data = chart["data"];
