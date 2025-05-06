@@ -2,7 +2,7 @@ annotated-types==0.7.0
     # via
     #   -c requirements/prod.txt
     #   pydantic
-anyio==4.8.0
+anyio==4.9.0
     # via
     #   -c requirements/prod.txt
     #   httpx
@@ -12,7 +12,7 @@ bpython==0.25
     # via -r requirements/dev.in
 bracex==2.5.post1
     # via wcmatch
-bump-my-version==1.0.2
+bump-my-version==1.1.1
     # via -r requirements/dev.in
 certifi==2025.1.31
     # via
@@ -44,7 +44,7 @@ exceptiongroup==1.2.2
     #   -c requirements/prod.txt
     #   -c requirements/test.txt
     #   anyio
-filelock==3.17.0
+filelock==3.18.0
     # via
     #   -c requirements/prod.txt
     #   virtualenv
@@ -80,18 +80,18 @@ mypy-extensions==1.0.0
     # via mypy
 nodeenv==1.9.1
     # via pre-commit
-platformdirs==4.3.6
+platformdirs==4.3.7
     # via virtualenv
-pre-commit==4.1.0
+pre-commit==4.2.0
     # via -r requirements/dev.in
 prompt-toolkit==3.0.50
     # via questionary
-pydantic==2.10.6
+pydantic==2.11.3
     # via
     #   -c requirements/prod.txt
     #   bump-my-version
     #   pydantic-settings
-pydantic-core==2.27.2
+pydantic-core==2.33.1
     # via
     #   -c requirements/prod.txt
     #   pydantic
@@ -101,7 +101,7 @@ pygments==2.19.1
     # via
     #   bpython
     #   rich
-python-dotenv==1.0.1
+python-dotenv==1.1.0
     # via pydantic-settings
 pyxdg==0.28
     # via bpython
@@ -113,13 +113,13 @@ requests==2.32.3
     # via
     #   -c requirements/prod.txt
     #   bpython
-rich==13.9.4
+rich==14.0.0
     # via
     #   bump-my-version
     #   rich-click
 rich-click==1.8.8
     # via bump-my-version
-ruff==0.9.10
+ruff==0.11.4
     # via -r requirements/dev.in
 six==1.17.0
     # via
@@ -136,7 +136,7 @@ tomli==2.2.1
     #   mypy
 tomlkit==0.13.2
     # via bump-my-version
-typing-extensions==4.12.2
+typing-extensions==4.13.1
     # via
     #   -c requirements/prod.txt
     #   anyio
@@ -146,13 +146,18 @@ typing-extensions==4.12.2
     #   pydantic-core
     #   rich
     #   rich-click
+    #   typing-inspection
+typing-inspection==0.4.0
+    # via
+    #   -c requirements/prod.txt
+    #   pydantic
 urllib3==2.3.0
     # via
     #   -c requirements/prod.txt
     #   requests
-uv==0.6.6
+uv==0.6.13
     # via -r requirements/dev.in
-virtualenv==20.29.3
+virtualenv==20.30.0
     # via pre-commit
 wcmatch==10.0
     # via bump-my-version

@@ -398,8 +398,8 @@
 {% endblock %}
 
 {% block body_scripts %}
-{% if plot_elevation_and_velocity is not none%}
 <script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
+{% if plot_elevation_and_velocity is not none%}
 <script>
     var chart = {{ plot_elevation_and_velocity | safe}};
     var data = chart["data"];
@@ -441,6 +441,7 @@
     Plotly.newPlot("power_plot", data, layout, config);
 </script>
 {% endif %}
+{% endif %}
 {% if heartrate_zone_summary_plot is not none %}
 <script>
     var chart = {{ heartrate_zone_summary_plot  | safe}};
@@ -467,7 +468,6 @@
     var config = { displayModeBar: false, responsive: true, width: 5 };
     Plotly.newPlot("cadence_zone_summary_plot", data, layout, config);
 </script>
-{% endif %}
 {% endif %}
 <script type="module" src="{{ url_for('static', filename='map_utils.js') }}"></script>
 

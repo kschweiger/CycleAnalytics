@@ -77,6 +77,8 @@ def display(id_ride: int) -> str | Response:
 
     ride = orm_db.get_or_404(Ride, id_ride)
 
+    is_virtual = ride.terrain_type.text.lower() == "virtual"
+    logger.debug("Is virtual: %s", is_virtual)
     raw_form_processed = False
     show_all_segments_clicked = False
     modify_segments_clicked = False
@@ -274,33 +276,40 @@ def display(id_ride: int) -> str | Response:
             longs = ",".join([str(l) for l in longs])  # noqa: E741
             paths = [MapPathData(latitudes=lats, longitudes=longs)]
 
-        map_data = MapData(paths=paths)
+        map_data = None if is_virtual else MapData(paths=paths)
 
-        plot2d = get_track_elevation_plot(
-            track,
-            not track_segment_data.speed.isna().all(),
-            segment=None if not visualize_segments else plot_segments,
-            color_elevation=colors[0],
-            color_velocity=colors[1],
-            slider=True,
-            show_segment_borders=visualize_segments and plot_segments is not None,
-        )
-
-        plot_elevation_and_velocity = json.dumps(
-            plot2d, cls=plotly.utils.PlotlyJSONEncoder
-        )
+        try:
+            plot2d = get_track_elevation_plot(
+                track,
+                not track_segment_data.speed.isna().all(),
+                segment=None if not visualize_segments else plot_segments,
+                color_elevation=colors[0],
+                color_velocity=colors[1],
+                slider=True,
+                show_segment_borders=visualize_segments and plot_segments is not None,
+            )
+        except VisualizationSetupError:
+            plot_elevation_and_velocity = None
+        else:
+            plot_elevation_and_velocity = json.dumps(
+                plot2d, cls=plotly.utils.PlotlyJSONEncoder
+            )
 
         slope_colors = current_app.config.style.slope_colors
-        slope_figure = get_track_elevation_slope_plot(
-            track=track,
-            color_neutral=slope_colors.neutral,
-            color_min=slope_colors.min,
-            color_max=slope_colors.max,
-            slider=True,
-            segment=None if not visualize_segments else plot_segments,
-            show_segment_borders=visualize_segments and plot_segments is not None,
-        )
-        slope_plot = json.dumps(slope_figure, cls=plotly.utils.PlotlyJSONEncoder)
+        try:
+            slope_figure = get_track_elevation_slope_plot(
+                track=track,
+                color_neutral=slope_colors.neutral,
+                color_min=slope_colors.min,
+                color_max=slope_colors.max,
+                slider=True,
+                segment=None if not visualize_segments else plot_segments,
+                show_segment_borders=visualize_segments and plot_segments is not None,
+            )
+        except VisualizationSetupError:
+            slope_plot = None
+        else:
+            slope_plot = json.dumps(slope_figure, cls=plotly.utils.PlotlyJSONEncoder)
 
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         try:

@@ -1,4 +1,4 @@
-coverage==7.6.12
+coverage==7.8.0
     # via pytest-cov
 exceptiongroup==1.2.2
     # via
@@ -7,7 +7,7 @@ exceptiongroup==1.2.2
     #   pytest
 freezegun==1.5.1
     # via -r requirements/test.in
-iniconfig==2.0.0
+iniconfig==2.1.0
     # via pytest
 packaging==24.2
     # via
@@ -23,7 +23,7 @@ pytest==8.3.5
     #   pytest-dependency
     #   pytest-mock
     #   pytest-sugar
-pytest-cov==6.0.0
+pytest-cov==6.1.1
     # via -r requirements/test.in
 pytest-dependency==0.6.0
     # via -r requirements/test.in
@@ -35,14 +35,14 @@ python-dateutil==2.9.0.post0
     # via
     #   -c requirements/prod.txt
     #   freezegun
-setuptools==76.0.0
+setuptools==78.1.0
     # via pytest-dependency
 six==1.17.0
     # via
     #   -c requirements/dev.txt
     #   -c requirements/prod.txt
     #   python-dateutil
-termcolor==2.5.0
+termcolor==3.0.1
     # via pytest-sugar
 tomli==2.2.1
     # via
